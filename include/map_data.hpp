@@ -1,0 +1,54 @@
+#ifndef MAP_DATA_HPP
+#define MAP_DATA_HPP
+
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <map>
+#include <vector>
+
+using namespace std;
+
+struct Map{
+    int px_width, px_height;
+    float resolution, m_width, m_height;
+    int** boundaries;
+};
+
+class Graph {
+    public:    
+        vector<pair<int, int>> get_edges(pair<int, int> parent){
+            try{
+                return g[parent];
+            }
+            catch(const std::out_of_range& oor){
+                return vector<pair<int, int>>();
+            }
+        }
+
+        void add_edge(pair<int, int> parent, pair<int, int> child){
+            g[parent].push_back(child);
+        }
+
+    private:
+        // Pair := (y, x)
+        map<pair<int, int>, vector<pair<int, int>>> g;
+};
+
+class MapData {
+    public:
+        static Map parse_pgm(string fp);
+        static int** inflate_boundary(Map map, int buffer_size);
+        static void print_boundary(int** b, int width, int height);
+        static Graph get_graph_from_map(Map map);
+
+        //Conversions
+        static pair<int, int> POSE2PIXEL(Map map, float x, float y);
+        static pair<float, float> PIXEL2POSE(Map map, pair<int, int> px);
+
+    private:
+        static void inflate_pixel(int** nb, int width, int height, int j, int i, int buffer_size);
+};
+
+#endif // MAP_DATA_HPP

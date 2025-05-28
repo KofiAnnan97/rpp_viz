@@ -1,0 +1,10 @@
+# Build
+CMakeFiles/
+*.cmake
+Makefile
+CMakeCache.txt
+
+# Executable
+*.o
+*.exe
+tester

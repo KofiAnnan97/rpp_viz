@@ -1,2 +1,7 @@
-# rpp_viz
+# Robot Path Planning Visualizer
 A tool designed to provide a test ground for new path planning strategies for robots using ROS.
+
+## Maps
+
+## Algorithms
+A-Star 
