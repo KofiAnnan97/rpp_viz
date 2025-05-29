@@ -11,7 +11,7 @@ class AStar{
     public:
         AStar(Graph g);
         void solve(pair<int, int> sp, pair<int, int> ep);
-        pair<vector<pair<int,int>>, float> reconstruct_path();
+        pair<vector<pair<int,int>>, float> reconstruct_path(pair<int, int> sp, pair<int, int> ep);
         void print_map(string name, map<pair<int, int>, float> map);
 
     private:

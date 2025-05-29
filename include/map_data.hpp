@@ -45,9 +45,11 @@ class Graph {
 class MapData {
     public:
         static Map parse_pgm(string fp);
-        static int** inflate_boundary(Map map, int buffer_size);
-        static void print_boundary(int** b, int width, int height);
+        static int** copy_boundaries(Map m);
+        static int** inflate_boundaries(Map map, int buffer_size);
+        static Map add_path_to_map(Map m, vector<pair<int, int>> path);
         static Graph get_graph_from_map(Map map);
+        static void print_boundary(int** b, int width, int height);
 
         //Conversions
         static pair<int, int> POSE2PIXEL(Map map, float x, float y);

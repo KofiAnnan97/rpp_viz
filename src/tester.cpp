@@ -6,7 +6,7 @@ using namespace std::chrono;
 
 void test_map_data(){
     auto map_data = MapData::parse_pgm("./maps/test.pgm");
-    map_data.boundaries = MapData::inflate_boundary(map_data, 3);
+    map_data.boundaries = MapData::inflate_boundaries(map_data, 3);
     MapData::print_boundary(map_data.boundaries, map_data.px_width, map_data.px_height);
 
     auto g = MapData::get_graph_from_map(map_data);
@@ -20,10 +20,15 @@ void test_map_data(){
     std::cout << "\n";
 }
 
-Graph get_map_data(){
-    auto map_data = MapData::parse_pgm("./maps/map.pgm");
-    map_data.boundaries = MapData::inflate_boundary(map_data, 3);
-    auto g = MapData::get_graph_from_map(map_data);
+Map get_map_data(){
+    auto map_data = MapData::parse_pgm("./maps/test.pgm");
+    //cout << "Map Dim. | W: " << map_data.px_width << ", H: " << map_data.px_height << endl;
+    return map_data;
+}
+
+Graph get_graph_data(Map &m){
+    m.boundaries = MapData::inflate_boundaries(m, 3);
+    auto g = MapData::get_graph_from_map(m);
     return g;
 }
 
@@ -49,11 +54,11 @@ Graph simple_data(){
     return g;
 }
 
-void test_a_star(Graph g){
+void test_a_star(Map &m, Graph g){
     std::cout << "A-STAR" << std::endl;
 
     g.root = {100, 50};
-    g.end = {300, 360};
+    g.end = {381, 360}; //{290, 75};
     auto as = AStar(g);
 
     auto start_time = high_resolution_clock::now();
@@ -62,20 +67,25 @@ void test_a_star(Graph g){
     auto duration = duration_cast<milliseconds>(end_time- start_time);
     std::cout << "Elapsed Time: " << duration.count() << " ms\n";
 
-    auto results = as.reconstruct_path();
+    auto results = as.reconstruct_path(g.root, g.end);
     vector<pair<int, int>> path = results.first;
     float dist = results.second;
-    std::cout << "Path: [";
+    cout << "# of Nodes: " << path.size() << endl;
+    /*std::cout << "Path: [";
     for(auto p: path){
         std::cout << "(" << p.first << "," << p.second << "), ";
     }
-    std::cout << "]\n";
+    std::cout << "]\n";*/
     std::cout << "Distance: " << dist << std::endl;
+    Map nm = MapData::add_path_to_map(m, path);
+    //MapData::print_boundary(nm.boundaries, nm.px_width, nm.px_height);
 }
 
 int main(){
     //test_map_data();
     //auto g = simple_data();
-    auto g = get_map_data();
-    test_a_star(g);
+    //Map m;
+    auto m = get_map_data();
+    auto g = get_graph_data(m);
+    test_a_star(m, g);
 }

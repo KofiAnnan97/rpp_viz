@@ -1,4 +1,6 @@
 #include "map_data.hpp"
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
 
 Map MapData::parse_pgm(string fp){
     Map data;
@@ -39,6 +41,17 @@ Map MapData::parse_pgm(string fp){
     return data;
 }
 
+int** MapData::copy_boundaries(Map map){
+    int** new_boundaries = new int*[map.px_height];
+    for(int k = 0; k < map.px_height; k++) new_boundaries[k] = new int[map.px_width];
+    for(int row = 0; row < map.px_height; row++){
+        for(int col = 0; col < map.px_width; col++){
+            new_boundaries[row][col] = map.boundaries[row][col];
+        }
+    }
+    return new_boundaries;
+}
+
 void MapData::inflate_pixel(int** nb, int width, int height, int j, int i, int buffer_size){
     int dx = buffer_size/2;
     int dy = buffer_size/2;
@@ -54,10 +67,9 @@ void MapData::inflate_pixel(int** nb, int width, int height, int j, int i, int b
     }    
 }
 
-int** MapData::inflate_boundary(Map map, int buffer_size){
+int** MapData::inflate_boundaries(Map map, int buffer_size){
     // Allocate new boundary
-    int** new_boundaries = new int*[map.px_height];
-    for(int k = 0; k < map.px_height; k++) new_boundaries[k] = new int[map.px_width];
+    int** new_boundaries = MapData::copy_boundaries(map);
      
     // Expand boundary based on buffer size
     for(int row = 0; row <= map.px_height-1; row++){
@@ -67,7 +79,6 @@ int** MapData::inflate_boundary(Map map, int buffer_size){
             }
         }
     }
-    //print_boundary(new_boundaries, map.px_width, map.px_height);
 
     //De-allocate old boundaries
     for(int l = 0; l < map.px_height; l++) delete map.boundaries[l];
@@ -76,16 +87,16 @@ int** MapData::inflate_boundary(Map map, int buffer_size){
     return new_boundaries;
 }
 
-void MapData::print_boundary(int** b, int width, int height){
-    cout << "[\n";
-    for(int row = 0; row < height; row++){
-        cout << "[";
-        for(int col = 0; col < width; col++){
-            cout << b[row][col] << ",";
-        }
-        cout << "]\n";
-    }
-    cout << "]\n";
+Map MapData::add_path_to_map(Map map, vector<pair<int, int>> path){
+    Map new_map;
+    new_map.px_height = map.px_height;
+    new_map.px_width = map.px_width;
+    new_map.m_height = map.m_height;
+    new_map.m_width = map.m_width;
+    new_map.resolution = map.resolution;
+    new_map.boundaries = MapData::copy_boundaries(map);
+    for(auto p: path) new_map.boundaries[p.first][p.second] = 1;
+    return new_map;
 }
 
 Graph MapData::get_graph_from_map(Map map){
@@ -130,6 +141,18 @@ Graph MapData::get_graph_from_map(Map map){
         }
     }
     return graph;
+}
+
+void MapData::print_boundary(int** b, int width, int height){
+    cout << "[\n";
+    for(int row = 0; row < height; row++){
+        cout << row << ": [";
+        for(int col = 0; col < width; col++){
+            cout << b[row][col] << ",";
+        }
+        cout << "]\n";
+    }
+    cout << "]\n";
 }
 
 pair<int, int> MapData::POSE2PIXEL(Map map, float x, float y){
