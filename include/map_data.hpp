@@ -16,24 +16,30 @@ struct Map{
     int** boundaries;
 };
 
+// Change this class to use unordered_map (requires default constructor)
 class Graph {
     public:    
-        vector<pair<int, int>> get_edges(pair<int, int> parent){
+        // Pair := (y, x)
+        map<pair<int, int>, vector<pair<pair<int, int>, int>>> g;
+        pair<int,int> root = {0, 0};
+        pair<int,int> end = {0, 0};
+
+        vector<pair<pair<int, int>, int>> get_edges(pair<int, int> parent){
             try{
                 return g[parent];
             }
             catch(const std::out_of_range& oor){
-                return vector<pair<int, int>>();
+                return vector<pair<pair<int, int>, int>>();
             }
         }
 
-        void add_edge(pair<int, int> parent, pair<int, int> child){
-            g[parent].push_back(child);
+        void add_node(pair<int, int> node){
+            g[node] = vector<pair<pair<int, int>, int>>();
         }
 
-    private:
-        // Pair := (y, x)
-        map<pair<int, int>, vector<pair<int, int>>> g;
+        void add_edge(pair<int, int> parent, pair<int, int> child, int weight){
+            g[parent].push_back({child, weight});
+        }
 };
 
 class MapData {

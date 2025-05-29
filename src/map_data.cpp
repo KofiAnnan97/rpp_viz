@@ -96,35 +96,35 @@ Graph MapData::get_graph_from_map(Map map){
                 auto curr = pair<int, int>{row, col};
                 // Up
                 if(row > 0 && map.boundaries[row-1][col] == 0){
-                    graph.add_edge(curr, pair<int, int>{row-1, col});  
+                    graph.add_edge(curr, pair<int, int>{row-1, col}, 1);  
                 }
                 // Down
                 if (row < map.px_height - 1 && map.boundaries[row+1][col] == 0){
-                    graph.add_edge(curr, pair<int, int>{row+1, col});
+                    graph.add_edge(curr, pair<int, int>{row+1, col}, 1);
                 }
                 // Left 
                 if(col > 0 && map.boundaries[row][col-1] == 0){
-                    graph.add_edge(curr, pair<int, int>{row, col-1});
+                    graph.add_edge(curr, pair<int, int>{row, col-1}, 1);
                 }
                 // Right
                 if(col < map.px_width - 1 && map.boundaries[row][col+1] == 0){
-                    graph.add_edge(curr, pair<int, int>{row, col+1});
+                    graph.add_edge(curr, pair<int, int>{row, col+1}, 1);
                 }
                 // Up-Left
                 if(row > 0 && col > 0 && map.boundaries[row-1][col-1] == 0){
-                    graph.add_edge(curr, pair<int, int>{row-1, col-1});
+                    graph.add_edge(curr, pair<int, int>{row-1, col-1}, 2);
                 }
                 // Up-Right
                 if(row > 0 && col < map.px_width -1 && map.boundaries[row-1][col+1] == 0){
-                    graph.add_edge(curr, pair<int, int>{row-1, col+1});
+                    graph.add_edge(curr, pair<int, int>{row-1, col+1}, 2);
                 }
                 // Down-Left
                 if(row < map.px_height - 1 && col > 0 && map.boundaries[row+1][col-1] == 0){
-                    graph.add_edge(curr, pair<int, int>{row+1, col-1});
+                    graph.add_edge(curr, pair<int, int>{row+1, col-1}, 2);
                 }
                 // Down-Right
                 if(row < map.px_height - 1 && col < map.px_width -1 && map.boundaries[row+1][col+1] == 0){
-                    graph.add_edge(curr, pair<int, int>{row+1, col+1});
+                    graph.add_edge(curr, pair<int, int>{row+1, col+1}, 2);
                 }
             }
         }
