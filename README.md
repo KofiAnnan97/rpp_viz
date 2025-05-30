@@ -3,5 +3,6 @@ A tool designed to provide a test ground for new path planning strategies for ro
 
 ## Maps
 
-## Algorithms
-A-Star 
+## Algorithms Tested
+- BFS
+- A-Star 

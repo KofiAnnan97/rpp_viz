@@ -1,5 +1,5 @@
-#include "map_data.hpp"
 #include "a_star.hpp"
+#include "bfs.hpp"
 #include <chrono>
 #include <iomanip>
 
@@ -81,8 +81,6 @@ void test_a_star_simple(Graph g){
 
 void test_a_star(Map &m, Graph g){
     std::cout << "A-STAR" << std::endl;
-    g.root = {100, 50};
-    g.end = {381, 360};
     auto as = AStar(g);
     
     auto start_time = high_resolution_clock::now();
@@ -109,6 +107,34 @@ void test_a_star(Map &m, Graph g){
     //MapData::print_boundary(nm.boundaries, nm.px_width, nm.px_height);
 }
 
+void test_bfs(Map &m, Graph g){
+    std::cout << "BFS" << std::endl;
+    auto bfs = BFS(g);
+    
+    auto start_time = high_resolution_clock::now();
+    auto s_t = std::chrono::system_clock::to_time_t(start_time);
+    cout << "Start Time: " << std::put_time(std::localtime(&s_t), "%F %T\n") << std::flush; 
+    bfs.solve(g.root, g.end);
+    auto end_time = high_resolution_clock::now();
+    auto e_t = std::chrono::system_clock::to_time_t(end_time);
+    cout << "End Time: " << std::put_time(std::localtime(&e_t), "%F %T\n") << std::flush;
+    auto duration = duration_cast<milliseconds>(end_time- start_time);
+    std::cout << "Elapsed Time: " << duration.count() << " ms\n";
+
+    auto results = bfs.reconstruct_path(g.root, g.end);
+    vector<pair<int, int>> path = results.first;
+    float dist = results.second;
+    cout << "# of Nodes: " << path.size() << endl;
+    /*std::cout << "Path: [";
+    for(auto p: path){
+        std::cout << "(" << p.first << "," << p.second << "), ";
+    }
+    std::cout << "]\n";*/
+    std::cout << "Distance: " << dist << std::endl;
+    //Map nm = MapData::add_path_to_map(m, path);
+    //MapData::print_boundary(nm.boundaries, nm.px_width, nm.px_height);
+}
+
 int main(){
     // Test Data retrieval from PGM file
     /*test_map_data();*/
@@ -117,8 +143,15 @@ int main(){
     //auto g = simple_data();
     //test_a_star_simple(g);
 
-    // Test A-Star algorithm (using Map)
+    // Retrieve map data and set create graph
     auto m = get_map_data();
     auto g = get_graph_data(m);
+    g.root = {100, 50};
+    g.end = {381, 360};
+
+    // Test A-Star algorithm (using Map)
     test_a_star(m, g);
+
+    // Test BFS algorithm (using Map)
+    test_bfs(m, g);
 }

@@ -7,6 +7,8 @@ include_directories(include)
 set(PATH_PLANNING_SOURCES
     src/a_star.cpp
     include/a_star.hpp
+    src/bfs.cpp
+    include/bfs.hpp
 )
 
 add_executable(tester
