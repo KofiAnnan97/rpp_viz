@@ -5,7 +5,7 @@ AStar::AStar(Graph g){
     for(auto it = tree.g.begin(); it != tree.g.end(); ++it){
         dist[it->first] = std::numeric_limits<float>::infinity();
         h[it->first] = euclidean_heuristic(it->first, tree.end);
-        f[it->first] = get_f_score(it->first);
+        //f[it->first] = get_f_score(it->first);
     }
 }
 
@@ -27,8 +27,8 @@ void AStar::solve(pair<int, int> sp, pair<int, int> ep){
     f[sp] = AStar::get_f_score(sp);
     vector<pair<int,int>> open_set;
     open_set.push_back(sp);
-    int kill_idx = 0;
-    while(!open_set.empty() && kill_idx < tree.get_size()){
+    int kill_count = 0;
+    while(!open_set.empty() && kill_count < tree.get_size()){
         pair<int,int> curr = get_min_f(open_set);
         if(curr == tree.end) break;
         auto children = tree.get_edges(curr);
@@ -41,24 +41,18 @@ void AStar::solve(pair<int, int> sp, pair<int, int> ep){
                 f[cp] = new_cost;
                 dist[cp] = new_dist;
                 parent_node[cp] = curr; 
-                if(not_in_set(open_set, cp)){
-                    open_set.push_back(cp);
-                } 
+                if(not_in_set(open_set, cp)) open_set.push_back(cp);
             } 
         }
-        kill_idx++;
+        kill_count++;
     }
 }
 
 bool AStar::not_in_set(vector<pair<int,int>> open_set, pair<int,int> p){
-    bool not_present = true;
     for(auto n : open_set){
-        if(n == p){
-            not_present = false;
-            break;
-        }
+        if(n == p) return false;
     }
-    return not_present;
+    return true;
 }
 
 pair<int,int> AStar::get_min_f(vector<pair<int,int>> &s){

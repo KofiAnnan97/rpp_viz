@@ -2,9 +2,7 @@
 #define A_STAR_HPP
 
 #include <limits>
-#include <queue>
 #include <cmath>
-#include <map>
 #include "map_data.hpp"
 
 class AStar{
