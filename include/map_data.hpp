@@ -7,12 +7,13 @@
 #include <sstream>
 #include <map>
 #include <vector>
+#include <filesystem>
 
 using namespace std;
 
 struct Map{
     int px_width, px_height;
-    float resolution, m_width, m_height;
+    float resolution, m_width, m_height; // in meters
     int** boundaries;
 };
 
@@ -48,7 +49,7 @@ class Graph {
 
 class MapData {
     public:
-        static Map parse_pgm(string fp);
+        static Map get_map(string yp);
         static int** copy_boundaries(Map m);
         static int** inflate_boundaries(Map map, int buffer_size);
         static Map add_path_to_map(Map m, vector<pair<int, int>> path);
@@ -60,6 +61,7 @@ class MapData {
         static pair<float, float> PIXEL2POSE(Map map, pair<int, int> px);
 
     private:
+        static Map parse_pgm(string fp);
         static void inflate_pixel(int** nb, int width, int height, int j, int i, int buffer_size);
 };
 

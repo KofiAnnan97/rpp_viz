@@ -6,7 +6,8 @@
 using namespace std::chrono;
 
 void test_map_data(){
-    auto map_data = MapData::parse_pgm("./maps/test.pgm");
+    Map map_data = MapData::get_map("./maps/test.yaml");
+    //auto map_data = MapData::parse_pgm("./maps/test.pgm");
     map_data.boundaries = MapData::inflate_boundaries(map_data, 3);
     MapData::print_boundary(map_data.boundaries, map_data.px_width, map_data.px_height);
 
@@ -19,12 +20,8 @@ void test_map_data(){
         std::cout << "(" << e.first.first << ", " << e.first.second << ")[Cost: " << e.second << "] ";
     }
     std::cout << "\n";
-}
-
-Map get_map_data(){
-    auto map_data = MapData::parse_pgm("./maps/test.pgm");
-    //cout << "Map Dim. | W: " << map_data.px_width << ", H: " << map_data.px_height << endl;
-    return map_data;
+    cout << "Height (m): " << map_data.m_height << endl;
+    cout << "Width (m): " << map_data.m_width << endl;
 }
 
 Graph get_graph_data(Map &m){
@@ -137,14 +134,14 @@ void test_bfs(Map &m, Graph g){
 
 int main(){
     // Test Data retrieval from PGM file
-    /*test_map_data();*/
+    //test_map_data();
 
     // Test A-star algorithm (Simple Data)
     //auto g = simple_data();
     //test_a_star_simple(g);
 
     // Retrieve map data and set create graph
-    auto m = get_map_data();
+    auto m = MapData::get_map("./maps/test.yaml");
     auto g = get_graph_data(m);
     g.root = {100, 50};
     g.end = {381, 360};

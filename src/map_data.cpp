@@ -2,6 +2,76 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui.hpp>
 
+Map MapData::get_map(string yp){
+    fstream yaml_file;
+    yaml_file.open(yp, ios::in);
+    if(yaml_file.is_open()){
+        char yaml_delim = ':';
+        string line, word, image, mode;
+        float resolution, negate, occupied_thresh, free_thresh;
+        vector<float> origin; 
+        while(getline(yaml_file, line)){
+            if(line[0] == '#') getline(yaml_file, line);
+            stringstream ss(line);
+            getline(ss, word, yaml_delim);
+            if(word == "image"){
+                getline(ss, word, yaml_delim);
+                image = word[0] == ' ' ? word.substr(1, word.size()-1) : word;
+            }
+            else if(word == "mode"){
+                getline(ss, word, yaml_delim);
+                mode = word[0] == ' ' ? word.substr(1, word.size()-1) : word;
+            }
+            else if(word == "resolution"){
+                getline(ss, word, yaml_delim);
+                resolution = stof(word);
+            }
+            else if(word == "origin"){
+                getline(ss, word, yaml_delim);
+                string origin_str = word[0] == ' ' ? word.substr(2, word.size()-2) : word.substr(1, word.size()-2);
+                stringstream oss(origin_str);
+                string val;
+                while(getline(oss, val, ',')) origin.push_back(stof(val));
+            }
+            else if(word == "negate"){
+                getline(ss, word, yaml_delim);
+                negate = stof(word);
+            }
+            else if(word == "occupied_thresh"){
+                getline(ss, word, yaml_delim);
+                occupied_thresh = stof(word);
+            }
+            else if(word == "free_thresh"){
+                getline(ss, word, yaml_delim);
+                free_thresh = stof(word);
+            }
+            else cout << word << "is not an accepted keyword." << endl;
+        }
+        /*cout << "Image: " << image << endl;
+        cout << "Mode: " << mode << endl;
+        cout << "Resoultion: " << resolution << endl;
+        cout << "Origin: [";
+        for(auto o: origin) cout << o << ",";
+        cout << "]\n";
+        cout << "Negate: " << negate << endl;
+        cout << "Occupied Threshold: " << occupied_thresh << endl;
+        cout << "Free Threshold: " << free_thresh << endl;*/
+        std::filesystem::path yaml_path = yp;
+        auto image_path = yaml_path.parent_path() / image;
+        string fp = image_path.string();
+        Map map = MapData::parse_pgm(fp);    
+        map.m_height = origin[0] > 0 ? origin[0]*2 : origin[0]*-2;
+        map.m_width = origin[1] > 0 ? origin[1]*2 : origin[1]*-2;
+        map.resolution = resolution;
+        return map;
+    }
+    else{
+        cout << "Could not find file: " << yp << endl;
+        Map temp;
+        return temp;
+    }
+}
+
 Map MapData::parse_pgm(string fp){
     Map data;
     fstream map_input;
