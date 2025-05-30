@@ -16,16 +16,15 @@ class AStar{
 
     private:
         float get_f_score(pair<int, int> p);
-        float get_distance(pair<int, int> a, pair<int, int> b);
-        int get_max_idx_by_f_score(queue<pair<int, int>> &q, int s_idx);
-        void insert_max_to_rear(queue<pair<int, int>> &q, int min_idx);
-        void sort_queue(queue<pair<int, int>> &q);
+        float euclidean_heuristic(pair<int, int> a, pair<int, int> b);
+        bool not_in_set(vector<pair<int,int>> open_set, pair<int,int> p);
+        pair<int,int> get_min_f(vector<pair<int,int>> &s);
         Graph tree;
-        map <pair<int,int>, float> dist;
-        map <pair<int, int>, float> h;
-        map <pair<int, int>, float> f;
-        queue<pair<int,int>> q;
-        map <pair<int, int>, pair<int, int>> via;
+        map<pair<int,int>, float> dist;
+        map<pair<int,int>, float> h;
+        map<pair<int,int>, float> f;
+        map<pair<int,int>, pair<int,int>> parent_node;
+        
 };
 
 #endif // A_STAR_HPP

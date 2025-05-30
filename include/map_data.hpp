@@ -40,6 +40,10 @@ class Graph {
         void add_edge(pair<int, int> parent, pair<int, int> child, int weight){
             g[parent].push_back({child, weight});
         }
+
+        int get_size(){
+            return g.size();
+        }
 };
 
 class MapData {

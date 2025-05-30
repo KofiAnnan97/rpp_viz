@@ -3,10 +3,9 @@
 AStar::AStar(Graph g){
     tree = g;
     for(auto it = tree.g.begin(); it != tree.g.end(); ++it){
-        dist[it->first] = std::numeric_limits<int>::max();
-        h[it->first] = get_distance(it->first, tree.end);
-        f[it->first] = 0;
-        q.push(it->first);
+        dist[it->first] = std::numeric_limits<float>::infinity();
+        h[it->first] = euclidean_heuristic(it->first, tree.end);
+        f[it->first] = get_f_score(it->first);
     }
 }
 
@@ -15,7 +14,7 @@ pair<vector<pair<int,int>>, float> AStar::reconstruct_path(pair<int, int> sp, pa
     if(sp != ep) data.first.push_back(ep);
     auto curr = ep;
     while(curr != sp){
-        curr = via[curr];
+        curr = parent_node[curr];
         if(curr == pair<int, int>{0, 0}) break; // Stop infinite loop if path not found
         data.first.insert(data.first.begin(), curr);
     }
@@ -26,28 +25,13 @@ pair<vector<pair<int,int>>, float> AStar::reconstruct_path(pair<int, int> sp, pa
 void AStar::solve(pair<int, int> sp, pair<int, int> ep){
     dist[sp] = 0;
     f[sp] = AStar::get_f_score(sp);
-    while(!q.empty()){
-        //AStar::sort_queue(q);
-        /*int n = q.size();
-        std::cout << "Queue(" << q.size() << "): [ ";
-        for (int i = 0; i < n; i++){
-            auto node = q.front();
-            std::cout << "(" << node.first << "," << node.second << "){"<<f[node]<<"} ";
-            q.pop();
-            q.push(node);
-        }
-        std::cout << "]\n";*/
-        //print_map("F", f);
-        pair<int, int> curr = q.front();
-        q.pop();
+    vector<pair<int,int>> open_set;
+    open_set.push_back(sp);
+    int kill_idx = 0;
+    while(!open_set.empty() && kill_idx < tree.get_size()){
+        pair<int,int> curr = get_min_f(open_set);
         if(curr == tree.end) break;
-        //print_map("Distances:", dist);
         auto children = tree.get_edges(curr);
-        /*cout << "(" << curr.first << ", " << curr.second << ") => Children: "; 
-        for(auto c: children){
-            std::cout << "(" << c.first.first << ", " << c.first.second << ") ";
-        }
-        std::cout << "\n";*/
         for(auto c : children){
             auto cp = c.first;
             auto w = c.second;
@@ -56,59 +40,50 @@ void AStar::solve(pair<int, int> sp, pair<int, int> ep){
             if(new_cost < AStar::get_f_score(cp)){
                 f[cp] = new_cost;
                 dist[cp] = new_dist;
-                via[cp] = curr;  
+                parent_node[cp] = curr; 
+                if(not_in_set(open_set, cp)){
+                    open_set.push_back(cp);
+                } 
             } 
         }
+        kill_idx++;
     }
-    /*for(auto it = via.begin(); it != via.end(); ++it){
-        std::cout << "(" << it->second.first << ", " << it->second.second << ") => ("<< it->first.first << ", " << it->first.second << ")\n";
-    }*/
 }
 
-int AStar::get_max_idx_by_f_score(queue<pair<int, int>> &q, int s_idx){
-    int max_idx = 0; // This being at -1 causes new pairs to be added to queue
-    int max_f_score = std::numeric_limits<int>::min();
-    int n = q.size();
-    for (int i=0; i < n; i++){
-        auto node = q.front();
-        //cout << node.first << ","<< node.second << endl;
-        q.pop();  
-        int f_score = get_f_score(node);
-        //cout << "F score: " << f_score << endl;
-        if (f_score >= max_f_score && i <= s_idx){
-            max_idx = i;
-            max_f_score = f_score;
+bool AStar::not_in_set(vector<pair<int,int>> open_set, pair<int,int> p){
+    bool not_present = true;
+    for(auto n : open_set){
+        if(n == p){
+            not_present = false;
+            break;
         }
-        q.push(node);
     }
-    return max_idx;
+    return not_present;
 }
 
-void AStar::insert_max_to_rear(queue<pair<int, int>> &q, int max_idx){
-    pair<int, int> max_node;
-    int n = q.size();
-    for (int i = 0; i < n; i++){
-        auto node = q.front();
-        q.pop();
-        if (i != max_idx) q.push(node);
-        else max_node = node;
+pair<int,int> AStar::get_min_f(vector<pair<int,int>> &s){
+    pair<int,int> mp;
+    int min_idx = -1;
+    float min_val = std::numeric_limits<float>::infinity();
+    for(int i = 0; i < s.size(); i++){
+        auto n = s[i];
+        if(f[n] <= min_val){
+            min_idx = i;
+            min_val = f[n];
+        }
     }
-    q.push(max_node);
-}
-
-void AStar::sort_queue(queue<pair<int, int>> &q){
-    for(int i = 0; i <= q.size()-1; i++){
-        int max_idx = AStar::get_max_idx_by_f_score(q, q.size()-i-1);
-        //cout << "Max: " << max_idx << endl;
-        AStar::insert_max_to_rear(q, max_idx);
+    if(min_idx != -1){
+        mp = {s[min_idx].first, s[min_idx].second};
+        s.erase(s.begin()+min_idx);
     }
+    return mp;
 }
 
 float AStar::get_f_score(pair<int, int> p){
     return dist[p] + h[p];
 }
 
-float AStar::get_distance(pair<int, int> a, pair<int, int> b){
+float AStar::euclidean_heuristic(pair<int, int> a, pair<int, int> b){
     return sqrt(pow(a.first - b.first, 2) + pow(a.second - b.second, 2));
 }
 
