@@ -21,11 +21,11 @@ struct Map{
 class Graph {
     public:    
         // Pair := (y, x)
-        map<pair<int, int>, vector<pair<pair<int, int>, int>>> g;
+        map<pair<int,int>, vector<pair<pair<int,int>, int>>> g;
         pair<int,int> root = {0, 0};
         pair<int,int> end = {0, 0};
 
-        vector<pair<pair<int, int>, int>> get_edges(pair<int, int> parent){
+        vector<pair<pair<int, int>, int>> get_edges(pair<int,int> parent){
             try{
                 return g[parent];
             }
@@ -34,11 +34,35 @@ class Graph {
             }
         }
 
-        void add_node(pair<int, int> node){
+        vector<pair<int,int>> get_edges_without_weights(pair<int,int> parent){
+            try{
+                vector<pair<int,int>> temp; 
+                for(auto child: g[parent]){
+                    temp.push_back(child.first);
+                }
+                return temp;
+            }
+            catch(const std::out_of_range& oor){
+                return vector<pair<int, int>>();
+            }
+        }
+
+        bool is_node_valid(pair<int,int> node){
+            if(g.find(node) != g.end()) return true;
+            else return false;
+        }
+
+        vector<pair<int,int>> get_nodes(){
+            vector<pair<int,int>> nodes;
+            for(auto node: g) nodes.push_back(node.first);
+            return nodes;
+        }
+
+        void add_node(pair<int,int> node){
             g[node] = vector<pair<pair<int, int>, int>>();
         }
 
-        void add_edge(pair<int, int> parent, pair<int, int> child, int weight){
+        void add_edge(pair<int,int> parent, pair<int,int> child, int weight){
             g[parent].push_back({child, weight});
         }
 
@@ -55,6 +79,7 @@ class MapData {
         static Map add_path_to_map(Map m, vector<pair<int, int>> path);
         static Graph get_graph_from_map(Map map);
         static void print_boundary(int** b, int width, int height);
+        static void show_map(string title, Map map);
 
         //Conversions
         static pair<int, int> POSE2PIXEL(Map map, float x, float y);

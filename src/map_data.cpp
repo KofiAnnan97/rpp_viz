@@ -2,6 +2,47 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui.hpp>
 
+using namespace cv;
+
+Map MapData::parse_pgm(string mp){
+    Map data;
+    fstream map_input;
+    map_input.open(mp, ios::in);
+    if(map_input.is_open()){
+        string line, val;
+        int width, height, highest_val;
+        getline(map_input, line);
+        string type = line;
+        getline(map_input, line);
+        stringstream dim(line);        
+        getline(dim, val,' ');
+        width = std::stoi(val);
+        getline(dim, val,' ');
+        height = std::stoi(val);
+        getline(map_input, line); 
+        highest_val = std::stoi(line);
+        getline(map_input, line);
+        int** temp = new int*[height];
+        for(int k = 0; k < height; k++) temp[k] = new int[width];
+        int i = 0;
+        int j = 0;
+        for(char px : line) {
+            int val = (int)px >= 0 ? (int)px : 256+(int)px;
+            j++;
+            if(j >= width){
+                i++;
+                j=0;
+            }
+            if(i >= height) break;
+            temp[i][j] = val > 0 ? 0 : -1;
+        }
+        data.px_height = height;
+        data.px_width = width;
+        data.boundaries = temp;
+    }
+    return data;
+}
+
 Map MapData::get_map(string yp){
     fstream yaml_file;
     yaml_file.open(yp, ios::in);
@@ -58,10 +99,10 @@ Map MapData::get_map(string yp){
         cout << "Free Threshold: " << free_thresh << endl;*/
         std::filesystem::path yaml_path = yp;
         auto image_path = yaml_path.parent_path() / image;
-        string fp = image_path.string();
-        Map map = MapData::parse_pgm(fp);    
-        map.m_height = origin[0] > 0 ? origin[0]*2 : origin[0]*-2;
-        map.m_width = origin[1] > 0 ? origin[1]*2 : origin[1]*-2;
+        string mp = image_path.string();
+        Map map = MapData::parse_pgm(mp);    
+        map.m_width = origin[0] > 0 ? origin[0]*2 : origin[0]*-2;
+        map.m_height = origin[1] > 0 ? origin[1]*2 : origin[1]*-2;
         map.resolution = resolution;
         return map;
     }
@@ -70,45 +111,6 @@ Map MapData::get_map(string yp){
         Map temp;
         return temp;
     }
-}
-
-Map MapData::parse_pgm(string fp){
-    Map data;
-    fstream map_input;
-    map_input.open(fp, ios::in);
-    if(map_input.is_open()){
-        string line, val;
-        int width, height, highest_val;
-        getline(map_input, line);
-        string type = line;
-        getline(map_input, line);
-        stringstream dim(line);        
-        getline(dim, val,' ');
-        width = std::stoi(val);
-        getline(dim, val,' ');
-        height = std::stoi(val);
-        getline(map_input, line); 
-        highest_val = std::stoi(line);
-        getline(map_input, line);
-        int** temp = new int*[height];
-        for(int k = 0; k < height; k++) temp[k] = new int[width];
-        int i = 0;
-        int j = 0;
-        for(char px : line) {
-            int val = (int)px >= 0 ? (int)px : 256+(int)px;
-            j++;
-            if(j >= width){
-                i++;
-                j=0;
-            }
-            if(i >= height) break;
-            temp[i][j] = val > 0 ? 0 : -1;
-        }
-        data.px_height = height;
-        data.px_width = width;
-        data.boundaries = temp;
-    }
-    return data;
 }
 
 int** MapData::copy_boundaries(Map map){
@@ -122,13 +124,13 @@ int** MapData::copy_boundaries(Map map){
     return new_boundaries;
 }
 
-void MapData::inflate_pixel(int** nb, int width, int height, int j, int i, int buffer_size){
+void MapData::inflate_pixel(int** nb, int width, int height, int col, int row, int buffer_size){
     int dx = buffer_size/2;
     int dy = buffer_size/2;
-    if(dx == 0 && dy == 0) nb[j][i] = -1;
+    if(dx == 0 && dy == 0) nb[row][col] = -1;
     else{
-        for(int y = i-dy; y < i+dy; y++){
-            for(int x = j-dx; x < j+dx; x++){
+        for(int y = row-dy; y < row+dy; y++){
+            for(int x = col-dx; x < col+dx; x++){
                 if(y >= 0 && y < height && x >= 0 && x < width){
                     nb[y][x] = -1;
                 }
@@ -145,7 +147,7 @@ int** MapData::inflate_boundaries(Map map, int buffer_size){
     for(int row = 0; row <= map.px_height-1; row++){
         for(int col = 0; col < map.px_width; col++){
             if(map.boundaries[row][col] != 0){
-                MapData::inflate_pixel(new_boundaries, map.px_width, map.px_height, row, col, buffer_size);
+                MapData::inflate_pixel(new_boundaries, map.px_width, map.px_height, col, row, buffer_size);
             }
         }
     }
@@ -157,7 +159,7 @@ int** MapData::inflate_boundaries(Map map, int buffer_size){
     return new_boundaries;
 }
 
-Map MapData::add_path_to_map(Map map, vector<pair<int, int>> path){
+Map MapData::add_path_to_map(Map map, vector<pair<int,int>> path){
     Map new_map;
     new_map.px_height = map.px_height;
     new_map.px_width = map.px_width;
@@ -225,6 +227,21 @@ void MapData::print_boundary(int** b, int width, int height){
     cout << "]\n";
 }
 
+void MapData::show_map(string title, Map map){
+    Mat img(map.px_height, map.px_width, CV_8UC3);
+    for(int row = 0; row < map.px_height; row++){
+        for(int col = 0; col < map.px_width; col++){
+            if(map.boundaries[row][col] == 1) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,255);
+            else if(map.boundaries[row][col] == 0) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(255,255,255);
+            else if(map.boundaries[row][col] < 0) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,0);
+        }
+    }
+    cout << "Showing image: " << title;
+    cout << " (press \'q\' to quit)" << endl;
+    imshow(title, img);
+    if(waitKey(0) && 0xFF == 'q') destroyAllWindows();
+}
+
 pair<int, int> MapData::POSE2PIXEL(Map map, float x, float y){
     pair<int, int> px;
     int scale_factor = 2;
@@ -235,7 +252,7 @@ pair<int, int> MapData::POSE2PIXEL(Map map, float x, float y){
     return px;
 }
 
-pair<float, float> MapData::PIXEL2POSE(Map map, pair<int, int> px){
+pair<float, float> MapData::PIXEL2POSE(Map map, pair<int,int> px){
     pair<float, float> pose;
     int scale_factor = 2;
     float x_pt_res = map.resolution*scale_factor;

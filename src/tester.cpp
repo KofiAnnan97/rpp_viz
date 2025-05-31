@@ -1,16 +1,14 @@
-#include "a_star.hpp"
-#include "bfs.hpp"
 #include <chrono>
 #include <iomanip>
+#include "a_star.hpp"
+#include "bfs.hpp"
+#include "rrt_star.hpp"
 
 using namespace std::chrono;
 
 void test_map_data(){
     Map map_data = MapData::get_map("./maps/test.yaml");
-    //auto map_data = MapData::parse_pgm("./maps/test.pgm");
-    map_data.boundaries = MapData::inflate_boundaries(map_data, 3);
-    MapData::print_boundary(map_data.boundaries, map_data.px_width, map_data.px_height);
-
+    MapData::show_map("Original", map_data);
     auto g = MapData::get_graph_from_map(map_data);
     int test_x = 360;
     int test_y = 387; 
@@ -25,7 +23,7 @@ void test_map_data(){
 }
 
 Graph get_graph_data(Map &m){
-    m.boundaries = MapData::inflate_boundaries(m, 3);
+    m.boundaries = MapData::inflate_boundaries(m, 5);
     auto g = MapData::get_graph_from_map(m);
     return g;
 }
@@ -100,7 +98,8 @@ void test_a_star(Map &m, Graph g){
     }
     std::cout << "]\n";*/
     std::cout << "Distance: " << dist << std::endl;
-    //Map nm = MapData::add_path_to_map(m, path);
+    Map nm = MapData::add_path_to_map(m, path);
+    MapData::show_map("A*", nm);
     //MapData::print_boundary(nm.boundaries, nm.px_width, nm.px_height);
 }
 
@@ -128,9 +127,44 @@ void test_bfs(Map &m, Graph g){
     }
     std::cout << "]\n";*/
     std::cout << "Distance: " << dist << std::endl;
-    //Map nm = MapData::add_path_to_map(m, path);
+    Map nm = MapData::add_path_to_map(m, path);
+    MapData::show_map("BFS", nm);
     //MapData::print_boundary(nm.boundaries, nm.px_width, nm.px_height);
 }
+
+/*void test_rrt_star(Map &m, Graph g){
+    cout << "RRT-STAR" << endl;
+    auto rrt = RRTStar(g, 8.0, m.px_width, m.px_height, 500000);
+
+    auto start_time = high_resolution_clock::now();
+    auto s_t = std::chrono::system_clock::to_time_t(start_time);
+    cout << "Start Time: " << std::put_time(std::localtime(&s_t), "%F %T\n") << std::flush;
+    rrt.solve(g.root, g.end);
+    auto end_time = high_resolution_clock::now();
+    auto e_t = std::chrono::system_clock::to_time_t(end_time);
+    cout << "End Time: " << std::put_time(std::localtime(&e_t), "%F %T\n") << std::flush;
+    auto duration = duration_cast<milliseconds>(end_time- start_time);
+    std::cout << "Elapsed Time: " << duration.count() << " ms\n";
+    
+    if(rrt.goal_reached){
+        auto results = rrt.reconstruct_path(g.root, g.end);
+        vector<pair<int, int>> path = results.first;
+        float dist = results.second;
+        cout << "# of Nodes: " << path.size() << endl;
+        std::cout << "Path: [";
+        for(auto p: path){
+            std::cout << "(" << p.first << "," << p.second << "), ";
+        }
+        std::cout << "]\n";
+        std::cout << "Distance: " << dist << std::endl;
+        //Map nm = MapData::add_path_to_map(m, path);
+        //MapData::print_boundary(nm.boundaries, nm.px_width, nm.px_height);
+    }
+    else {
+        cout << "Goal could not be reached. Please check the following:";
+        cout << "\n\tstart point\n\tend point\n\t# of max iterations\n\tstep size\n";
+    }
+}*/
 
 int main(){
     // Test Data retrieval from PGM file
@@ -140,15 +174,20 @@ int main(){
     //auto g = simple_data();
     //test_a_star_simple(g);
 
-    // Retrieve map data and set create graph
+    // Retrieve map d << endlata and set create graph
     auto m = MapData::get_map("./maps/test.yaml");
     auto g = get_graph_data(m);
     g.root = {100, 50};
     g.end = {381, 360};
+    cout << "Root node valid: " << g.is_node_valid(g.root) << endl;
+    cout << "End node valid: " << g.is_node_valid(g.end) << endl;
 
-    // Test A-Star algorithm (using Map)
+    // Test A* algorithm (using Map)
     test_a_star(m, g);
 
     // Test BFS algorithm (using Map)
     test_bfs(m, g);
+
+    // Test RRT* algorithm (using Map)
+    //test_rrt_star(m, g);
 }

@@ -5,4 +5,4 @@ A tool designed to provide a test ground for new path planning strategies for ro
 
 ## Algorithms Tested
 - BFS
-- A-Star 
+- A*
