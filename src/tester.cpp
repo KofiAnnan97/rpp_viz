@@ -2,7 +2,7 @@
 #include <iomanip>
 #include "a_star.hpp"
 #include "bfs.hpp"
-#include "rrt_star.hpp"
+//#include "rrt_star.hpp"
 
 using namespace std::chrono;
 
@@ -28,7 +28,7 @@ Graph get_graph_data(Map &m){
     return g;
 }
 
-Graph simple_data(){
+Graph simple_graph(){
     pair<int, int> a = {1, 1};
     pair<int, int> b = {2, 1};
     pair<int, int> c = {2, 3};
@@ -50,7 +50,8 @@ Graph simple_data(){
     return g;
 }
 
-void test_a_star_simple(Graph g){
+void test_a_star_simple(){
+    auto g = simple_graph();
     std::cout << "A-STAR (Simple)" << std::endl;
 
     g.root = {1, 1};
@@ -157,7 +158,8 @@ void test_bfs(Map &m, Graph g){
         }
         std::cout << "]\n";
         std::cout << "Distance: " << dist << std::endl;
-        //Map nm = MapData::add_path_to_map(m, path);
+        Map nm = MapData::add_path_to_map(m, path);
+        MapData::show_map("RRT*", nm);
         //MapData::print_boundary(nm.boundaries, nm.px_width, nm.px_height);
     }
     else {
@@ -166,13 +168,59 @@ void test_bfs(Map &m, Graph g){
     }
 }*/
 
+void test_conversions(){
+    cout << "TESTING CONVERSIONS" << endl;
+    auto m = MapData::get_map("./maps/test.yaml");
+    /*MapData::show_map("Original", m);
+    m.boundaries = MapData::inflate_boundaries(m, 7);
+    MapData::show_map("Inflated", m);*/
+    //cout << "Pose: " << m.m_width << " (width) x " << m.m_height << " (height)\n";
+    int x = m.px_width/2;
+    int y = m.px_height/2;
+    cout << "Center {" << y << "," << x << "}:\n";
+    pair<float,float> pose = MapData::PIXEL2POSE(m, {y,x});
+    cout << "\tPose: (" << pose.first << "," << pose.second << ")\n";
+    pair<int,int> px = MapData::POSE2PIXEL(m, pose.first, pose.second);//0.0, 0.0);//
+    cout << "\tPX: (" << px.first << "," << px.second << ")\n";
+    x = 0;
+    y = 0;
+    cout << "Top-Left Corner {" << y << "," << x << "}:\n";
+    pose = MapData::PIXEL2POSE(m, {y,x});
+    cout << "\tPose: (" << pose.first << "," << pose.second << ")\n";
+    px = MapData::POSE2PIXEL(m, pose.first, pose.second);//-m.m_width/2, -m.m_height/2);//
+    cout << "\tPX: (" << px.first << "," << px.second << ")\n";
+    x = m.px_width-1;
+    y = 0;
+    cout << "Top-Right Corner {" << y << "," << x << "}:\n";
+    pose = MapData::PIXEL2POSE(m, {y,x});
+    cout << "\tPose: (" << pose.first << "," << pose.second << ")\n";
+    px = MapData::POSE2PIXEL(m, pose.first, pose.second);//-m.m_width/2, m.m_height/2);//
+    cout << "\tPX: (" << px.first << "," << px.second << ")\n";
+    x = 0;
+    y = m.px_height-1;
+    cout << "Bottom-Left Corner {" << y << "," << x << "}:\n";
+    pose = MapData::PIXEL2POSE(m, {y,x});
+    cout << "\tPose: (" << pose.first << "," << pose.second << ")\n";
+    px = MapData::POSE2PIXEL(m, pose.first, pose.second);//m.m_width/2, -m.m_height/2);//
+    cout << "\tPX: (" << px.first << "," << px.second << ")\n";
+    x = m.px_width-1;
+    y = m.px_height-1;
+    cout << "Bottom-Right Corner {" << y << "," << x << "}:\n";
+    pose = MapData::PIXEL2POSE(m, {y,x});
+    cout << "\tPose: (" << pose.first << "," << pose.second << ")\n";
+    px = MapData::POSE2PIXEL(m, pose.first, pose.second);//m.m_width/2, m.m_height/2);//
+    cout << "\tPX: (" << px.first << "," << px.second << ")\n";
+}
+
 int main(){
     // Test Data retrieval from PGM file
     //test_map_data();
 
+    // Test Map & Pose Conversions
+    //test_conversions();
+
     // Test A-star algorithm (Simple Data)
-    //auto g = simple_data();
-    //test_a_star_simple(g);
+    //test_a_star_simple();
 
     // Retrieve map d << endlata and set create graph
     auto m = MapData::get_map("./maps/test.yaml");

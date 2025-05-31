@@ -14,12 +14,13 @@ Map MapData::parse_pgm(string mp){
         getline(map_input, line);
         string type = line;
         getline(map_input, line);
+        if(line[0] == '#') getline(map_input, line);
         stringstream dim(line);        
         getline(dim, val,' ');
         width = std::stoi(val);
         getline(dim, val,' ');
         height = std::stoi(val);
-        getline(map_input, line); 
+        getline(map_input, line);
         highest_val = std::stoi(line);
         getline(map_input, line);
         int** temp = new int*[height];
@@ -86,7 +87,7 @@ Map MapData::get_map(string yp){
                 getline(ss, word, yaml_delim);
                 free_thresh = stof(word);
             }
-            else cout << word << "is not an accepted keyword." << endl;
+            else cout << "\'" << word << "\' is not an accepted keyword." << endl;
         }
         /*cout << "Image: " << image << endl;
         cout << "Mode: " << mode << endl;
@@ -244,19 +245,18 @@ void MapData::show_map(string title, Map map){
 
 pair<int, int> MapData::POSE2PIXEL(Map map, float x, float y){
     pair<int, int> px;
-    int scale_factor = 2;
-    float x_pt_res = map.resolution*scale_factor;
-    float y_pt_res = map.resolution*scale_factor;
-    px.first = (int)((y/-x_pt_res) + map.px_height/2);
-    px.second = (int)((x/y_pt_res) + map.px_width/2);
+    float x_pt_res = map.m_height*(1.0/map.px_height);
+    float y_pt_res = map.m_width*(1.0/map.px_width);
+    px.first = (y/-x_pt_res) + map.px_height/2;
+    px.second = (x/y_pt_res) + map.px_width/2;
     return px;
 }
 
+// Rotates image 90 degrees counter-clockwise
 pair<float, float> MapData::PIXEL2POSE(Map map, pair<int,int> px){
     pair<float, float> pose;
-    int scale_factor = 2;
-    float x_pt_res = map.resolution*scale_factor;
-    float y_pt_res = map.resolution*scale_factor;
+    float x_pt_res = map.m_width*(1.0/map.px_width);
+    float y_pt_res = map.m_height*(1.0/map.px_height);
     pose.first = x_pt_res*(px.second - map.px_width/2);
     pose.second = y_pt_res*(px.first - map.px_height/2);
     return pose;
