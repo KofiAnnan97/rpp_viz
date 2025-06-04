@@ -10,27 +10,27 @@
 class RRTStar{
     public:
         RRTStar(Graph g, int width, int height, int max_iter);
-        void solve(pair<int,int> sp, pair<int,int> ep);
-        pair<vector<pair<int,int>>, float> reconstruct_path(pair<int, int> sp, pair<int, int> ep);
+        void solve(cell sp, cell ep);
+        pair<vector<cell>, float> reconstruct_path(cell sp, cell ep);
         bool goal_reached;
 
-        vector<pair<int,int>> get_travelled_nodes(pair<int,int> sp, pair<int,int> ep);
+        vector<cell> get_travelled_nodes(cell sp, cell ep);
 
     private:
-        pair<int,int> get_random_node();
-        pair<int,int> get_nearest_node(vector<pair<int,int>> node_list, pair<int,int> random_node);
-        pair<int,int> steer(pair<int,int> from_node, pair<int,int> to_node);
-        vector<pair<int,int>> find_neighbors(vector<pair<int,int>> node_list, pair<int,int> node);
-        pair<int,int> choose_parent(vector<pair<int,int>> neighbors, pair<int,int> nearest_node, pair<int,int> new_node);
-        void rewire(pair<int,int> new_node, vector<pair<int,int>> neighbors);
-        float euclidean_distance(pair<int, int> a, pair<int, int> b);
+        cell get_random_node();
+        cell get_nearest_node(vector<cell> node_list, cell random_node);
+        cell steer(cell from_node, cell to_node);
+        vector<cell> find_neighbors(vector<cell> node_list, cell node);
+        cell choose_parent(vector<cell> neighbors, cell nearest_node, cell new_node);
+        void rewire(cell new_node, vector<cell> neighbors);
+        float euclidean_distance(cell a, cell b);
         Graph tree;
         int max_iter, height, width;
-        map<pair<int,int>, float> cost_map;
-        vector<pair<int,int>> node_list;
-        vector<pair<int,int>> all_valid_nodes;
-        vector<pair<int,int>> travelled;
-        map<pair<int,int>, pair<int,int>> parent;
+        map<cell, float> cost_map;
+        vector<cell> node_list;
+        vector<cell> all_valid_nodes;
+        vector<cell> travelled;
+        map<cell, cell> parent;
 };
 
 #endif // RRT_STAR_HPP

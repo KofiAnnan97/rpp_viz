@@ -8,27 +8,27 @@ AStar::AStar(Graph g){
     }
 }
 
-pair<vector<pair<int,int>>, float> AStar::reconstruct_path(pair<int, int> sp, pair<int, int> ep){
-    auto data = pair<vector<pair<int,int>>, float>();
+pair<vector<cell>, float> AStar::reconstruct_path(cell sp, cell ep){
+    auto data = pair<vector<cell>, float>();
     if(sp != ep) data.first.push_back(ep);
     auto curr = ep;
     while(curr != sp){
         curr = parent[curr];
-        if(curr == pair<int, int>{0, 0}) break; // Stop infinite loop if path not found
+        if(curr == cell{0, 0}) break; // Stop infinite loop if path not found
         data.first.insert(data.first.begin(), curr);
     }
     data.second = dist[ep];
     return data;
 }
 
-void AStar::solve(pair<int, int> sp, pair<int, int> ep){
+void AStar::solve(cell sp, cell ep){
     dist[sp] = 0;
     f[sp] = AStar::get_f_score(sp);
-    vector<pair<int,int>> open_set;
+    vector<cell> open_set;
     open_set.push_back(sp);
     int kill_count = 0;
     while(!open_set.empty() && kill_count < tree.get_size()){
-        pair<int,int> curr = get_min_f(open_set);
+        cell curr = get_min_f(open_set);
         if(curr == ep) break;
         auto children = tree.get_edges(curr);
         for(auto c : children){
@@ -47,15 +47,15 @@ void AStar::solve(pair<int, int> sp, pair<int, int> ep){
     }
 }
 
-bool AStar::not_in_set(vector<pair<int,int>> open_set, pair<int,int> p){
+bool AStar::not_in_set(vector<cell> open_set, cell p){
     for(auto n : open_set){
         if(n == p) return false;
     }
     return true;
 }
 
-pair<int,int> AStar::get_min_f(vector<pair<int,int>> &s){
-    pair<int,int> mp;
+cell AStar::get_min_f(vector<cell> &s){
+    cell mp;
     int min_idx = -1;
     float min_val = std::numeric_limits<float>::infinity();
     for(int i = 0; i < s.size(); i++){
@@ -72,15 +72,15 @@ pair<int,int> AStar::get_min_f(vector<pair<int,int>> &s){
     return mp;
 }
 
-float AStar::get_f_score(pair<int, int> p){
+float AStar::get_f_score(cell p){
     return dist[p] + h[p];
 }
 
-float AStar::euclidean_heuristic(pair<int, int> a, pair<int, int> b){
+float AStar::euclidean_heuristic(cell a, cell b){
     return sqrt(pow(a.first - b.first, 2) + pow(a.second - b.second, 2));
 }
 
-void AStar::print_map(string name, map<pair<int, int>, float> map){
+void AStar::print_map(string name, map<cell, float> map){
     cout << name << endl;
     for(auto m : map){
         cout << "[" << m.first.first << "," << m.first.second  << "] = " << m.second << endl;

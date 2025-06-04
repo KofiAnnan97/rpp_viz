@@ -156,7 +156,7 @@ int** MapData::inflate_boundaries(Map map, int buffer_size){
     return new_boundaries;
 }
 
-Map MapData::add_path_to_map(Map map, vector<pair<int,int>> path){
+Map MapData::add_path_to_map(Map map, vector<cell> path){
     Map new_map;
     new_map.px_height = map.px_height;
     new_map.px_width = map.px_width;
@@ -168,7 +168,7 @@ Map MapData::add_path_to_map(Map map, vector<pair<int,int>> path){
     return new_map;
 }
 
-Map MapData::debug_map(Map map, vector<pair<int, int>> path, vector<pair<int, int>> travelled, pair<int,int> sp, pair<int,int> ep){
+Map MapData::debug_map(Map map, vector<cell> path, vector<cell> travelled, cell sp, cell ep){
     Map new_map;
     new_map.px_height = map.px_height;
     new_map.px_width = map.px_width;
@@ -188,38 +188,38 @@ Graph MapData::get_graph_from_map(Map map){
     for(int row = 0; row < map.px_height; row++){
         for(int col = 0; col < map.px_width; col++){
             if(map.boundaries[row][col] == 0){
-                auto curr = pair<int, int>{col, row};
+                auto curr = cell{col, row};
                 // Up
                 if(row > 0 && map.boundaries[row-1][col] == 0){
-                    graph.add_edge(curr, pair<int, int>{col, row-1}, 1);  
+                    graph.add_edge(curr, cell{col, row-1}, 1);  
                 }
                 // Down
                 if (row < map.px_height - 1 && map.boundaries[row+1][col] == 0){
-                    graph.add_edge(curr, pair<int, int>{col, row+1,}, 1);
+                    graph.add_edge(curr, cell{col, row+1,}, 1);
                 }
                 // Left 
                 if(col > 0 && map.boundaries[row][col-1] == 0){
-                    graph.add_edge(curr, pair<int, int>{col-1, row}, 1);
+                    graph.add_edge(curr, cell{col-1, row}, 1);
                 }
                 // Right
                 if(col < map.px_width - 1 && map.boundaries[row][col+1] == 0){
-                    graph.add_edge(curr, pair<int, int>{col+1, row}, 1);
+                    graph.add_edge(curr, cell{col+1, row}, 1);
                 }
                 // Up-Left
                 if(row > 0 && col > 0 && map.boundaries[row-1][col-1] == 0){
-                    graph.add_edge(curr, pair<int, int>{col-1, row-1,}, 2);
+                    graph.add_edge(curr, cell{col-1, row-1,}, 2);
                 }
                 // Up-Right
                 if(row > 0 && col < map.px_width -1 && map.boundaries[row-1][col+1] == 0){
-                    graph.add_edge(curr, pair<int, int>{col+1, row-1}, 2);
+                    graph.add_edge(curr, cell{col+1, row-1}, 2);
                 }
                 // Down-Left
                 if(row < map.px_height - 1 && col > 0 && map.boundaries[row+1][col-1] == 0){
-                    graph.add_edge(curr, pair<int, int>{col-1, row+1, }, 2);
+                    graph.add_edge(curr, cell{col-1, row+1, }, 2);
                 }
                 // Down-Right
                 if(row < map.px_height - 1 && col < map.px_width -1 && map.boundaries[row+1][col+1] == 0){
-                    graph.add_edge(curr, pair<int, int>{col+1, row+1}, 2);
+                    graph.add_edge(curr, cell{col+1, row+1}, 2);
                 }
             }
         }
@@ -257,8 +257,8 @@ void MapData::show_map(string title, Map map){
 }
 
 // Rotates map 90 degrees clockwise
-pair<int, int> MapData::POSE2PIXEL(Map map, float x, float y){
-    pair<int, int> px;
+cell MapData::POSE2PIXEL(Map map, float x, float y){
+    cell px;
     float x_pt_res = map.m_width*(1.0/map.px_width);
     float y_pt_res = map.m_height*(1.0/map.px_height);
     px.first = (y/-x_pt_res) + map.px_width/2;
@@ -267,7 +267,7 @@ pair<int, int> MapData::POSE2PIXEL(Map map, float x, float y){
 }
  
 // Rotates map 90 degrees counter-clockwise
-pair<float, float> MapData::PIXEL2POSE(Map map, pair<int,int> px){
+pair<float, float> MapData::PIXEL2POSE(Map map, cell px){
     pair<float, float> pose;
     float x_pt_res = map.m_width*(1.0/map.px_width);
     float y_pt_res = map.m_height*(1.0/map.px_height);

@@ -15,6 +15,8 @@
 using namespace std;
 using namespace cv;
 
+typedef pair<int,int> cell;
+
 struct Map{
     int px_width, px_height;
     float resolution, m_width, m_height; // in meters
@@ -25,49 +27,49 @@ struct Map{
 class Graph {
     public:    
         // Pair := (y, x)
-        map<pair<int,int>, vector<pair<pair<int,int>, int>>> g;
-        pair<int,int> root = {0, 0};
-        pair<int,int> end = {0, 0};
+        map<cell, vector<pair<cell, int>>> g;
+        cell root = {0, 0};
+        cell end = {0, 0};
 
-        vector<pair<pair<int, int>, int>> get_edges(pair<int,int> parent){
+        vector<pair<cell, int>> get_edges(cell parent){
             try{
                 return g[parent];
             }
             catch(const std::out_of_range& oor){
-                return vector<pair<pair<int, int>, int>>();
+                return vector<pair<cell, int>>();
             }
         }
 
-        vector<pair<int,int>> get_edges_without_weights(pair<int,int> parent){
+        vector<cell> get_edges_without_weights(cell parent){
             try{
-                vector<pair<int,int>> temp; 
+                vector<cell> temp; 
                 for(auto child: g[parent]){
                     temp.push_back(child.first);
                 }
                 return temp;
             }
             catch(const std::out_of_range& oor){
-                return vector<pair<int, int>>();
+                return vector<cell>();
             }
         }
 
-        bool is_node_valid(pair<int,int> node){
+        bool is_node_valid(cell node){
             //if(g[node].size() > 0) return true;
             if(g.find(node) != g.end()) return true;
             else return false;
         }
 
-        vector<pair<int,int>> get_nodes(){
-            vector<pair<int,int>> nodes;
+        vector<cell> get_nodes(){
+            vector<cell> nodes;
             for(auto node: g) nodes.push_back(node.first);
             return nodes;
         }
 
-        void add_node(pair<int,int> node){
-            g[node] = vector<pair<pair<int, int>, int>>();
+        void add_node(cell node){
+            g[node] = vector<pair<cell, int>>();
         }
 
-        void add_edge(pair<int,int> parent, pair<int,int> child, int weight){
+        void add_edge(cell parent, cell child, int weight){
             g[parent].push_back({child, weight});
         }
 
@@ -81,15 +83,15 @@ class MapData {
         static Map get_map(string yp);
         static int** copy_boundaries(Map m);
         static int** inflate_boundaries(Map map, int buffer_size);
-        static Map add_path_to_map(Map m, vector<pair<int, int>> path);
-        static Map debug_map(Map m, vector<pair<int, int>> path, vector<pair<int, int>> travelled, pair<int,int> sp, pair<int,int> ep);
+        static Map add_path_to_map(Map m, vector<cell> path);
+        static Map debug_map(Map m, vector<cell> path, vector<cell> travelled, cell sp, cell ep);
         static Graph get_graph_from_map(Map map);
         static void print_boundary(int** b, int width, int height);
         static void show_map(string title, Map map);
 
         //Conversions
-        static pair<int, int> POSE2PIXEL(Map map, float x, float y);
-        static pair<float, float> PIXEL2POSE(Map map, pair<int, int> px);
+        static cell POSE2PIXEL(Map map, float x, float y);
+        static pair<float, float> PIXEL2POSE(Map map, cell px);
 
     private:
         static Map parse_pgm(string fp);

@@ -8,11 +8,11 @@ BFS::BFS(Graph g){
     }
 }
         
-void BFS::solve(pair<int, int> sp, pair<int, int> ep){
+void BFS::solve(cell sp, cell ep){
     q.push_back(sp);
     visited[sp] = true;
     while(!q.empty()){
-        pair<int,int> curr = {q[0].first, q[0].second};
+        cell curr = {q[0].first, q[0].second};
         q.erase(q.begin());
         auto children = tree.get_edges(curr);
         for(auto c: children){
@@ -28,16 +28,16 @@ void BFS::solve(pair<int, int> sp, pair<int, int> ep){
     }
 }
         
-pair<vector<pair<int,int>>, float> BFS::reconstruct_path(pair<int, int> sp, pair<int, int> ep){
-    auto data = pair<vector<pair<int,int>>, float>();
+pair<vector<cell>, float> BFS::reconstruct_path(cell sp, cell ep){
+    auto data = pair<vector<cell>, float>();
     auto curr = ep;
     data.first.push_back(curr);
     while(true){
         curr = parent[curr];
-        if(curr == pair<int, int>{0, 0}) break; // Stop infinite loop if path not found
+        if(curr == cell{0, 0}) break; // Stop infinite loop if path not found
         else data.first.insert(data.first.begin(), curr);
     }
-    if(data.first[0] != sp) data.first = vector<pair<int,int>>();
+    if(data.first[0] != sp) data.first = vector<cell>();
     data.second = dist[ep];
     return data;
 }
