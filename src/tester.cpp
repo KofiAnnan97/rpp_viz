@@ -2,12 +2,12 @@
 #include <iomanip>
 #include "a_star.hpp"
 #include "bfs.hpp"
-//#include "rrt_star.hpp"
+#include "rrt_star.hpp"
 
 using namespace std::chrono;
 
 void test_map_data(){
-    Map map_data = MapData::get_map("./maps/test.yaml");
+    Map map_data = MapData::get_map("./maps/example1.yaml");
     MapData::show_map("Original", map_data);
     auto g = MapData::get_graph_from_map(map_data);
     int test_x = 360;
@@ -23,7 +23,6 @@ void test_map_data(){
 }
 
 Graph get_graph_data(Map &m){
-    m.boundaries = MapData::inflate_boundaries(m, 5);
     auto g = MapData::get_graph_from_map(m);
     return g;
 }
@@ -48,6 +47,32 @@ Graph simple_graph(){
     g.add_edge(d, c, 1);
     g.add_node(f);
     return g;
+}
+
+Map get_simple_map(){
+    Map map;
+    map.px_height = 10;
+    map.px_width = 10;
+    int temp[10][10] = {
+        {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+        {-1,0,0,0,0,0,0,0,0,-1},
+        {-1,0,0,0,0,0,0,0,0,-1},
+        {-1,0,0,0,0,0,0,0,0,-1},
+        {-1,0,0,0,-1,-1,0,0,0,-1},
+        {-1,0,0,0,-1,-1,0,0,0,-1},
+        {-1,0,0,0,0,0,0,0,0,-1},
+        {-1,0,0,0,0,0,0,0,0,-1},
+        {-1,0,0,0,0,0,0,0,0,-1},
+        {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
+    };
+    map.boundaries = new int*[map.px_height];
+    for(int k = 0; k < map.px_height; k++) map.boundaries[k] = new int[map.px_width];
+    for(int row = 0; row < map.px_height; row++){
+        for(int col = 0; col < map.px_width; col++){
+            map.boundaries[row][col] = temp[row][col];
+        }
+    }
+    return map;
 }
 
 void test_a_star_simple(){
@@ -133,10 +158,10 @@ void test_bfs(Map &m, Graph g){
     //MapData::print_boundary(nm.boundaries, nm.px_width, nm.px_height);
 }
 
-/*void test_rrt_star(Map &m, Graph g){
+void test_rrt_star(Map &m, Graph g, int max_iter){
     cout << "RRT-STAR" << endl;
-    auto rrt = RRTStar(g, 8.0, m.px_width, m.px_height, 500000);
-
+    auto rrt = RRTStar(g, 1.0, m.px_width, m.px_height, max_iter);
+    
     auto start_time = high_resolution_clock::now();
     auto s_t = std::chrono::system_clock::to_time_t(start_time);
     cout << "Start Time: " << std::put_time(std::localtime(&s_t), "%F %T\n") << std::flush;
@@ -147,26 +172,38 @@ void test_bfs(Map &m, Graph g){
     auto duration = duration_cast<milliseconds>(end_time- start_time);
     std::cout << "Elapsed Time: " << duration.count() << " ms\n";
     
+    vector<pair<int, int>> path;
     if(rrt.goal_reached){
         auto results = rrt.reconstruct_path(g.root, g.end);
-        vector<pair<int, int>> path = results.first;
+        path = results.first;
         float dist = results.second;
         cout << "# of Nodes: " << path.size() << endl;
-        std::cout << "Path: [";
+        /*std::cout << "Path: [";
         for(auto p: path){
             std::cout << "(" << p.first << "," << p.second << "), ";
         }
-        std::cout << "]\n";
+        std::cout << "]\n";*/
         std::cout << "Distance: " << dist << std::endl;
-        Map nm = MapData::add_path_to_map(m, path);
-        MapData::show_map("RRT*", nm);
-        //MapData::print_boundary(nm.boundaries, nm.px_width, nm.px_height);
     }
     else {
         cout << "Goal could not be reached. Please check the following:";
         cout << "\n\tstart point\n\tend point\n\t# of max iterations\n\tstep size\n";
     }
-}*/
+    auto travelled = rrt.get_travelled_nodes(g.root, g.end);
+    Map dm = MapData::debug_map(m, path, travelled, g.root, g.end);
+    MapData::show_map("Debug RRT*", dm);
+}
+
+void test_rrt_star_simple(){
+    auto rrt_map = get_simple_map();
+    //MapData::show_map("Simple Map", rrt_map);
+    auto g = get_graph_data(rrt_map);
+    g.root = {2,2};
+    g.end = {2,7}; 
+    cout << "Root node valid: " << g.is_node_valid(g.root) << endl;
+    cout << "End node valid: " << g.is_node_valid(g.end) << endl;
+    test_rrt_star(rrt_map, g, 50);
+}
 
 void test_conversions(){
     cout << "TESTING CONVERSIONS" << endl;
@@ -222,11 +259,15 @@ int main(){
     // Test A-star algorithm (Simple Data)
     //test_a_star_simple();
 
-    // Retrieve map d << endlata and set create graph
-    auto m = MapData::get_map("./maps/test.yaml");
+    // Test RRT* algorithm (Simple Data)
+    //test_rrt_star_simple();
+
+    // Retrieve map data and set create graph
+    auto m = MapData::get_map("./maps/example1.yaml");
+    m.boundaries = MapData::inflate_boundaries(m, 5);
     auto g = get_graph_data(m);
-    g.root = {100, 50};
-    g.end = {381, 360};
+    g.root = {300, 50};
+    g.end =  {381, 360};
     cout << "Root node valid: " << g.is_node_valid(g.root) << endl;
     cout << "End node valid: " << g.is_node_valid(g.end) << endl;
 
@@ -237,5 +278,5 @@ int main(){
     test_bfs(m, g);
 
     // Test RRT* algorithm (using Map)
-    //test_rrt_star(m, g);
+    test_rrt_star(m, g, 10000);
 }

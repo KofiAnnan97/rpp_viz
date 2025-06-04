@@ -1,8 +1,9 @@
-# Robot Path Planning Visualizer
-A tool designed to provide a test ground for new path planning strategies for robots using ROS.
+# Robot Path Planning Visualization
+A testing ground for path planning strategies for ROS.
 
 ## Maps
 
 ## Algorithms Tested
 - BFS
 - A*
+- RRT* (graph-based design)

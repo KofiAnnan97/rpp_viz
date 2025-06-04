@@ -9,6 +9,8 @@ set(PATH_PLANNING_SOURCES
     include/a_star.hpp
     src/bfs.cpp
     include/bfs.hpp
+    src/rrt_star.cpp
+    include/rrt_star.hpp
 )
 
 add_executable(tester
