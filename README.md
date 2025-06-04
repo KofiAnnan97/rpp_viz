@@ -6,4 +6,4 @@ A testing ground for path planning strategies for ROS.
 ## Algorithms Tested
 - BFS
 - A*
-- RRT* (graph-based design)
+- RRT* (graph-based implemenetation)
