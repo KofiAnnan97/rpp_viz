@@ -1,8 +1,4 @@
 #include "map_data.hpp"
-#include <opencv2/opencv.hpp>
-#include <opencv2/highgui.hpp>
-
-using namespace cv;
 
 Map MapData::parse_pgm(string mp){
     Map data;
@@ -260,6 +256,7 @@ void MapData::show_map(string title, Map map){
     if(waitKey(0) && 0xFF == 'q') destroyAllWindows();
 }
 
+// Rotates map 90 degrees clockwise
 pair<int, int> MapData::POSE2PIXEL(Map map, float x, float y){
     pair<int, int> px;
     float x_pt_res = map.m_width*(1.0/map.px_width);
@@ -268,8 +265,8 @@ pair<int, int> MapData::POSE2PIXEL(Map map, float x, float y){
     px.second = (x/y_pt_res) + map.px_height/2;
     return px;
 }
-
-// Rotate 90 degrees counter-clockwise 
+ 
+// Rotates map 90 degrees counter-clockwise
 pair<float, float> MapData::PIXEL2POSE(Map map, pair<int,int> px){
     pair<float, float> pose;
     float x_pt_res = map.m_width*(1.0/map.px_width);

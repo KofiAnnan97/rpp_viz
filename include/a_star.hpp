@@ -21,7 +21,7 @@ class AStar{
         map<pair<int,int>, float> dist;
         map<pair<int,int>, float> h;
         map<pair<int,int>, float> f;
-        map<pair<int,int>, pair<int,int>> parent_node;
+        map<pair<int,int>, pair<int,int>> parent;
         
 };
 

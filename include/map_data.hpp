@@ -9,7 +9,11 @@
 #include <vector>
 #include <filesystem>
 
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+
 using namespace std;
+using namespace cv;
 
 struct Map{
     int px_width, px_height;

@@ -5,7 +5,6 @@ AStar::AStar(Graph g){
     for(auto it = tree.g.begin(); it != tree.g.end(); ++it){
         dist[it->first] = std::numeric_limits<float>::infinity();
         h[it->first] = euclidean_heuristic(it->first, tree.end);
-        //f[it->first] = get_f_score(it->first);
     }
 }
 
@@ -14,7 +13,7 @@ pair<vector<pair<int,int>>, float> AStar::reconstruct_path(pair<int, int> sp, pa
     if(sp != ep) data.first.push_back(ep);
     auto curr = ep;
     while(curr != sp){
-        curr = parent_node[curr];
+        curr = parent[curr];
         if(curr == pair<int, int>{0, 0}) break; // Stop infinite loop if path not found
         data.first.insert(data.first.begin(), curr);
     }
@@ -40,7 +39,7 @@ void AStar::solve(pair<int, int> sp, pair<int, int> ep){
             if(new_cost < AStar::get_f_score(cp)){
                 f[cp] = new_cost;
                 dist[cp] = new_dist;
-                parent_node[cp] = curr; 
+                parent[cp] = curr; 
                 if(not_in_set(open_set, cp)) open_set.push_back(cp);
             } 
         }

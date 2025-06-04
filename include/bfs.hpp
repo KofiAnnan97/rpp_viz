@@ -13,7 +13,7 @@ class BFS{
         Graph tree;
         map<pair<int,int>, float> dist;
         map<pair<int,int>,bool> visited;
-        map<pair<int,int>, pair<int,int>> parent_node;
+        map<pair<int,int>, pair<int,int>> parent;
         vector<pair<int,int>> q;
 };
 

@@ -31,8 +31,7 @@ class RRTStar{
         vector<pair<int,int>> node_list;
         vector<pair<int,int>> all_valid_nodes;
         vector<pair<int,int>> travelled;
-        map<pair<int,int>, pair<int,int>> temp_parent;
-        map<pair<int,int>, pair<int,int>> parent_node;
+        map<pair<int,int>, pair<int,int>> parent;
 };
 
 #endif // RRT_STAR_HPP

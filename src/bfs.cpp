@@ -21,7 +21,7 @@ void BFS::solve(pair<int, int> sp, pair<int, int> ep){
             if(visited[cp] == false){
                 q.push_back(cp);
                 visited[cp] = true;
-                parent_node[cp] = curr;
+                parent[cp] = curr;
                 dist[cp] = dist[curr] + w;
             }
         }
@@ -33,7 +33,7 @@ pair<vector<pair<int,int>>, float> BFS::reconstruct_path(pair<int, int> sp, pair
     auto curr = ep;
     data.first.push_back(curr);
     while(true){
-        curr = parent_node[curr];
+        curr = parent[curr];
         if(curr == pair<int, int>{0, 0}) break; // Stop infinite loop if path not found
         else data.first.insert(data.first.begin(), curr);
     }

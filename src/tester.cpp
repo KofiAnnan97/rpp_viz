@@ -207,7 +207,7 @@ void test_rrt_star_simple(){
 
 void test_conversions(){
     cout << "TESTING CONVERSIONS" << endl;
-    auto m = MapData::get_map("./maps/test.yaml");
+    auto m = MapData::get_map("./maps/example1.yaml");
     /*MapData::show_map("Original", m);
     m.boundaries = MapData::inflate_boundaries(m, 7);
     MapData::show_map("Inflated", m);*/
@@ -254,7 +254,7 @@ int main(){
     //test_map_data();
 
     // Test Map & Pose Conversions
-    //test_conversions();
+    test_conversions();
 
     // Test A-star algorithm (Simple Data)
     //test_a_star_simple();
