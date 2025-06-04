@@ -19,4 +19,12 @@ add_executable(tester
     src/map_data.cpp
     include/map_data.hpp  
 )
-target_link_libraries(tester ${OpenCV_LIBS} )
+target_link_libraries(tester ${OpenCV_LIBS})
+
+add_executable(rpp_viz
+    src/rpp_viz.cpp
+    ${PATH_PLANNING_SOURCES}
+    src/map_data.cpp
+    include/map_data.hpp
+)
+target_link_libraries(rpp_viz ${OpenCV_LIBS})

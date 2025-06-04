@@ -2,10 +2,9 @@
 
 const float PI = 3.14159;
 
-RRTStar::RRTStar(Graph g, float ss, int w, int h, int iter){
+RRTStar::RRTStar(Graph g, int w, int h, int iter){
     tree = g;
     max_iter = iter;
-    step_size = ss;
     width = w;
     height = h;
     all_valid_nodes = tree.get_nodes();
@@ -22,7 +21,7 @@ void RRTStar::solve(pair<int,int> sp, pair<int,int> ep){
         //cout << "Random node: (" << random_node.first <<"," <<random_node.second <<")\n";
         //cout << "Nearest node: (" << nearest_node.first <<"," << nearest_node.second <<")\n";
         //cout << "New node: (" << new_node.first <<"," <<new_node.second <<")\n";
-        if(tree.is_node_valid(new_node) == true){
+        if(tree.is_node_valid(new_node)){
             auto neighbors = find_neighbors(node_list, new_node);
             new_node = choose_parent(neighbors, nearest_node, new_node);
             node_list.push_back(new_node);
@@ -47,7 +46,6 @@ void RRTStar::solve(pair<int,int> sp, pair<int,int> ep){
 }
 
 pair<vector<pair<int,int>>, float> RRTStar::reconstruct_path(pair<int, int> sp, pair<int, int> ep){
-    cout << "Reconstruct" << endl;
     auto data = pair<vector<pair<int,int>>, float>();
     if(sp != ep) data.first.push_back(ep);
     auto curr = ep;
@@ -66,8 +64,8 @@ pair<int,int> RRTStar::get_random_node(){
     if(r > 0.2) {
         int r_idx = rand()%all_valid_nodes.size();
         random_node = {all_valid_nodes[r_idx].first, all_valid_nodes[r_idx].second};
-        //all_valid_nodes.erase(all_valid_nodes.begin()+r_idx);
-        //all_valid_nodes.push_back(random_node);
+        all_valid_nodes.erase(all_valid_nodes.begin()+r_idx);
+        all_valid_nodes.push_back(random_node);
     }
     else random_node = {tree.end.first, tree.end.second};
     return random_node;

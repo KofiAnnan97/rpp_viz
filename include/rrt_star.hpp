@@ -9,7 +9,7 @@
 
 class RRTStar{
     public:
-        RRTStar(Graph g, float step_size, int width, int height, int max_iter);
+        RRTStar(Graph g, int width, int height, int max_iter);
         void solve(pair<int,int> sp, pair<int,int> ep);
         pair<vector<pair<int,int>>, float> reconstruct_path(pair<int, int> sp, pair<int, int> ep);
         bool goal_reached;
@@ -26,7 +26,6 @@ class RRTStar{
         float euclidean_distance(pair<int, int> a, pair<int, int> b);
         Graph tree;
         int max_iter, height, width;
-        float step_size;
         map<pair<int,int>, float> cost_map;
         vector<pair<int,int>> node_list;
         vector<pair<int,int>> all_valid_nodes;
