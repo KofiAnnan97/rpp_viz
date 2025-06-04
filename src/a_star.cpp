@@ -30,7 +30,7 @@ void AStar::solve(pair<int, int> sp, pair<int, int> ep){
     int kill_count = 0;
     while(!open_set.empty() && kill_count < tree.get_size()){
         pair<int,int> curr = get_min_f(open_set);
-        if(curr == tree.end) break;
+        if(curr == ep) break;
         auto children = tree.get_edges(curr);
         for(auto c : children){
             auto cp = c.first;

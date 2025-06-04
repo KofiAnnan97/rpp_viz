@@ -168,7 +168,22 @@ Map MapData::add_path_to_map(Map map, vector<pair<int,int>> path){
     new_map.m_width = map.m_width;
     new_map.resolution = map.resolution;
     new_map.boundaries = MapData::copy_boundaries(map);
-    for(auto p: path) new_map.boundaries[p.first][p.second] = 1;
+    for(auto p: path) new_map.boundaries[p.second][p.first] = 1;
+    return new_map;
+}
+
+Map MapData::debug_map(Map map, vector<pair<int, int>> path, vector<pair<int, int>> travelled, pair<int,int> sp, pair<int,int> ep){
+    Map new_map;
+    new_map.px_height = map.px_height;
+    new_map.px_width = map.px_width;
+    new_map.m_height = map.m_height;
+    new_map.m_width = map.m_width;
+    new_map.resolution = map.resolution;
+    new_map.boundaries = MapData::copy_boundaries(map);
+    for(auto t: travelled) new_map.boundaries[t.second][t.first] = 2;
+    for(auto p: path) new_map.boundaries[p.second][p.first] = 1;
+    new_map.boundaries[sp.second][sp.first] = 3;
+    new_map.boundaries[ep.second][ep.first] = 3;
     return new_map;
 }
 
@@ -177,38 +192,38 @@ Graph MapData::get_graph_from_map(Map map){
     for(int row = 0; row < map.px_height; row++){
         for(int col = 0; col < map.px_width; col++){
             if(map.boundaries[row][col] == 0){
-                auto curr = pair<int, int>{row, col};
+                auto curr = pair<int, int>{col, row};
                 // Up
                 if(row > 0 && map.boundaries[row-1][col] == 0){
-                    graph.add_edge(curr, pair<int, int>{row-1, col}, 1);  
+                    graph.add_edge(curr, pair<int, int>{col, row-1}, 1);  
                 }
                 // Down
                 if (row < map.px_height - 1 && map.boundaries[row+1][col] == 0){
-                    graph.add_edge(curr, pair<int, int>{row+1, col}, 1);
+                    graph.add_edge(curr, pair<int, int>{col, row+1,}, 1);
                 }
                 // Left 
                 if(col > 0 && map.boundaries[row][col-1] == 0){
-                    graph.add_edge(curr, pair<int, int>{row, col-1}, 1);
+                    graph.add_edge(curr, pair<int, int>{col-1, row}, 1);
                 }
                 // Right
                 if(col < map.px_width - 1 && map.boundaries[row][col+1] == 0){
-                    graph.add_edge(curr, pair<int, int>{row, col+1}, 1);
+                    graph.add_edge(curr, pair<int, int>{col+1, row}, 1);
                 }
                 // Up-Left
                 if(row > 0 && col > 0 && map.boundaries[row-1][col-1] == 0){
-                    graph.add_edge(curr, pair<int, int>{row-1, col-1}, 2);
+                    graph.add_edge(curr, pair<int, int>{col-1, row-1,}, 2);
                 }
                 // Up-Right
                 if(row > 0 && col < map.px_width -1 && map.boundaries[row-1][col+1] == 0){
-                    graph.add_edge(curr, pair<int, int>{row-1, col+1}, 2);
+                    graph.add_edge(curr, pair<int, int>{col+1, row-1}, 2);
                 }
                 // Down-Left
                 if(row < map.px_height - 1 && col > 0 && map.boundaries[row+1][col-1] == 0){
-                    graph.add_edge(curr, pair<int, int>{row+1, col-1}, 2);
+                    graph.add_edge(curr, pair<int, int>{col-1, row+1, }, 2);
                 }
                 // Down-Right
                 if(row < map.px_height - 1 && col < map.px_width -1 && map.boundaries[row+1][col+1] == 0){
-                    graph.add_edge(curr, pair<int, int>{row+1, col+1}, 2);
+                    graph.add_edge(curr, pair<int, int>{col+1, row+1}, 2);
                 }
             }
         }
@@ -232,9 +247,11 @@ void MapData::show_map(string title, Map map){
     Mat img(map.px_height, map.px_width, CV_8UC3);
     for(int row = 0; row < map.px_height; row++){
         for(int col = 0; col < map.px_width; col++){
-            if(map.boundaries[row][col] == 1) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,255);
-            else if(map.boundaries[row][col] == 0) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(255,255,255);
-            else if(map.boundaries[row][col] < 0) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,0);
+            if(map.boundaries[row][col] == 1) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,255);            // Path color
+            else if(map.boundaries[row][col] == 2) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,255,0);       // Visted node color
+            else if(map.boundaries[row][col] == 3) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(128,0,128);     // Start and goal node
+            else if(map.boundaries[row][col] == 0) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(255,255,255);   // Empty space color
+            else if(map.boundaries[row][col] < 0) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,0);          // Obstacle color
         }
     }
     cout << "Showing image: " << title;
@@ -245,19 +262,19 @@ void MapData::show_map(string title, Map map){
 
 pair<int, int> MapData::POSE2PIXEL(Map map, float x, float y){
     pair<int, int> px;
-    float x_pt_res = map.m_height*(1.0/map.px_height);
-    float y_pt_res = map.m_width*(1.0/map.px_width);
-    px.first = (y/-x_pt_res) + map.px_height/2;
-    px.second = (x/y_pt_res) + map.px_width/2;
+    float x_pt_res = map.m_width*(1.0/map.px_width);
+    float y_pt_res = map.m_height*(1.0/map.px_height);
+    px.first = (y/-x_pt_res) + map.px_width/2;
+    px.second = (x/y_pt_res) + map.px_height/2;
     return px;
 }
 
-// Rotates image 90 degrees counter-clockwise
+// Rotate 90 degrees counter-clockwise 
 pair<float, float> MapData::PIXEL2POSE(Map map, pair<int,int> px){
     pair<float, float> pose;
     float x_pt_res = map.m_width*(1.0/map.px_width);
     float y_pt_res = map.m_height*(1.0/map.px_height);
     pose.first = x_pt_res*(px.second - map.px_width/2);
-    pose.second = y_pt_res*(px.first - map.px_height/2);
+    pose.second = -y_pt_res*(px.first - map.px_height/2);
     return pose;
 }

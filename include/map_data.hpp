@@ -48,6 +48,7 @@ class Graph {
         }
 
         bool is_node_valid(pair<int,int> node){
+            //if(g[node].size() > 0) return true;
             if(g.find(node) != g.end()) return true;
             else return false;
         }
@@ -77,6 +78,7 @@ class MapData {
         static int** copy_boundaries(Map m);
         static int** inflate_boundaries(Map map, int buffer_size);
         static Map add_path_to_map(Map m, vector<pair<int, int>> path);
+        static Map debug_map(Map m, vector<pair<int, int>> path, vector<pair<int, int>> travelled, pair<int,int> sp, pair<int,int> ep);
         static Graph get_graph_from_map(Map map);
         static void print_boundary(int** b, int width, int height);
         static void show_map(string title, Map map);
