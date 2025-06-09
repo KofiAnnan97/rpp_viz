@@ -40,7 +40,10 @@ void AStar::solve(cell sp, cell ep){
                 f[cp] = new_cost;
                 dist[cp] = new_dist;
                 parent[cp] = curr; 
-                if(not_in_set(open_set, cp)) open_set.push_back(cp);
+                if(not_in_set(open_set, cp)) {
+                    open_set.push_back(cp);
+                    travelled.push_back(cp);
+                }
             } 
         }
         kill_count++;
@@ -85,4 +88,8 @@ void AStar::print_map(string name, map<cell, float> map){
     for(auto m : map){
         cout << "[" << m.first.first << "," << m.first.second  << "] = " << m.second << endl;
     }
+}
+
+vector<cell> AStar::get_travelled_nodes(){
+    return travelled;
 }

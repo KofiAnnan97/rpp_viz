@@ -41,3 +41,11 @@ pair<vector<cell>, float> BFS::reconstruct_path(cell sp, cell ep){
     data.second = dist[ep];
     return data;
 }
+
+vector<cell> BFS::get_travelled_nodes(){
+    vector<cell> travelled;
+    for(auto v: visited){
+        if(v.second) travelled.push_back(v.first);
+    }
+    return travelled;
+}

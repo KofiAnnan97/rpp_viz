@@ -11,6 +11,7 @@ class AStar{
         void solve(cell sp, cell ep);
         pair<vector<cell>, float> reconstruct_path(cell sp, cell ep);
         void print_map(string name, map<cell, float> map);
+        vector<cell> get_travelled_nodes();
 
     private:
         float get_f_score(cell p);
@@ -22,6 +23,7 @@ class AStar{
         map<cell, float> h;
         map<cell, float> f;
         map<cell, cell> parent;
+        vector<cell> travelled;
         
 };
 

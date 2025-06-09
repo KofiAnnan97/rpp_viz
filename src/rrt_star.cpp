@@ -134,6 +134,6 @@ float RRTStar::euclidean_distance(cell a, cell b){
     return sqrt(pow(a.first - b.first, 2) + pow(a.second - b.second, 2));
 }
 
-vector<cell> RRTStar::get_travelled_nodes(cell sp, cell ep){
+vector<cell> RRTStar::get_travelled_nodes(){
     return travelled;
 }

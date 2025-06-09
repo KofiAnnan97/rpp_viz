@@ -15,7 +15,8 @@
 using namespace std;
 using namespace cv;
 
-typedef pair<int,int> cell;
+typedef pair<int,int> cell;     // coordingate from map (x,y) := (col,row)
+typedef pair<cell,int> iw_cell; // cell with integer weight
 
 struct Map{
     int px_width, px_height;
@@ -27,7 +28,7 @@ struct Map{
 class Graph {
     public:    
         // Pair := (y, x)
-        map<cell, vector<pair<cell, int>>> g;
+        map<cell, vector<iw_cell>> g;
         cell root = {0, 0};
         cell end = {0, 0};
 
@@ -36,7 +37,7 @@ class Graph {
                 return g[parent];
             }
             catch(const std::out_of_range& oor){
-                return vector<pair<cell, int>>();
+                return vector<iw_cell>();
             }
         }
 
@@ -66,7 +67,7 @@ class Graph {
         }
 
         void add_node(cell node){
-            g[node] = vector<pair<cell, int>>();
+            g[node] = vector<iw_cell>();
         }
 
         void add_edge(cell parent, cell child, int weight){

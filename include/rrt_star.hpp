@@ -13,8 +13,7 @@ class RRTStar{
         void solve(cell sp, cell ep);
         pair<vector<cell>, float> reconstruct_path(cell sp, cell ep);
         bool goal_reached;
-
-        vector<cell> get_travelled_nodes(cell sp, cell ep);
+        vector<cell> get_travelled_nodes();
 
     private:
         cell get_random_node();

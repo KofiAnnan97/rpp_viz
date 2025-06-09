@@ -8,7 +8,7 @@ class BFS{
         BFS(Graph g);
         void solve(cell sp, cell ep);
         pair<vector<cell>, float> reconstruct_path(pair<int, int> sp, pair<int, int> ep);
-
+        vector<cell> get_travelled_nodes();
     private:
         Graph tree;
         map<cell, float> dist;
