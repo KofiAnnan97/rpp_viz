@@ -126,8 +126,8 @@ void MapData::inflate_pixel(int** nb, int width, int height, int col, int row, i
     int dy = buffer_size/2;
     if(dx == 0 && dy == 0) nb[row][col] = -1;
     else{
-        for(int y = row-dy; y < row+dy; y++){
-            for(int x = col-dx; x < col+dx; x++){
+        for(int y = row-dy; y <= row+dy; y++){
+            for(int x = col-dx; x <= col+dx; x++){
                 if(y >= 0 && y < height && x >= 0 && x < width){
                     nb[y][x] = -1;
                 }
@@ -221,6 +221,8 @@ Graph MapData::get_graph_from_map(Map map){
                 if(row < map.px_height - 1 && col < map.px_width -1 && map.boundaries[row+1][col+1] == 0){
                     graph.add_edge(curr, cell{col+1, row+1}, 2);
                 }
+                // If cell has no neihbors add it to the graph
+                if(!graph.is_node_valid(curr)) graph.add_node(curr);
             }
         }
     }
