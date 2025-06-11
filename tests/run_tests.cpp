@@ -499,7 +499,24 @@ void test_rrt_star_simple(){
 
     cout << "\tTest Invalid Point: ";
     test_invalid_node(g, {0,0}, passed_count);
-    cout << "RRT-Star Tests Passed: " << passed_count << "/6\n";
+    auto short_rrt = RRTStar(g, m.px_width, m.px_height, 10);
+    short_rrt.solve(g.root, g.end);
+    auto invalid_result = short_rrt.reconstruct_path(g.root, g.end);
+    cout << "\tTest Limited Iteration Failure: ";
+    auto inv_path = invalid_result.first;
+    float inv_dist = invalid_result.second;
+    if(inv_path.size() == 1 && inv_dist == 0){
+        cout << "passed\n";
+        passed_count++;
+    }
+    else{
+        cout << "failed, ";
+        cout << "distance should be 0 not " << inv_dist;
+        cout << "\n Path should only include the goal position but has the following: [";
+        for(auto ip: inv_path) cout <<  "(" << ip.first << "," << ip.second << ") ";
+        cout << "]\n";
+    }
+    cout << "RRT-Star Tests Passed: " << passed_count << "/7\n";
 }
 
 
