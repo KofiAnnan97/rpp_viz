@@ -6,8 +6,9 @@ A testing ground for path planning strategies for ROS.
 - [ ] Write a script to generate fake map yaml and pgm based on double array 
 - [ ] Implement more tests 
     - [ ] Yaml and pgm parsing
-    - [ ] Test when the start or end point is invalid
-    - [ ] Test when the max number of iterations is too small with RRT*
+    - [X] Test when the start or end point is invalid
+    - [X] Test when the max number of iterations is too small with RRT*
+    - [ ] Test D* Replan with changing map
 - [ ] Rewrite tests with GTest
 
 ## Dependencies

@@ -27,7 +27,6 @@ struct Map{
 // Change this class to use unordered_map (requires default constructor)
 class Graph {
     public:    
-        // Pair := (y, x)
         map<cell, vector<iw_cell>> g;
         cell root = {0, 0};
         cell end = {0, 0};
