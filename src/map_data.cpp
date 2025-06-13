@@ -246,7 +246,7 @@ void MapData::show_map(string title, Map map){
     for(int row = 0; row < map.px_height; row++){
         for(int col = 0; col < map.px_width; col++){
             if(map.boundaries[row][col] == 1) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,255);            // Path color
-            else if(map.boundaries[row][col] == 2) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,255,0);       // Visted node color
+            else if(map.boundaries[row][col] == 2) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(230,216,173);       // Visted node color
             else if(map.boundaries[row][col] == 3) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(128,0,128);     // Start and goal node
             else if(map.boundaries[row][col] == 0) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(255,255,255);   // Empty space color
             else if(map.boundaries[row][col] < 0) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,0);          // Obstacle color

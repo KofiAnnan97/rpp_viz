@@ -19,12 +19,12 @@ set(PATH_PLANNING_SOURCES
     include/rrt_star.hpp
 )
 
-add_executable(rpp_viz
-    src/rpp_viz.cpp
+add_executable(rpp_cli
+    src/rpp_cli.cpp
     ${PATH_PLANNING_SOURCES}
     ${DATA_SOURCES}
 )
-target_link_libraries(rpp_viz ${OpenCV_LIBS})
+target_link_libraries(rpp_cli ${OpenCV_LIBS})
 
 add_executable(run_tests
     tests/run_tests.cpp

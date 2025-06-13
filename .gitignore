@@ -9,4 +9,5 @@ CMakeCache.txt
 # Executable
 *.o
 *.exe
-tester
+run_tests
+rpp_cli
