@@ -31,7 +31,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkBox">
+          <object class="GtkBox" id="box_layout">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <property name="orientation">vertical</property>
@@ -102,11 +102,13 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkSpinButton" id="spin_btn_counter1">
+                      <object class="GtkSpinButton" id="spin_btn_counter">
                         <property name="visible">True</property>
                         <property name="can-focus">True</property>
                         <property name="text" translatable="yes">0</property>
+                        <property name="input-purpose">number</property>
                         <property name="climb-rate">1</property>
+                        <property name="numeric">True</property>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -119,45 +121,6 @@
                     <property name="expand">False</property>
                     <property name="fill">True</property>
                     <property name="position">3</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkBox" id="box_iterations">
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <child>
-                      <object class="GtkLabel" id="lbl_iterations">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <property name="label" translatable="yes">Max Iterations:   </property>
-                        <property name="use-underline">True</property>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">True</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkSpinButton" id="spin_btn_iterations">
-                        <property name="visible">True</property>
-                        <property name="can-focus">True</property>
-                        <property name="margin-end">20</property>
-                        <property name="text" translatable="yes">0</property>
-                        <property name="climb-rate">1</property>
-                        <property name="value">10000</property>
-                      </object>
-                      <packing>
-                        <property name="expand">True</property>
-                        <property name="fill">True</property>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">4</property>
                   </packing>
                 </child>
                 <child>
@@ -284,14 +247,61 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkComboBox" id="co_btn_algo_type">
+                  <object class="GtkComboBoxText" id="cot_algo_type">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
+                    <items>
+                      <item id="algo_bfs" translatable="yes">BFS</item>
+                      <item id="algo_a_star" translatable="yes">A*</item>
+                      <item id="algo_rrt_star" translatable="yes">RRT*</item>
+                      <item translatable="yes">All</item>
+                    </items>
                   </object>
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
                     <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkBox" id="box_iterations">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <child>
+                      <object class="GtkLabel" id="lbl_iterations">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="label" translatable="yes">Max Iterations:   </property>
+                        <property name="use-underline">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">True</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkSpinButton" id="spin_btn_iterations">
+                        <property name="visible">True</property>
+                        <property name="can-focus">True</property>
+                        <property name="margin-right">20</property>
+                        <property name="margin-end">20</property>
+                        <property name="text" translatable="yes">0</property>
+                        <property name="input-purpose">number</property>
+                        <property name="climb-rate">1</property>
+                        <property name="numeric">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">2</property>
                   </packing>
                 </child>
                 <child>
@@ -306,7 +316,7 @@
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
-                    <property name="position">2</property>
+                    <property name="position">3</property>
                   </packing>
                 </child>
                 <child>
@@ -323,7 +333,7 @@
                     <property name="expand">False</property>
                     <property name="fill">False</property>
                     <property name="padding">10</property>
-                    <property name="position">3</property>
+                    <property name="position">4</property>
                   </packing>
                 </child>
               </object>
@@ -335,7 +345,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkBox">
+              <object class="GtkBox" id="box_results">
                 <property name="name">box_results</property>
                 <property name="visible">True</property>
                 <property name="can-focus">False</property>
@@ -365,11 +375,12 @@
                         <property name="can-focus">True</property>
                         <property name="shadow-type">in</property>
                         <child>
-                          <object class="GtkTextView">
+                          <object class="GtkTextView" id="txt_view_results">
                             <property name="name">txt_view_results</property>
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                             <property name="vexpand">True</property>
+                            <property name="editable">False</property>
                           </object>
                         </child>
                       </object>
