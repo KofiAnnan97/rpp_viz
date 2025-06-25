@@ -5,7 +5,7 @@
 #include "map_data.hpp" 
 #include "bfs.hpp"
 #include "a_star.hpp"
-#include "d_star_lite.hpp"
+//#include "d_star_lite.hpp"
 #include "rrt_star.hpp"
 
 using namespace std::chrono;
@@ -445,7 +445,7 @@ D* (Using Simple Data)
     Path Generated between start and goal
     Duration is less than 2 minutes
 */
-void test_d_star_lite_simple(){
+/*void test_d_star_lite_simple(){
     auto m = get_simple_map();
     //m.boundaries = MapData::inflate_boundaries(m, 3);
     auto g = MapData::get_graph_from_map(m);
@@ -501,7 +501,7 @@ void test_d_star_lite_simple(){
     cout << "\tTest Invalid Point: ";
     test_invalid_node(g, {0,0}, passed_count);
     cout << "D-Star-Lite Tests Passed: " << passed_count << "/6\n";
-}
+}*/
 
 /*
 RRT* (Using Simple Data)

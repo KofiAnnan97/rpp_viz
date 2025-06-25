@@ -11,3 +11,4 @@ CMakeCache.txt
 *.exe
 run_tests
 rpp_cli
+rpp_viz
