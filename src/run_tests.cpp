@@ -3,8 +3,9 @@
 #include <gtest/gtest.h>
 
 #include "map_data.hpp" 
-#include "a_star.hpp"
 #include "bfs.hpp"
+#include "a_star.hpp"
+#include "d_star_lite.hpp"
 #include "rrt_star.hpp"
 
 using namespace std::chrono;
@@ -353,7 +354,7 @@ void test_bfs_simple(){
         cout << "passed\n";
         passed_count++;
     } 
-    else cout << "failed, " << duration.count() << " ms " << duration_limit << " ms\n";
+    else cout << "failed, " << duration.count() << " ms > " << duration_limit << " ms (time threshold)\n";
     vector<cell> expected_path = {{3,3}, {4,3}, {5,4}, {6,5}, {7,5}, {8,5}, 
                                   {9,4}, {10,3}, {11,3}, {12,3}, {13,3}, 
                                   {14,4}, {15,5}, {15,6}, {16,7}};
@@ -414,7 +415,7 @@ void test_a_star_simple(){
         cout << "passed\n";
         passed_count++;
     } 
-    else cout << "failed, " << duration.count() << " ms " << duration_limit << " ms\n";
+    else cout << "failed, " << duration.count() << " ms > " << duration_limit << " ms (time threshold)\n";
     vector<cell> expected_path = {{3,3}, {4,3}, {5,4}, {6,5}, {7,5}, {8,5}, 
                                   {9,4}, {10,3}, {11,3}, {12,3}, {13,3}, 
                                   {14,4}, {15,5}, {15,6}, {16,7}};
@@ -436,6 +437,70 @@ void test_a_star_simple(){
     cout << "\tTest Invalid Point: ";
     test_invalid_node(g, {0,0}, passed_count);
     cout << "A-Star Tests Passed: " << passed_count << "/6\n";
+}
+
+/*
+D* (Using Simple Data)
+    Algorithm Completes
+    Path Generated between start and goal
+    Duration is less than 2 minutes
+*/
+void test_d_star_lite_simple(){
+    auto m = get_simple_map();
+    //m.boundaries = MapData::inflate_boundaries(m, 3);
+    auto g = MapData::get_graph_from_map(m);
+
+    g.root = {3, 3};
+    g.end = {16, 7};
+    auto ds = DStarLite(g);
+
+    auto start_time = get_time("Start Time"); 
+    ds.solve(g.root, g.end);
+    auto end_time = get_time("End Time"); 
+    auto duration = duration_cast<milliseconds>(end_time- start_time);
+
+    auto results = ds.reconstruct_path(g.root, g.end);
+    vector<cell> path = results.first;
+    float dist = results.second;
+
+    // Test component
+    int duration_limit = 10;
+    float path_err_thresh = 2.5;
+    int passed_count = 0;
+    cout << "\nD-STAR-LITE TESTS\n";
+    cout << "\tTest Start Point: ";
+    test_valid_node(g, g.root, passed_count);
+    cout << "\tTest End Point: ";
+    test_valid_node(g, g.end, passed_count);
+    cout << "\tTest Speed: ";
+    if(duration.count() < duration_limit){
+        cout << "passed\n";
+        passed_count++;
+    } 
+    else cout << "failed, " << duration.count() << " ms > " << duration_limit << " ms (time threshold)\n";
+    vector<cell> expected_path = {{3,3}, {4,3}, {5,4}, {6,5}, {7,5}, {8,5}, 
+                                  {9,4}, {10,3}, {11,3}, {12,3}, {13,3}, 
+                                  {14,4}, {15,5}, {15,6}, {16,7}};
+    int dist_limit = 25;
+    cout << "\tTest Path: ";
+    float rmse_err = path_rmse_error(expected_path, path);
+    if(rmse_err <= path_err_thresh){
+        cout << "passed\n";
+        passed_count++;
+    }
+    else cout << "failed, RMSE for path is " << rmse_err << endl;
+    cout << "\tTest Distance: ";
+    if(dist <= dist_limit){
+        cout << "passed\n";
+        passed_count++;
+    }
+    else cout << "failed, distance is greater than " << dist_limit << endl;
+    auto nm = MapData::add_path_to_map(m, path);
+    MapData::show_map("D* Lite", nm);
+
+    cout << "\tTest Invalid Point: ";
+    test_invalid_node(g, {0,0}, passed_count);
+    cout << "D-Star-Lite Tests Passed: " << passed_count << "/6\n";
 }
 
 /*
@@ -478,7 +543,7 @@ void test_rrt_star_simple(){
         cout << "passed\n";
         passed_count++;
     } 
-    else cout << "failed, " << duration.count() << " ms " << duration_limit << " ms\n";
+    else cout << "failed, " << duration.count() << " ms > " << duration_limit << " ms (time threshold)\n";
     vector<cell> expected_path = {{3,3}, {4,4}, {5,4}, {6,5}, {7,4}, {8,3}, 
                                   {9,3}, {10,3}, {11,3}, {12,3}, {13,2}, {14,2},
                                   {15,3}, {16,4}, {16,5}, {16,6}, {16,7}};
@@ -519,7 +584,6 @@ void test_rrt_star_simple(){
     cout << "RRT-Star Tests Passed: " << passed_count << "/7\n";
 }
 
-
 /*+------------+
   | Unit Tests |
   +------------+*/
@@ -528,5 +592,6 @@ int main(){
     test_conversions();
     test_bfs_simple();
     test_a_star_simple();
+    //test_d_star_lite_simple();
     test_rrt_star_simple();
 }

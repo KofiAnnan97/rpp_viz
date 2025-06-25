@@ -8,6 +8,7 @@
 #include "map_data.hpp"
 #include "bfs.hpp"
 #include "a_star.hpp"
+#include "d_star_lite.hpp"
 #include "rrt_star.hpp"
 
 using namespace std::chrono;
@@ -210,6 +211,22 @@ void run_astar(Map &m, Graph g, bool debug){
     show_map("A*", m, g.root, g.end, path, travelled, debug);
 }
 
+void run_d_star_lite(Map &m, Graph g, bool debug){
+    cout << "D-STAR-LITE" << endl;
+    auto d_lite = DStarLite(g);
+
+    auto start_time = get_time("Start Time");
+    d_lite.solve(g.root, g.end);
+    auto end_time = get_time("End Time");
+
+    auto results = d_lite.reconstruct_path(g.root, g.end);
+    vector<cell> path = results.first;
+    float dist = results.second;
+    print_results(g, path, dist, start_time, end_time, debug);
+    vector<cell> travelled;
+    show_map("D* Lite", m, g.root, g.end, path, travelled, debug);
+}
+
 void run_rrt_star(Map &m, Graph g, int max_iter, bool debug){
     cout << "RRT-STAR" << endl;
     auto rrt = RRTStar(g, m.px_width, m.px_height, max_iter);
@@ -257,6 +274,7 @@ int main(int argc, char* argv[]){
             if(params.algo == "bfs") run_bfs(map, g, params.show_debug);
             else if(params.algo == "a-star") run_astar(map, g, params.show_debug);
             else if(params.algo == "rrt-star") run_rrt_star(map, g, params.max_iter, params.show_debug);
+            else if(params.algo == "d-lite") run_d_star_lite(map, g, params.show_debug);
             else if(params.algo == "all"){
                 run_bfs(map, g, params.show_debug);
                 run_astar(map, g, params.show_debug);

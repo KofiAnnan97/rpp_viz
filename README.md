@@ -2,14 +2,22 @@
 A testing ground for path planning strategies for ROS.
 
 ## TODO
-- [ ] Implement D* Lite algorithm
-- [ ] Write a script to generate fake map yaml and pgm based on double array 
-- [ ] Implement more tests 
-    - [ ] Yaml and pgm parsing
-    - [X] Test when the start or end point is invalid
-    - [X] Test when the max number of iterations is too small with RRT*
-    - [ ] Test D* Replan with changing map
-- [ ] Rewrite tests with GTest
+- Command Line Script
+    - [ ] Implement D* Lite algorithm
+    - [ ] Write a script to generate fake map yaml and pgm based on double array 
+    - [ ] Implement more tests 
+        - [ ] Yaml and pgm parsing
+        - [X] Test when the start or end point is invalid
+        - [X] Test when the max number of iterations is too small with RRT*
+        - [ ] Test D* Replan with changing map
+    - [ ] Rewrite tests with GTest
+- [ ] Implement as GUI
+    - [ ] Import map from yaml & pgm file
+    - [ ] Update map with new obstacles or delete them (with inflation)
+    - [ ] Update the inflate boundary in interface
+    - [ ] Click map (or use text box) to set start and goal position
+    - [ ] Toggle between implemented algorithms or run all (disable visualization travelled nodes) 
+    - [ ] Provide time duration of path completion
 
 ## Dependencies
 - CMake
@@ -18,7 +26,7 @@ A testing ground for path planning strategies for ROS.
 ## Usage
 This script requires the user to specify a yaml file for map information, the name of algorithm being used, and the start & end position. Certain algorithms require the user to specify the number of iterations to reduce the likelihood of an infinite loop (by default it is set to 10,000). If the map has thin or unexpected broken boudnaries it may also be benefitial to inflate their size to remedy this issue(by default boundaries are inflated by a 3x3 matrix). Look below for a more thorough breakdown of the possible commands for this script.
 ```
-./rpp_viz -h
+./rpp_cli -h
 
 # Ouptut
 Description: A simple script to test different path planning algorithms.
@@ -38,7 +46,7 @@ options:
 
 Example execution:
 ```
-./rpp_viz -f "./maps/example1.yaml" -i 3 -a "rrt-star" -l 10000 -s "300,50" -e "381,360" -d
+./rpp_cli -f "./maps/example1.yaml" -i 3 -a "rrt-star" -l 10000 -s "300,50" -e "381,360" -d
 ```
 
 ## Maps
