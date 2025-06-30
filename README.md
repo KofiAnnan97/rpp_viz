@@ -12,10 +12,10 @@ A testing ground for path planning strategies for ROS.
         - [ ] Test D* Replan with changing map
     - [ ] Rewrite tests with GTest
 - [ ] Implement as GUI
-    - [ ] Import map from yaml & pgm file
+    - [X] Import map from yaml & pgm file
     - [ ] Update map with new obstacles or delete them (with inflation)
-    - [ ] Update the inflate boundary in interface
-    - [X] Click map (or use text box) to set start and goal position
+    - [X] Update obstacle inflation in interface
+    - [ ] Click map (or use text box) to set start and goal position
     - [X] Toggle between implemented algorithms or run all (disable visualization travelled nodes) 
     - [X] Provide results data including time duration, distance, travelled nodes, and nodes of the selected path
     - [ ] animate traversal of map and final path
@@ -24,18 +24,18 @@ A testing ground for path planning strategies for ROS.
 ## Dependencies
 - CMake
 - OpenCV
-- gtkmm
+- Qt
 
 ## Quick Start
 1. Install dependencies:
     ```
     # Ubuntu
-    sudo apt-get install libgtkmm-4.0-dev libopencv-dev
+    sudo apt-get install libopencv-dev
     ```
-2. Compile code and generate executables:
-    ```
-    make
-    ```
+    [//]: # (2. Compile code and generate executables:)
+    [//]: # (```)
+    [//]: # (make)
+    [//]: # (```)
 
 ## Usage
 This project can be run as a GUI or as a script. 
@@ -49,13 +49,13 @@ To open the GUI run this command:
 ![](/img/gui.png)
 
 Features
- - change upload map (yaml pointint pgm file)
- - add/remove obstacles
- - dynamic update inflation of the obstacles
- - change the algorithm used
- - set a maximum number of iterations for an algoirthm
- - set the start and goal positions
- - view results for comparison
+ - Change upload map (yaml pointint pgm file)
+ - Add/Remove obstacles
+ - Dynamic update inflation of the obstacles
+ - Change the algorithm used
+ - Set a maximum number of iterations for an algoirthm
+ - Set the start and goal positions
+ - View results for comparison
 
 ### Script
 This script requires the user to specify a yaml file for map information, the name of algorithm being used, and the start & end position. Certain algorithms require the user to specify the number of iterations to reduce the likelihood of an infinite loop (by default it is set to 10,000). If the map has thin or unexpected broken boudnaries it may also be benefitial to inflate their size to remedy this issue(by default boundaries are inflated by a 3x3 matrix). Look below for a more thorough breakdown of the possible commands for this script.

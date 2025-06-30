@@ -128,12 +128,32 @@ void MapData::inflate_pixel(int** nb, int width, int height, int col, int row, i
     else{
         for(int y = row-dy; y <= row+dy; y++){
             for(int x = col-dx; x <= col+dx; x++){
-                if(y >= 0 && y < height && x >= 0 && x < width){
-                    nb[y][x] = -1;
+                if(y >= 0 && y < height && x >= 0 && x < width && nb[y][x] != -1){
+                    nb[y][x] = -2;
                 }
             }
         }  
     }    
+}
+
+int** MapData::remove_boundary_inflation(Map map){
+    // Allocate new boundary
+    int** original_boundaries = MapData::copy_boundaries(map);
+
+    // Remove inflation from boundaries
+    for(int row = 0; row <= map.px_height-1; row++){
+        for(int col = 0; col < map.px_width; col++){
+            if(map.boundaries[row][col] == -2){
+                original_boundaries[row][col] = 0;
+            }
+        }
+    }
+
+    //De-allocate old boundaries
+    for(int l = 0; l < map.px_height; l++) delete map.boundaries[l];
+    delete[] map.boundaries;
+    // return inflated boundary
+    return original_boundaries;
 }
 
 int** MapData::inflate_boundaries(Map map, int buffer_size){
@@ -276,4 +296,54 @@ pair<float, float> MapData::PIXEL2POSE(Map map, cell px){
     pose.first = x_pt_res*(px.second - map.px_width/2);
     pose.second = -y_pt_res*(px.first - map.px_height/2);
     return pose;
+}
+
+int* MapData::IDX2COLOR(int val){
+    int* temp = new int[3];
+    // Inflated Obstacle color
+    if(val == -2){
+        temp[0] = 1;
+        temp[1] = 1;
+        temp[2] = 1;
+    }
+    // Obstacle color
+    else if(val == -1){
+        temp[0] = 0;
+        temp[1] = 0;
+        temp[2] = 0;
+    }
+    // Empty space color
+    else if(val == 0){
+        temp[0] = 255;
+        temp[1] = 255;
+        temp[2] = 255;
+    }
+    // Start and goal node
+    else if(val == 1){
+        temp[0] = 128;
+        temp[1] = 0;
+        temp[2] = 128;
+    }
+    // Visted node color
+    else if(val == 2){
+        temp[0] = 230;
+        temp[1] = 216;
+        temp[2] = 173;
+    }
+    // Path color
+    else if(val == 3){
+        temp[0] = 0;
+        temp[1] = 0;
+        temp[2] = 255;
+    }
+    return temp;
+}
+
+int MapData::COLOR2IDX(int r, int g, int b){
+    if(r == 1 && g == 1 && b == 1)             return -2;  // Inflated Obstacle color
+    else if(r == 0 && g == 0 && b == 0)        return -1;  // Obstacle color
+    else if(r == 255 && g == 255 && b == 255)  return 0;   // Empty space color
+    else if(r == 128 && g == 0 && b == 128)    return 1;   // Start and goal node
+    else if(r == 230 && g == 216 && b == 173)  return 2;   // Visted node color
+    else if(r == 0 && g == 0 && b == 255)      return 3;   // Path color
 }

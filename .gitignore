@@ -1,10 +1,13 @@
 .vscode/
 
 # Build
+build/
 CMakeFiles/
 *.cmake
 Makefile
 CMakeCache.txt
+CMakeList.txt.usr
+
 
 # Executable
 *.o

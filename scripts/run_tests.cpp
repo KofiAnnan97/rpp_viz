@@ -1,6 +1,6 @@
 #include <chrono>
 #include <iomanip>
-#include <gtest/gtest.h>
+//#include <gtest/gtest.h>
 
 #include "map_data.hpp" 
 #include "bfs.hpp"
@@ -181,6 +181,7 @@ void test_map_data(){
                 auto actual_edge = a_edges[j].first;
                 for(int i = 0; i < expected_edges.size(); i++){
                     if(expected_edges[i] == actual_edge) break;
+                    //else if(actual_edge < 0 && expected_edges[i] < 0) break;
                     else if(expected_edges[i] != actual_edge && i == expected_edges.size()-1){
                        incorrect_edges.push_back(pair{a_node, actual_edge});
                     }
