@@ -3,6 +3,7 @@
 
 #include <string>
 #include <iomanip>
+#include <sstream>
 
 #include <QMainWindow>
 #include <QString>
@@ -20,8 +21,15 @@
 #include "map_data.hpp"
 
 using namespace std::chrono;
+using namespace std;
 
 typedef std::chrono::_V2::system_clock::time_point c_time_point;
+
+struct ColorIdx{
+    int idx;
+    array<int,3> rgb_vals;
+    string name;
+};
 
 struct AlgoResult{
     string type;
@@ -51,6 +59,7 @@ public:
 
 private slots:
     void on_btn_upload_map_clicked();
+    void on_btn_obstacles_clicked();
     void on_sp_bx_inflate_valueChanged(int val);
     void on_btn_start_pos_clicked();
     void on_btn_goal_pos_clicked();
@@ -61,6 +70,7 @@ private slots:
 private:
     void update_pixmap(Map map, QImage* image);
     void initialize_window();
+    cell get_positon(string pos_str);
     void run_bfs(Graph g);
     void run_a_star(Graph g);
     void run_rrt_star(Graph g);
@@ -75,12 +85,14 @@ private:
     Map map;
     Graph graph;
     bool debug = false;
-    bool algo_run = false;
+    bool path_computed = false;
+    bool map_uploaded = false;
     QString algo_name;
     int max_iters = 10000;
-    int inflate_size = 1;
+    const int pt_size = 5;
     cell start_pos = {-1,-1};
     cell goal_pos = {-1,-1};
     vector<AlgoResult> results;
+    vector<ColorIdx> color_idxs;
 };
 #endif // MAINWINDOW_H

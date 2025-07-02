@@ -136,26 +136,6 @@ void MapData::inflate_pixel(int** nb, int width, int height, int col, int row, i
     }    
 }
 
-int** MapData::remove_boundary_inflation(Map map){
-    // Allocate new boundary
-    int** original_boundaries = MapData::copy_boundaries(map);
-
-    // Remove inflation from boundaries
-    for(int row = 0; row <= map.px_height-1; row++){
-        for(int col = 0; col < map.px_width; col++){
-            if(map.boundaries[row][col] == -2){
-                original_boundaries[row][col] = 0;
-            }
-        }
-    }
-
-    //De-allocate old boundaries
-    for(int l = 0; l < map.px_height; l++) delete map.boundaries[l];
-    delete[] map.boundaries;
-    // return inflated boundary
-    return original_boundaries;
-}
-
 int** MapData::inflate_boundaries(Map map, int buffer_size){
     // Allocate new boundary
     int** new_boundaries = MapData::copy_boundaries(map);
@@ -176,7 +156,46 @@ int** MapData::inflate_boundaries(Map map, int buffer_size){
     return new_boundaries;
 }
 
-Map MapData::add_path_to_map(Map map, vector<cell> path){
+int** MapData::remove_boundary_inflation(Map map){
+    // Allocate new boundary
+    int** original_boundaries = MapData::copy_boundaries(map);
+
+    // Remove inflation from boundaries
+    for(int row = 0; row <= map.px_height-1; row++){
+        for(int col = 0; col < map.px_width; col++){
+            if(map.boundaries[row][col] == -2){
+                original_boundaries[row][col] = 0;
+            }
+        }
+    }
+
+    //De-allocate old boundaries
+    for(int l = 0; l < map.px_height; l++) delete map.boundaries[l];
+    delete[] map.boundaries;
+    // return inflated boundary
+    return original_boundaries;
+}
+
+void MapData::inflate_point(Map map, cell pt, int buffer_size){
+    int dx = buffer_size/2;
+    int dy = buffer_size/2;
+    int** b = map.boundaries;
+    for(int y = pt.second-dy; y <= pt.second+dy; y++){
+        for(int x = pt.first-dx; x <= pt.first+dx; x++){
+            if(y >= 0 && y < map.px_height && x >= 0 && x < map.px_width){
+                b[y][x] = 1;
+            }
+        }
+    }
+}
+
+Map MapData::add_path_to_map(Map map, vector<cell> path, cell sp, cell ep){
+    int path_val = 3;
+    Map new_map =  MapData::add_path_to_map_with_value(map, path_val, path, sp, ep);
+    return new_map;
+}
+
+Map MapData::add_path_to_map_with_value(Map map, int pixel_val, vector<cell> path, cell sp, cell ep){
     Map new_map;
     new_map.px_height = map.px_height;
     new_map.px_width = map.px_width;
@@ -184,7 +203,9 @@ Map MapData::add_path_to_map(Map map, vector<cell> path){
     new_map.m_width = map.m_width;
     new_map.resolution = map.resolution;
     new_map.boundaries = MapData::copy_boundaries(map);
-    for(auto p: path) new_map.boundaries[p.second][p.first] = 1;
+    for(auto p: path) new_map.boundaries[p.second][p.first] = pixel_val;
+    new_map.boundaries[sp.second][sp.first] = 1;
+    new_map.boundaries[ep.second][ep.first] = 1;
     return new_map;
 }
 
@@ -197,9 +218,9 @@ Map MapData::debug_map(Map map, vector<cell> path, vector<cell> travelled, cell 
     new_map.resolution = map.resolution;
     new_map.boundaries = MapData::copy_boundaries(map);
     for(auto t: travelled) new_map.boundaries[t.second][t.first] = 2;
-    for(auto p: path) new_map.boundaries[p.second][p.first] = 1;
-    new_map.boundaries[sp.second][sp.first] = 3;
-    new_map.boundaries[ep.second][ep.first] = 3;
+    for(auto p: path) new_map.boundaries[p.second][p.first] = 3;
+    MapData::inflate_point(new_map, sp, 5); //new_map.boundaries[sp.second][sp.first] = 1;
+    MapData::inflate_point(new_map, ep, 5); //new_map.boundaries[ep.second][ep.first] = 1;
     return new_map;
 }
 
@@ -265,9 +286,9 @@ void MapData::show_map(string title, Map map){
     Mat img(map.px_height, map.px_width, CV_8UC3);
     for(int row = 0; row < map.px_height; row++){
         for(int col = 0; col < map.px_width; col++){
-            if(map.boundaries[row][col] == 1) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,255);            // Path color
-            else if(map.boundaries[row][col] == 2) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(230,216,173);       // Visted node color
-            else if(map.boundaries[row][col] == 3) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(128,0,128);     // Start and goal node
+            if(map.boundaries[row][col] == 3) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,255);            // Path color
+            else if(map.boundaries[row][col] == 2) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(230,216,173);   // Visted node color
+            else if(map.boundaries[row][col] == 1) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(128,0,128);     // Start and goal node
             else if(map.boundaries[row][col] == 0) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(255,255,255);   // Empty space color
             else if(map.boundaries[row][col] < 0) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,0);          // Obstacle color
         }
@@ -296,54 +317,4 @@ pair<float, float> MapData::PIXEL2POSE(Map map, cell px){
     pose.first = x_pt_res*(px.second - map.px_width/2);
     pose.second = -y_pt_res*(px.first - map.px_height/2);
     return pose;
-}
-
-int* MapData::IDX2COLOR(int val){
-    int* temp = new int[3];
-    // Inflated Obstacle color
-    if(val == -2){
-        temp[0] = 1;
-        temp[1] = 1;
-        temp[2] = 1;
-    }
-    // Obstacle color
-    else if(val == -1){
-        temp[0] = 0;
-        temp[1] = 0;
-        temp[2] = 0;
-    }
-    // Empty space color
-    else if(val == 0){
-        temp[0] = 255;
-        temp[1] = 255;
-        temp[2] = 255;
-    }
-    // Start and goal node
-    else if(val == 1){
-        temp[0] = 128;
-        temp[1] = 0;
-        temp[2] = 128;
-    }
-    // Visted node color
-    else if(val == 2){
-        temp[0] = 230;
-        temp[1] = 216;
-        temp[2] = 173;
-    }
-    // Path color
-    else if(val == 3){
-        temp[0] = 0;
-        temp[1] = 0;
-        temp[2] = 255;
-    }
-    return temp;
-}
-
-int MapData::COLOR2IDX(int r, int g, int b){
-    if(r == 1 && g == 1 && b == 1)             return -2;  // Inflated Obstacle color
-    else if(r == 0 && g == 0 && b == 0)        return -1;  // Obstacle color
-    else if(r == 255 && g == 255 && b == 255)  return 0;   // Empty space color
-    else if(r == 128 && g == 0 && b == 128)    return 1;   // Start and goal node
-    else if(r == 230 && g == 216 && b == 173)  return 2;   // Visted node color
-    else if(r == 0 && g == 0 && b == 255)      return 3;   // Path color
 }

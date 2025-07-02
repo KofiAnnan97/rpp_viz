@@ -7,8 +7,26 @@
     <x>0</x>
     <y>0</y>
     <width>870</width>
-    <height>600</height>
+    <height>605</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>870</width>
+    <height>605</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>870</width>
+    <height>605</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
@@ -81,6 +99,9 @@
          </item>
          <item>
           <widget class="QPushButton" name="btn_obstacles">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;[Todo] Update map obstacles using a mouse.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="text">
             <string>Add/Remove Obstacles</string>
            </property>
@@ -158,6 +179,9 @@
                <height>16777215</height>
               </size>
              </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;[Todo] Set start position using mouse click. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             </property>
              <property name="text">
               <string>o</string>
              </property>
@@ -206,6 +230,9 @@
                <width>0</width>
                <height>0</height>
               </size>
+             </property>
+             <property name="toolTip">
+              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;[Todo] Set goal position using mouse click.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
               <string>o</string>
@@ -323,8 +350,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>260</width>
-               <height>191</height>
+               <width>258</width>
+               <height>255</height>
               </rect>
              </property>
              <property name="sizePolicy">
@@ -333,10 +360,16 @@
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
+             <property name="minimumSize">
+              <size>
+               <width>210</width>
+               <height>255</height>
+              </size>
+             </property>
              <property name="baseSize">
               <size>
                <width>300</width>
-               <height>150</height>
+               <height>320</height>
               </size>
              </property>
              <property name="horizontalScrollBarPolicy">

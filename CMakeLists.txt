@@ -13,13 +13,13 @@ find_package(OpenCV REQUIRED)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets LinguistTools)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools)
 
-if( CMAKE_RUNTIME_OUTPUT_DIRECTORY )
-	set( executableOutputPath ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} )
-elseif( EXECUTABLE_OUTPUT_PATH )
-	set( executableOutputPath ${EXECUTABLE_OUTPUT_PATH} )
-else()
-	set( executableOutputPath ${CMAKE_CURRENT_BINARY_DIR} )
-endif()
+#if( CMAKE_RUNTIME_OUTPUT_DIRECTORY )
+#	set( executableOutputPath ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} )
+#elseif( EXECUTABLE_OUTPUT_PATH )
+#	set( executableOutputPath ${EXECUTABLE_OUTPUT_PATH} )
+#else()
+#	set( executableOutputPath ${CMAKE_CURRENT_BINARY_DIR} )
+#endif()
 
 set(PATH_PLANNING_LIB_PATH "./lib/path_planning/")
 
@@ -32,7 +32,7 @@ FILE(GLOB PATH_PLANNING_SRC
 )
 
 include_directories(
-    include
+    #include
     ${PATH_PLANNING_LIB_PATH}/include
     ${PATH_PLANNING_LIB_PATH}/src
     ${OpenCV_INCLUDE_DIRS}

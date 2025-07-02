@@ -84,7 +84,9 @@ class MapData {
         static int** copy_boundaries(Map m);
         static int** inflate_boundaries(Map map, int buffer_size);
         static int** remove_boundary_inflation(Map map);
-        static Map add_path_to_map(Map m, vector<cell> path);
+        static void inflate_point(Map map, cell pt, int inflate_size);
+        static Map add_path_to_map(Map m, vector<cell> path, cell sp, cell ep);
+        static Map add_path_to_map_with_value(Map map, int pixel_val, vector<cell> path, cell sp, cell ep);
         static Map debug_map(Map m, vector<cell> path, vector<cell> travelled, cell sp, cell ep);
         static Graph get_graph_from_map(Map map);
         static void print_boundary(int** b, int width, int height);
@@ -93,10 +95,6 @@ class MapData {
         // Map-Robot Conversions
         static cell POSE2PIXEL(Map map, float x, float y);
         static pair<float, float> PIXEL2POSE(Map map, cell px);
-
-        // Map-Image Conversions
-        static int* IDX2COLOR(int val);
-        static int COLOR2IDX(int r, int g, int b);
 
     private:
         static Map parse_pgm(string fp);

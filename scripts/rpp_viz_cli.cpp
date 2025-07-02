@@ -166,7 +166,7 @@ void show_map(string title, Map &m, cell sp, cell ep, vector<cell> path, vector<
         title = "Debug " + title;
         sm = MapData::debug_map(m, path, travelled, sp, ep);
     }
-    else sm = MapData::add_path_to_map(m, path);
+    else sm = MapData::add_path_to_map(m, path, sp, ep);
     MapData::show_map(title, sm);
 }
 
