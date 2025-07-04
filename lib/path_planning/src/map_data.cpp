@@ -180,10 +180,11 @@ void MapData::inflate_point(Map map, cell pt, int buffer_size){
     int dx = buffer_size/2;
     int dy = buffer_size/2;
     int** b = map.boundaries;
+    int cell_val = map.boundaries[pt.second][pt.first];
     for(int y = pt.second-dy; y <= pt.second+dy; y++){
         for(int x = pt.first-dx; x <= pt.first+dx; x++){
             if(y >= 0 && y < map.px_height && x >= 0 && x < map.px_width){
-                b[y][x] = 1;
+                b[y][x] = cell_val;
             }
         }
     }

@@ -13,7 +13,6 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle("Path Planning Visualization");
 
     // Force window to fixed dimensions
-    //setFixedSize(870, 605);
     setFixedSize(this->geometry().width(),this->geometry().height());
 
     // Initialize elements of settings
@@ -32,15 +31,20 @@ void MainWindow::initialize_window(){
     // Set max_iter to the current value
     max_iters = ui->sp_bx_iterations->value();
 
-    // Initialize map view
+    // Initialize map display
     scene = new QGraphicsScene(this);
     ui->view_map->setScene(scene);
     image = new QImage(ui->view_map->width(), ui->view_map->height(), QImage::Format_RGB666);
     image->fill(Qt::white);
     this->scene->addPixmap(QPixmap::fromImage(*image));
 
-    // Initialize color indexes for paths
-    vector<array<int,3>> colors = {{1,1,1}, {0,0,0},{255,255,255},{128,0,128},{173,216,230},{255,0,0}, {102,178,255}, {230,230,0}, {0,179,60}, {255,166,77}, {0,128,128}, {51,0,153}};
+    // Allow for mouse eventss on map display
+    ui->view_map->setMouseTracking(true);
+    ui->view_map->installEventFilter(this);
+    scene->installEventFilter(this);
+
+    // Initialize color indexes for paths (only supports 7 paths)
+    vector<array<int,3>> colors = {{1,1,1}, {0,0,0},{255,255,255},{128,0,128},{173,216,230},{255,0,0}, {102,178,255}, {0,179,60}, {230,230,0}, {255,166,77}, {0,128,128}, {51,0,153}};
     int path_idx = -2;
     for(auto color: colors){
         color_idxs.push_back(ColorIdx{path_idx, color});
@@ -80,7 +84,7 @@ void MainWindow::update_pixmap(Map map, QImage *image){
 void MainWindow::update_map(Map map){
     image = new QImage(map.px_width, map.px_height, QImage::Format_RGB666);
     this->update_pixmap(map, image);
-    QPixmap px_map = QPixmap::fromImage(*image).scaled(ui->view_map->width(),
+    px_map = QPixmap::fromImage(*image).scaled(ui->view_map->width(),
                                                         ui->view_map->height(),
                                                         Qt::KeepAspectRatio);
     this->scene->clear();
@@ -120,15 +124,27 @@ void MainWindow::on_btn_upload_map_clicked(){
         this->update_map(new_map);
         map = new_map;
         map_uploaded = true;
+        alter_map_click = false;
         ui->sp_bx_inflate->setValue(ui->sp_bx_inflate->minimum());
         this->clear_results();
-        this->clear_results();
+        this->update_results_view();
     }
     else if(filename != "") QMessageBox::critical(this, "Import Error", filename + " is not valid. Make sure to provide a YAML file.");
 }
 
+void set_position_button(QPushButton *obj, bool click_state, bool enabled){
+    if(enabled) obj->setText("x");
+    else obj->setText("o");
+    click_state = enabled;
+}
+
 void MainWindow::on_btn_obstacles_clicked(){
-    qDebug() << "TODO";
+    // Reset start and goal position buttons if needed
+    start_pos_click = false;
+    goal_pos_click = false;
+
+    // Set state of altering map obstacles
+    alter_map_click = !alter_map_click;
 }
 
 void MainWindow::on_sp_bx_inflate_valueChanged(int inflate_size){
@@ -144,12 +160,70 @@ void MainWindow::on_sp_bx_inflate_valueChanged(int inflate_size){
     }
 }
 
+bool MainWindow::eventFilter(QObject *object, QEvent *event){
+    if(object == ui->view_map && event->type() == QEvent::MouseButtonPress){
+        QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
+        mouse_pos = mouse_event->pos();
+        QPointF scene_pos = ui->view_map->mapToScene(mouse_pos);
+        int scaled_x = std::round(scene_pos.x()*((float)map.px_width/px_map.width()));
+        int scaled_y = std::round(scene_pos.y()*((float)map.px_height/px_map.height()));
+        //qDebug() << scaled_x << "," << scaled_y;
+
+        if(!map_uploaded) {
+            ui->txt_results->setText("Please upload map first.");
+            if(start_pos_click) set_position_button(ui->btn_start_pos, start_pos_click, false);
+            if(goal_pos_click) set_position_button(ui->btn_goal_pos, goal_pos_click, false);
+            if(alter_map_click) alter_map_click = false;
+        }
+        else if(map_uploaded && alter_map_click){
+            if(scaled_x >= 0 && scaled_x < map.px_width && scaled_y >= 0 && scaled_y < map.px_height){
+                if(map.boundaries[scaled_y][scaled_x] < 0){
+                    map.boundaries[scaled_y][scaled_x] = 0;
+                    MapData::inflate_point(map, {scaled_x, scaled_y}, ui->sp_bx_inflate->value());
+                }
+                else {
+                    map.boundaries[scaled_y][scaled_x] = -1;
+                    map.boundaries = MapData::remove_boundary_inflation(map);
+                    map.boundaries = MapData::inflate_boundaries(map, ui->sp_bx_inflate->value());
+                }
+                this->update_map(map);
+                return true;
+            }
+        }
+        else if(map_uploaded && start_pos_click){
+            ui->line_start_pos->setText(QString("%1,%2").arg(scaled_x).arg(scaled_y));
+            set_position_button(ui->btn_start_pos, start_pos_click, false);
+            return true;
+        }
+        else if(map_uploaded && goal_pos_click){
+            ui->line_goal_pos->setText(QString("%1,%2").arg(scaled_x).arg(scaled_y));
+            set_position_button(ui->btn_goal_pos, goal_pos_click, false);
+            return true;
+        }
+    }
+    return false;
+}
+
 void MainWindow::on_btn_start_pos_clicked(){
-    qDebug() << "TODO";
+    start_pos_click = !start_pos_click;
+    if(start_pos_click) {
+        ui->btn_goal_pos->setText("o");
+        goal_pos_click = false;
+        ui->btn_start_pos->setText("x");
+        alter_map_click = false;
+    }
+    else ui->btn_start_pos->setText("o");
 }
 
 void MainWindow::on_btn_goal_pos_clicked(){
-    qDebug() << "TODO";
+    goal_pos_click = !goal_pos_click;
+    if(goal_pos_click) {
+        ui->btn_start_pos->setText("o");
+        start_pos_click = false;
+        ui->btn_goal_pos->setText("x");
+        alter_map_click = false;
+    }
+    else ui->btn_goal_pos->setText("o");
 }
 
 void MainWindow::on_cb_bx_algos_currentTextChanged(const QString &name){
@@ -180,6 +254,7 @@ void MainWindow::on_cb_bx_algos_currentTextChanged(const QString &name){
         this->update_map(map);
         this->clear_results();
         ui->txt_results->setText("Data cleared. Hit \"Run\" to get results.");
+        path_computed = false;
     }
 }
 
@@ -252,6 +327,18 @@ cell MainWindow::get_positon(string pos_str){
     return pos;
 }
 
+void MainWindow::set_settings_enabled(bool is_enabled){
+    ui->btn_upload_map->setEnabled(is_enabled);
+    ui->btn_obstacles->setEnabled(is_enabled);
+    ui->sp_bx_inflate->setEnabled(is_enabled);
+    ui->btn_start_pos->setEnabled(is_enabled);
+    ui->btn_start_pos->setEnabled(is_enabled);
+    ui->cb_bx_algos->setEnabled(is_enabled);
+    ui->ch_bx_debug->setEnabled(is_enabled);
+    ui->sp_bx_iterations->setEnabled(is_enabled);
+    ui->btn_run_algo->setEnabled(is_enabled);
+}
+
 void MainWindow::on_btn_run_algo_clicked(){
     // Convert map into a graph
     graph = MapData::get_graph_from_map(map);
@@ -261,7 +348,7 @@ void MainWindow::on_btn_run_algo_clicked(){
     goal_pos = get_positon(ui->line_goal_pos->text().toStdString());
 
     // Run algorithm(s)
-    ui->sp_bx_inflate->hide();
+    this->set_settings_enabled(false);
     if(!map_uploaded) ui->txt_results->setText("Error:\n  - Map has not been uploaded yet.");
     else if(!graph.is_node_valid(start_pos) || !graph.is_node_valid(goal_pos)){
         string err_msg = "Error:\n";
@@ -289,7 +376,8 @@ void MainWindow::on_btn_run_algo_clicked(){
         this->update_results_view();
         path_computed = true;
     }
-    ui->sp_bx_inflate->show();
+    this->set_settings_enabled(true);
+    alter_map_click = false;
 }
 
 void MainWindow::clear_results(){

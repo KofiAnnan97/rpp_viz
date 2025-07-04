@@ -10,17 +10,19 @@ A testing ground for path planning strategies for ROS.
         - [ ] Yaml and pgm parsing
         - [ ] Test D* Replan with changing map
     - [ ] Rewrite tests with GTest
-- [ ] Implement as GUI
+- [X] Implement as GUI
     - [X] Import map from yaml & pgm file
     - [X] Update obstacle inflation in interface
     - [X] Toggle between implemented algorithms or run all (disable visualization travelled nodes) 
     - [X] Provide results data including time duration, distance, travelled nodes, and nodes of the selected path
     - [X] Use text box to set start or goal position
-    - [ ] Set start or goal position using mouse click (enabled by button)
-    - [ ] Update map with new obstacles or delete them (with inflation)
-    - [ ] Add Error Handling
-    - [ ] Optimization (including multi-threading between processes and the interface)
-    - [ ] Animate traversal of map and final path [optional]
+    - [X] Set start or goal position using mouse click (enabled by button)
+    - [X] Update map with new obstacles or delete them (with inflation) 
+    - [ ] [Optional] Animate traversal of map and final path
+- [ ] Optimizations    
+    - [ ] Add more extensive error handling for GUI
+    - [ ] Reduce code redundancies
+    - [ ] Implement multi-threading for running algorithms (potential map display as well)
 
 ## Dependencies
 - CMake

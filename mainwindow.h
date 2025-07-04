@@ -17,6 +17,10 @@
 #include <QImage>
 #include <QColor>
 #include <QRgb>
+#include <QPoint>
+#include <QPointF>
+#include <QMouseEvent>
+#include <QThread>
 
 #include "map_data.hpp"
 
@@ -57,16 +61,6 @@ public:
     void clear_results();
     void update_results_view();
 
-private slots:
-    void on_btn_upload_map_clicked();
-    void on_btn_obstacles_clicked();
-    void on_sp_bx_inflate_valueChanged(int val);
-    void on_btn_start_pos_clicked();
-    void on_btn_goal_pos_clicked();
-    void on_cb_bx_algos_currentTextChanged(const QString &name);
-    void on_ch_bx_debug_toggled(bool checked);
-    void on_btn_run_algo_clicked();
-
 private:
     void update_pixmap(Map map, QImage* image);
     void initialize_window();
@@ -74,12 +68,19 @@ private:
     void run_bfs(Graph g);
     void run_a_star(Graph g);
     void run_rrt_star(Graph g);
+    void set_settings_enabled(bool is_enabled);
+    bool eventFilter(QObject *object, QEvent *event);
 
     // UI Variables
     Ui::MainWindow *ui;
     QGraphicsScene *scene;
     QImage *image;
+    QPixmap px_map;
     QColor empty_color = Qt::black;
+    bool start_pos_click = false;
+    bool goal_pos_click = false;
+    bool alter_map_click = false;
+    QPoint mouse_pos;
 
     // State Variables
     Map map;
@@ -94,5 +95,18 @@ private:
     cell goal_pos = {-1,-1};
     vector<AlgoResult> results;
     vector<ColorIdx> color_idxs;
+
+private slots:
+    void on_btn_upload_map_clicked();
+    void on_btn_obstacles_clicked();
+    void on_sp_bx_inflate_valueChanged(int val);
+    void on_btn_start_pos_clicked();
+    void on_btn_goal_pos_clicked();
+    void on_cb_bx_algos_currentTextChanged(const QString &name);
+    void on_ch_bx_debug_toggled(bool checked);
+    void on_btn_run_algo_clicked();
+
+    //void mouseMoveEvent(QMouseEvent *event) override;
+
 };
 #endif // MAINWINDOW_H
