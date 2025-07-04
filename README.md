@@ -13,7 +13,7 @@ A testing ground for path planning strategies for ROS.
 - [X] Implement as GUI
     - [X] Import map from yaml & pgm file
     - [X] Update obstacle inflation in interface
-    - [X] Toggle between implemented algorithms or run all (disable visualization travelled nodes) 
+    - [X] Toggle between implemented algorithms or run all (disable visualization of travelled nodes) 
     - [X] Provide results data including time duration, distance, travelled nodes, and nodes of the selected path
     - [X] Use text box to set start or goal position
     - [X] Set start or goal position using mouse click (enabled by button)
@@ -54,11 +54,12 @@ To open the GUI run this command:
 Features
  - Upload ROS map using yaml and pgm files
  - Dynamically inflation the size of obstacles
- - Change the algorithm used (or run all of them)
-    - Set maximum number of iterations for certian algoirthm
+ - Add or remove obstacles from map
+ - Set algorithm (if the "All" option is chosen the results will be color coded)
+    - Set the maximum number of iterations for sample-based algoirthms
  - Set the start and goal positions
  - View results for comparison
- - Show some debug data for algorithms (optional)
+ - Show some debug data for algorithms
 
 ### Script
 This script requires the user to specify a yaml file for map information, the name of algorithm being used, and the start & end position. Certain algorithms require the user to specify the number of iterations to reduce the likelihood of an infinite loop (by default it is set to 10,000). If the map has thin or unexpected broken boudnaries it may also be benefitial to inflate their size to remedy this issue(by default boundaries are inflated by a 3x3 matrix). Look below for a more thorough breakdown of the possible commands for this script.
