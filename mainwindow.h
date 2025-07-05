@@ -70,6 +70,7 @@ private:
     void run_rrt_star(Graph g);
     void set_settings_enabled(bool is_enabled);
     bool eventFilter(QObject *object, QEvent *event);
+    void add_point_to_display(QString last_pos_str, QString pos_str);
 
     // UI Variables
     Ui::MainWindow *ui;
@@ -78,12 +79,14 @@ private:
     QPixmap px_map;
     QColor empty_color = Qt::black;
     bool start_pos_click = false;
+    QString last_start_pos_str;
     bool goal_pos_click = false;
+    QString last_goal_pos_str;
     bool alter_map_click = false;
     QPoint mouse_pos;
 
     // State Variables
-    Map map;
+    Map obstacle_map, seen_map;
     Graph graph;
     bool debug = false;
     bool path_computed = false;
@@ -100,13 +103,12 @@ private slots:
     void on_btn_upload_map_clicked();
     void on_btn_obstacles_clicked();
     void on_sp_bx_inflate_valueChanged(int val);
+    void on_line_start_pos_editingFinished();
+    void on_line_goal_pos_editingFinished();
     void on_btn_start_pos_clicked();
     void on_btn_goal_pos_clicked();
     void on_cb_bx_algos_currentTextChanged(const QString &name);
     void on_ch_bx_debug_toggled(bool checked);
     void on_btn_run_algo_clicked();
-
-    //void mouseMoveEvent(QMouseEvent *event) override;
-
 };
 #endif // MAINWINDOW_H

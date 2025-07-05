@@ -121,6 +121,16 @@ int** MapData::copy_boundaries(Map map){
     return new_boundaries;
 }
 
+Map MapData::copy_map(Map map){
+    Map new_map;
+    new_map.px_width = map.px_width;
+    new_map.px_height = map.px_height;
+    new_map.m_width = map.m_width;
+    new_map.m_height = map.m_height;
+    new_map.boundaries = MapData::copy_boundaries(map);
+    return new_map;
+}
+
 void MapData::inflate_pixel(int** nb, int width, int height, int col, int row, int buffer_size){
     int dx = buffer_size/2;
     int dy = buffer_size/2;
@@ -143,7 +153,7 @@ int** MapData::inflate_boundaries(Map map, int buffer_size){
     // Expand boundary based on buffer size
     for(int row = 0; row <= map.px_height-1; row++){
         for(int col = 0; col < map.px_width; col++){
-            if(map.boundaries[row][col] != 0){
+            if(map.boundaries[row][col] != 0){ //-1){
                 MapData::inflate_pixel(new_boundaries, map.px_width, map.px_height, col, row, buffer_size);
             }
         }

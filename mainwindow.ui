@@ -167,7 +167,7 @@
            <item>
             <widget class="QLineEdit" name="line_start_pos">
              <property name="text">
-              <string>300,50</string>
+              <string/>
              </property>
             </widget>
            </item>
@@ -213,7 +213,7 @@
            <item>
             <widget class="QLineEdit" name="line_goal_pos">
              <property name="text">
-              <string>360,360</string>
+              <string/>
              </property>
             </widget>
            </item>

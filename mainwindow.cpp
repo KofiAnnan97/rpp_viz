@@ -5,6 +5,8 @@
 #include "a_star.hpp"
 #include "rrt_star.hpp"
 
+const int COLOR_PATH_IDX = 3;
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -92,29 +94,29 @@ void MainWindow::update_map(Map map){
 }
 
 void MainWindow::update_path(Map map, cell start, cell goal){
-    Map shown_map;
+    Map path_map = MapData::copy_map(seen_map);
     if(results.empty()) return;
     else if(results.size() == 1){
-        if(debug) shown_map = MapData::debug_map(map, results[0].path, results[0].travelled, start, goal);
-        else shown_map = MapData::add_path_to_map(map, results[0].path, start, goal);
-        MapData::inflate_point(shown_map, start, pt_size);
-        MapData::inflate_point(shown_map, goal, pt_size);
-        this->update_map(shown_map);
+        if(debug) path_map = MapData::debug_map(path_map, results[0].path, results[0].travelled, start, goal);
+        else path_map = MapData::add_path_to_map(path_map, results[0].path, start, goal);
     }
     else{
-        shown_map = map;
-        int path_idx = 3;
+        path_map = map;
+        int path_idx = COLOR_PATH_IDX;
         for(auto r: results){
-            shown_map = MapData::add_path_to_map_with_value(shown_map, path_idx, r.path, graph.root, graph.end);
+            path_map = MapData::add_path_to_map_with_value(path_map, path_idx, r.path, graph.root, graph.end);
             for(int i = 0; i < color_idxs.size(); i++){
                 if(color_idxs[i].idx == path_idx) color_idxs[i].name = r.type;
             }
             path_idx++;
         }
-        MapData::inflate_point(shown_map, start, pt_size);
-        MapData::inflate_point(shown_map, goal, pt_size);
-        this->update_map(shown_map);
     }
+    path_map.boundaries[start.second][start.first] = 1;
+    MapData::inflate_point(path_map, start, pt_size);
+    path_map.boundaries[goal.second][goal.first] = 1;
+    MapData::inflate_point(path_map, goal, pt_size);
+    this->update_map(path_map);
+    delete path_map.boundaries;
 }
 
 void MainWindow::on_btn_upload_map_clicked(){
@@ -122,7 +124,8 @@ void MainWindow::on_btn_upload_map_clicked(){
     if(filename.endsWith(".yaml")) {
         Map new_map = MapData::get_map(filename.toStdString());
         this->update_map(new_map);
-        map = new_map;
+        obstacle_map = new_map;
+        seen_map = MapData::copy_map(new_map);
         map_uploaded = true;
         alter_map_click = false;
         ui->sp_bx_inflate->setValue(ui->sp_bx_inflate->minimum());
@@ -132,10 +135,10 @@ void MainWindow::on_btn_upload_map_clicked(){
     else if(filename != "") QMessageBox::critical(this, "Import Error", filename + " is not valid. Make sure to provide a YAML file.");
 }
 
-void set_position_button(QPushButton *obj, bool click_state, bool enabled){
-    if(enabled) obj->setText("x");
+void set_position_button(QPushButton *obj, bool click_state, bool is_enabled){
+    if(is_enabled) obj->setText("x");
     else obj->setText("o");
-    click_state = enabled;
+    click_state = is_enabled;
 }
 
 void MainWindow::on_btn_obstacles_clicked(){
@@ -149,10 +152,11 @@ void MainWindow::on_btn_obstacles_clicked(){
 
 void MainWindow::on_sp_bx_inflate_valueChanged(int inflate_size){
     try{
-        map.boundaries = MapData::remove_boundary_inflation(map);
-        map.boundaries = MapData::inflate_boundaries(map, inflate_size);
+        obstacle_map.boundaries = MapData::remove_boundary_inflation(obstacle_map);
+        obstacle_map.boundaries = MapData::inflate_boundaries(obstacle_map, inflate_size);
+        seen_map.boundaries = MapData::copy_boundaries(obstacle_map);
         ui->txt_results->setText(QString("Map obstacles inflated by %1.").arg(inflate_size));
-        this->update_map(map);
+        this->update_map(obstacle_map);
         path_computed = false;
     }
     catch(std::bad_array_new_length b){
@@ -165,8 +169,8 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event){
         QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
         mouse_pos = mouse_event->pos();
         QPointF scene_pos = ui->view_map->mapToScene(mouse_pos);
-        int scaled_x = std::round(scene_pos.x()*((float)map.px_width/px_map.width()));
-        int scaled_y = std::round(scene_pos.y()*((float)map.px_height/px_map.height()));
+        int scaled_x = std::round(scene_pos.x()*((float)obstacle_map.px_width/px_map.width()));
+        int scaled_y = std::round(scene_pos.y()*((float)obstacle_map.px_height/px_map.height()));
         //qDebug() << scaled_x << "," << scaled_y;
 
         if(!map_uploaded) {
@@ -175,29 +179,42 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event){
             if(goal_pos_click) set_position_button(ui->btn_goal_pos, goal_pos_click, false);
             if(alter_map_click) alter_map_click = false;
         }
-        else if(map_uploaded && alter_map_click){
-            if(scaled_x >= 0 && scaled_x < map.px_width && scaled_y >= 0 && scaled_y < map.px_height){
-                if(map.boundaries[scaled_y][scaled_x] < 0){
-                    map.boundaries[scaled_y][scaled_x] = 0;
-                    MapData::inflate_point(map, {scaled_x, scaled_y}, ui->sp_bx_inflate->value());
+        else if(alter_map_click){
+            if(scaled_x >= 0 && scaled_x < obstacle_map.px_width && scaled_y >= 0 && scaled_y < obstacle_map.px_height){
+                if(obstacle_map.boundaries[scaled_y][scaled_x] < 0){
+                    obstacle_map.boundaries[scaled_y][scaled_x] = 0;
+                    MapData::inflate_point(obstacle_map, {scaled_x, scaled_y}, ui->sp_bx_inflate->value());
                 }
                 else {
-                    map.boundaries[scaled_y][scaled_x] = -1;
-                    map.boundaries = MapData::remove_boundary_inflation(map);
-                    map.boundaries = MapData::inflate_boundaries(map, ui->sp_bx_inflate->value());
+                    obstacle_map.boundaries[scaled_y][scaled_x] = -1;
+                    obstacle_map.boundaries = MapData::remove_boundary_inflation(obstacle_map);
+                    obstacle_map.boundaries = MapData::inflate_boundaries(obstacle_map, ui->sp_bx_inflate->value());
                 }
-                this->update_map(map);
+                this->update_map(seen_map);
+
+                // Update seen map with start and goal position
+                seen_map.boundaries = MapData::copy_boundaries(obstacle_map);
+                auto start_pos_str = ui->line_start_pos->text();
+                auto goal_pos_str = ui->line_goal_pos->text();
+                if(!start_pos_str.isEmpty()) this->add_point_to_display(start_pos_str, start_pos_str);
+                if(!goal_pos_str.isEmpty()) this->add_point_to_display(goal_pos_str, goal_pos_str);
                 return true;
             }
         }
-        else if(map_uploaded && start_pos_click){
+        else if(start_pos_click){
             ui->line_start_pos->setText(QString("%1,%2").arg(scaled_x).arg(scaled_y));
-            set_position_button(ui->btn_start_pos, start_pos_click, false);
+            start_pos_click = false;
+            ui->btn_start_pos->setText("o");
+            this->add_point_to_display(last_start_pos_str, ui->line_start_pos->text());
+            last_start_pos_str = ui->line_start_pos->text();
             return true;
-        }
-        else if(map_uploaded && goal_pos_click){
+            }
+        else if(goal_pos_click){
             ui->line_goal_pos->setText(QString("%1,%2").arg(scaled_x).arg(scaled_y));
-            set_position_button(ui->btn_goal_pos, goal_pos_click, false);
+            goal_pos_click = false;
+            ui->btn_goal_pos->setText("o");
+            this->add_point_to_display(last_goal_pos_str, ui->line_goal_pos->text());
+            last_goal_pos_str = ui->line_goal_pos->text();
             return true;
         }
     }
@@ -251,7 +268,7 @@ void MainWindow::on_cb_bx_algos_currentTextChanged(const QString &name){
 
     // Reset results text and map when selected algorithm changed
     if(path_computed){
-        this->update_map(map);
+        this->update_map(seen_map);
         this->clear_results();
         ui->txt_results->setText("Data cleared. Hit \"Run\" to get results.");
         path_computed = false;
@@ -262,7 +279,7 @@ void MainWindow::on_ch_bx_debug_toggled(bool checked){
     debug = checked;
     if(path_computed){
         this->update_results_view();
-        this->update_path(map, graph.root, graph.end);
+        this->update_path(obstacle_map, graph.root, graph.end);
     }
 }
 
@@ -297,7 +314,7 @@ void MainWindow::run_a_star(Graph g){
 }
 
 void MainWindow::run_rrt_star(Graph g){
-    auto rrt = RRTStar(g, map.px_width, map.px_height, max_iters);
+    auto rrt = RRTStar(g, obstacle_map.px_width, obstacle_map.px_height, max_iters);
     auto start_time = high_resolution_clock::now();
     rrt.solve(g.root, g.end);
     auto end_time = high_resolution_clock::now();
@@ -331,6 +348,8 @@ void MainWindow::set_settings_enabled(bool is_enabled){
     ui->btn_upload_map->setEnabled(is_enabled);
     ui->btn_obstacles->setEnabled(is_enabled);
     ui->sp_bx_inflate->setEnabled(is_enabled);
+    ui->line_start_pos->setEnabled(is_enabled);
+    ui->line_goal_pos->setEnabled(is_enabled);
     ui->btn_start_pos->setEnabled(is_enabled);
     ui->btn_start_pos->setEnabled(is_enabled);
     ui->cb_bx_algos->setEnabled(is_enabled);
@@ -341,7 +360,7 @@ void MainWindow::set_settings_enabled(bool is_enabled){
 
 void MainWindow::on_btn_run_algo_clicked(){
     // Convert map into a graph
-    graph = MapData::get_graph_from_map(map);
+    graph = MapData::get_graph_from_map(obstacle_map);
 
     // Get start and goal position
     start_pos = get_positon(ui->line_start_pos->text().toStdString());
@@ -372,7 +391,7 @@ void MainWindow::on_btn_run_algo_clicked(){
             this->run_a_star(graph);
             this->run_rrt_star(graph);
         }
-        this->update_path(map, graph.root, graph.end);
+        this->update_path(obstacle_map, graph.root, graph.end);
         this->update_results_view();
         path_computed = true;
     }
@@ -389,7 +408,8 @@ void MainWindow::update_results_view(){
     for(auto r : results){
         QString sub_data = "";
         if(results.size()>1) sub_data += QString("Algorithm: %1 <br>").arg(r.type);
-        sub_data += QString("Duration: %1 ms <br>").arg(r.duration);
+        if(r.duration < 1000) sub_data += QString("Duration: %1 ms <br>").arg(r.duration);
+        else sub_data += QString("Duration: %1 s <br>").arg((float)r.duration/1000);
         sub_data += QString("Distance: %1 <br>").arg(r.dist);
         if(debug){
             sub_data += "Path Nodes: [ ";
@@ -412,3 +432,40 @@ void MainWindow::update_results_view(){
     }
    ui->txt_results->setText(data);
 }
+
+void MainWindow::add_point_to_display(QString last_pos_str, QString pos_str){
+    if(map_uploaded){
+        // Remove old point if applicable
+        if(!last_pos_str.isEmpty() && last_pos_str != pos_str){
+            auto last_pos = get_positon(last_pos_str.toStdString());
+            if(last_pos.first >= 0 && last_pos.first < seen_map.px_width && last_pos.second >= 0 && last_pos.second < seen_map.px_height){
+                seen_map.boundaries[last_pos.second][last_pos.first] = 0;
+                MapData::inflate_point(seen_map, last_pos, 5);
+            }
+        }
+
+        // Add new point
+        if(!pos_str.isEmpty()){
+            auto pos = get_positon(pos_str.toStdString());
+            if(pos.first >= 0 && pos.first < seen_map.px_width && pos.second >= 0 && pos.second < seen_map.px_height){
+                seen_map.boundaries[pos.second][pos.first] = 1;
+                MapData::inflate_point(seen_map, pos, 5);
+                this->update_map(seen_map);
+            }
+        }
+    }
+}
+
+void MainWindow::on_line_start_pos_editingFinished()
+{
+    this->add_point_to_display(last_start_pos_str, ui->line_start_pos->text());
+    last_start_pos_str = ui->line_start_pos->text();
+}
+
+
+void MainWindow::on_line_goal_pos_editingFinished()
+{
+    this->add_point_to_display(last_goal_pos_str, ui->line_goal_pos->text());
+    last_goal_pos_str = ui->line_goal_pos->text();
+}
+
