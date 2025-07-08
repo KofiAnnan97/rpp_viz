@@ -19,9 +19,9 @@ A testing ground for path planning strategies for ROS.
     - [X] Set start or goal position using mouse click (enabled by button)
     - [X] Update map with new obstacles or delete them (with inflation) 
     - [ ] [Optional] Animate traversal of map and final path
+    - [ ] [Optional] Change behavior of Add/remove obstacles to be more like a pen or eraser
 - [ ] Optimizations/Bug Fixes    
     - [ ] Implement multi-threading for running algorithms (potentially for map display as well)
-    - [ ] Change behavior of Add/remove obstacles to be more like a pen or eraser
     - [ ] Reduce code redundancies
     - [ ] Add more extensive error handling for GUI
 
