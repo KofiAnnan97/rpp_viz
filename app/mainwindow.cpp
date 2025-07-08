@@ -55,8 +55,8 @@ void MainWindow::initialize_window(){
     }
 
     // Set up draw and erase buttons
-    ui->btn_draw->setIcon(QIcon("../../lib/graphics/icons/pencil.svg"));
-    ui->btn_erase->setIcon(QIcon("../../lib/graphics/icons/eraser.svg"));
+    ui->btn_draw->setIcon(QIcon("../../app/icons/pencil.svg"));
+    ui->btn_erase->setIcon(QIcon("../../app/icons/eraser.svg"));
     ui->btn_obstacles->hide();
     ui->ch_bx_match_inflate->setChecked(true);
 }
@@ -278,7 +278,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event){
 
 void MainWindow::on_btn_upload_map_clicked(){
     auto filename = QFileDialog::getOpenFileName(this, tr("Import Map YAML"), tr(""));
-    //QString filename = "../../lib/maps/example1.yaml";
+    //QString filename = "../../resources/maps/example1.yaml";
     if(filename.endsWith(".yaml")) {
         Map new_map = MapData::get_map(filename.toStdString());
         this->update_map(new_map);
@@ -315,7 +315,7 @@ void MainWindow::on_btn_draw_clicked(){
     // Set state of drawing obstacles on map
     draw_click = !draw_click;
     QCursor cursor;
-    if(draw_click) cursor = QCursor(QPixmap("../../lib/graphics/icons/cursor_pencil.svg").scaled(20,20), 0, 20);
+    if(draw_click) cursor = QCursor(QPixmap("../../app/icons/cursor_pencil.svg").scaled(20,20), 0, 20);
     else cursor = QCursor(Qt::ArrowCursor);
     ui->view_map->viewport()->setCursor(cursor);
 }
@@ -332,14 +332,14 @@ void MainWindow::on_btn_erase_clicked(){
     erase_click = !erase_click;
     QCursor cursor;
     int e_size = ui->sp_bx_erase_size->value();
-    if(erase_click) cursor = QCursor(QPixmap("../../lib/graphics/icons/cursor_eraser.svg").scaled(e_size,e_size), e_size/2, e_size/2);
+    if(erase_click) cursor = QCursor(QPixmap("../../app/icons/cursor_eraser.svg").scaled(e_size,e_size), e_size/2, e_size/2);
     else cursor = QCursor(Qt::ArrowCursor);
     ui->view_map->viewport()->setCursor(cursor);
 }
 
 void MainWindow::on_sp_bx_erase_size_valueChanged(int erase_size){
     if(erase_click){
-        auto cursor = QCursor(QPixmap("../../lib/graphics/icons/cursor_eraser.svg").scaled(erase_size,erase_size), erase_size/2, erase_size/2);
+        auto cursor = QCursor(QPixmap("../../app/icons/cursor_eraser.svg").scaled(erase_size,erase_size), erase_size/2, erase_size/2);
         ui->view_map->viewport()->setCursor(cursor);
     }
 }
