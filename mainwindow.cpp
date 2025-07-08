@@ -40,7 +40,7 @@ void MainWindow::initialize_window(){
     image->fill(Qt::white);
     this->scene->addPixmap(QPixmap::fromImage(*image));
 
-    // Allow for mouse eventss on map display
+    // Allow for mouse events on map display
     ui->view_map->setMouseTracking(true);
     ui->view_map->installEventFilter(this);
     scene->installEventFilter(this);
@@ -53,7 +53,52 @@ void MainWindow::initialize_window(){
         //qDebug() << path_idx << " <=> " << color;
         path_idx++;
     }
+
+    // Set up draw and erase buttons
+    ui->btn_draw->setIcon(QIcon("../../lib/graphics/icons/pencil.svg"));
+    ui->btn_erase->setIcon(QIcon("../../lib/graphics/icons/eraser.svg"));
+    ui->btn_obstacles->hide();
+    ui->ch_bx_match_inflate->setChecked(true);
 }
+
+// HELPER FUNCTIONS
+void set_position_button(QPushButton *obj, bool click_state, bool is_enabled){
+    if(is_enabled) obj->setText("x");
+    else obj->setText("o");
+    click_state = is_enabled;
+}
+
+cell MainWindow::get_positon(string pos_str){
+    cell pos;
+    try{
+        string val;
+        char delim = ',';
+        stringstream pos_ss(pos_str);
+        getline(pos_ss, val, delim);
+        pos.first = std::stoi(val);
+        getline(pos_ss, val, delim);
+        pos.second = std::stoi(val);
+    } catch(std::invalid_argument e){
+        pos = {-1,-1};
+    }
+    return pos;
+}
+
+void MainWindow::set_settings_enabled(bool is_enabled){
+    ui->btn_upload_map->setEnabled(is_enabled);
+    ui->btn_obstacles->setEnabled(is_enabled);
+    ui->sp_bx_inflate->setEnabled(is_enabled);
+    ui->line_start_pos->setEnabled(is_enabled);
+    ui->line_goal_pos->setEnabled(is_enabled);
+    ui->btn_start_pos->setEnabled(is_enabled);
+    ui->btn_start_pos->setEnabled(is_enabled);
+    ui->cb_bx_algos->setEnabled(is_enabled);
+    ui->ch_bx_debug->setEnabled(is_enabled);
+    ui->sp_bx_iterations->setEnabled(is_enabled);
+    ui->btn_run_algo->setEnabled(is_enabled);
+}
+
+// MAP DISPLAY FUNCTIONS
 
 void MainWindow::update_pixmap(Map map, QImage *image){
     image->fill(empty_color);
@@ -94,7 +139,7 @@ void MainWindow::update_map(Map map){
 }
 
 void MainWindow::update_path(Map map, cell start, cell goal){
-    Map path_map = MapData::copy_map(seen_map);
+    Map path_map = MapData::copy_map(display_map);
     if(results.empty()) return;
     else if(results.size() == 1){
         if(debug) path_map = MapData::debug_map(path_map, results[0].path, results[0].travelled, start, goal);
@@ -119,53 +164,37 @@ void MainWindow::update_path(Map map, cell start, cell goal){
     delete path_map.boundaries;
 }
 
-void MainWindow::on_btn_upload_map_clicked(){
-    auto filename = QFileDialog::getOpenFileName(this, tr("Import Map YAML"), tr(""));
-    if(filename.endsWith(".yaml")) {
-        Map new_map = MapData::get_map(filename.toStdString());
-        this->update_map(new_map);
-        obstacle_map = new_map;
-        seen_map = MapData::copy_map(new_map);
-        map_uploaded = true;
-        alter_map_click = false;
-        ui->sp_bx_inflate->setValue(ui->sp_bx_inflate->minimum());
-        this->clear_results();
-        this->update_results_view();
-    }
-    else if(filename != "") QMessageBox::critical(this, "Import Error", filename + " is not valid. Make sure to provide a YAML file.");
-}
+void MainWindow::add_point_to_display(QString last_pos_str, QString pos_str){
+    if(map_uploaded){
+        // Remove old point if applicable
+        if(!last_pos_str.isEmpty() && last_pos_str != pos_str){
+            auto last_pos = get_positon(last_pos_str.toStdString());
+            if(last_pos.first >= 0 && last_pos.first < display_map.px_width && last_pos.second >= 0 && last_pos.second < display_map.px_height){
+                display_map.boundaries[last_pos.second][last_pos.first] = 0;
+                MapData::inflate_point(display_map, last_pos, 5);
+            }
+        }
 
-void set_position_button(QPushButton *obj, bool click_state, bool is_enabled){
-    if(is_enabled) obj->setText("x");
-    else obj->setText("o");
-    click_state = is_enabled;
-}
-
-void MainWindow::on_btn_obstacles_clicked(){
-    // Reset start and goal position buttons if needed
-    start_pos_click = false;
-    goal_pos_click = false;
-
-    // Set state of altering map obstacles
-    alter_map_click = !alter_map_click;
-}
-
-void MainWindow::on_sp_bx_inflate_valueChanged(int inflate_size){
-    try{
-        obstacle_map.boundaries = MapData::remove_boundary_inflation(obstacle_map);
-        obstacle_map.boundaries = MapData::inflate_boundaries(obstacle_map, inflate_size);
-        seen_map.boundaries = MapData::copy_boundaries(obstacle_map);
-        ui->txt_results->setText(QString("Map obstacles inflated by %1.").arg(inflate_size));
-        this->update_map(obstacle_map);
-        path_computed = false;
-    }
-    catch(std::bad_array_new_length b){
-        std::cout << b.what() << std::endl;
+        // Add new point
+        if(!pos_str.isEmpty()){
+            auto pos = get_positon(pos_str.toStdString());
+            if(pos.first >= 0 && pos.first < display_map.px_width && pos.second >= 0 && pos.second < display_map.px_height){
+                display_map.boundaries[pos.second][pos.first] = 1;
+                MapData::inflate_point(display_map, pos, 5);
+                this->update_map(display_map);
+            }
+        }
     }
 }
 
 bool MainWindow::eventFilter(QObject *object, QEvent *event){
-    if(object == ui->view_map && event->type() == QEvent::MouseButtonPress){
+    if(!map_uploaded && event->type() == QEvent::MouseButtonPress) {
+        ui->txt_results->setText("Please upload map first.");
+        if(start_pos_click) set_position_button(ui->btn_start_pos, start_pos_click, false);
+        if(goal_pos_click) set_position_button(ui->btn_goal_pos, goal_pos_click, false);
+        //if(alter_map_click) alter_map_click = false;
+    }
+    else if(object == ui->view_map && event->type() == QEvent::MouseButtonPress){
         QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
         mouse_pos = mouse_event->pos();
         QPointF scene_pos = ui->view_map->mapToScene(mouse_pos);
@@ -173,12 +202,52 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event){
         int scaled_y = std::round(scene_pos.y()*((float)obstacle_map.px_height/px_map.height()));
         //qDebug() << scaled_x << "," << scaled_y;
 
-        if(!map_uploaded) {
-            ui->txt_results->setText("Please upload map first.");
-            if(start_pos_click) set_position_button(ui->btn_start_pos, start_pos_click, false);
-            if(goal_pos_click) set_position_button(ui->btn_goal_pos, goal_pos_click, false);
-            if(alter_map_click) alter_map_click = false;
+        if(mouse_event->button() == Qt::LeftButton){
+            // WORK IN PROGRESS: Set to update map when mouse is dragged after
+            //                   initial press until button release
+            //qDebug() << "pressed";
+            /*while(true){
+                if(event->type() == QEvent::GraphicsSceneMouseRelease) break;  //MouseButtonRelease){
+                qDebug() << "a";
+            }*/
+
+            // WORKING CODE
+            if(draw_click || erase_click){
+                if(erase_click){
+                    obstacle_map.boundaries[scaled_y][scaled_x] = 0;
+                    MapData::inflate_point(obstacle_map, {scaled_x, scaled_y}, ui->sp_bx_erase_size->value());
+                }
+                else if(draw_click){
+                    obstacle_map.boundaries[scaled_y][scaled_x] = -1;
+                    MapData::inflate_point(obstacle_map, {scaled_x, scaled_y}, ui->sp_bx_draw_size->value());
+                }
+                // Update display map with start and goal position
+                display_map.boundaries = MapData::copy_boundaries(obstacle_map);
+                auto start_pos_str = ui->line_start_pos->text();
+                auto goal_pos_str = ui->line_goal_pos->text();
+                if(!start_pos_str.isEmpty()) this->add_point_to_display(start_pos_str, start_pos_str);
+                if(!goal_pos_str.isEmpty()) this->add_point_to_display(goal_pos_str, goal_pos_str);
+                if(start_pos_str.isEmpty() && goal_pos_str.isEmpty()) this->update_map(display_map);
+                return true;
+            }
+            else if(start_pos_click){
+                ui->line_start_pos->setText(QString("%1,%2").arg(scaled_x).arg(scaled_y));
+                start_pos_click = false;
+                ui->btn_start_pos->setText("o");
+                this->add_point_to_display(last_start_pos_str, ui->line_start_pos->text());
+                last_start_pos_str = ui->line_start_pos->text();
+                return true;
+            }
+            else if(goal_pos_click){
+                ui->line_goal_pos->setText(QString("%1,%2").arg(scaled_x).arg(scaled_y));
+                goal_pos_click = false;
+                ui->btn_goal_pos->setText("o");
+                this->add_point_to_display(last_goal_pos_str, ui->line_goal_pos->text());
+                last_goal_pos_str = ui->line_goal_pos->text();
+                return true;
+            }
         }
+        /* REDUNDANT CODE
         else if(alter_map_click){
             if(scaled_x >= 0 && scaled_x < obstacle_map.px_width && scaled_y >= 0 && scaled_y < obstacle_map.px_height){
                 if(obstacle_map.boundaries[scaled_y][scaled_x] < 0){
@@ -190,35 +259,129 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event){
                     obstacle_map.boundaries = MapData::remove_boundary_inflation(obstacle_map);
                     obstacle_map.boundaries = MapData::inflate_boundaries(obstacle_map, ui->sp_bx_inflate->value());
                 }
-                this->update_map(seen_map);
+                this->update_map(display_map);
 
                 // Update seen map with start and goal position
-                seen_map.boundaries = MapData::copy_boundaries(obstacle_map);
+                display_map.boundaries = MapData::copy_boundaries(obstacle_map);
                 auto start_pos_str = ui->line_start_pos->text();
                 auto goal_pos_str = ui->line_goal_pos->text();
                 if(!start_pos_str.isEmpty()) this->add_point_to_display(start_pos_str, start_pos_str);
                 if(!goal_pos_str.isEmpty()) this->add_point_to_display(goal_pos_str, goal_pos_str);
                 return true;
             }
-        }
-        else if(start_pos_click){
-            ui->line_start_pos->setText(QString("%1,%2").arg(scaled_x).arg(scaled_y));
-            start_pos_click = false;
-            ui->btn_start_pos->setText("o");
-            this->add_point_to_display(last_start_pos_str, ui->line_start_pos->text());
-            last_start_pos_str = ui->line_start_pos->text();
-            return true;
-            }
-        else if(goal_pos_click){
-            ui->line_goal_pos->setText(QString("%1,%2").arg(scaled_x).arg(scaled_y));
-            goal_pos_click = false;
-            ui->btn_goal_pos->setText("o");
-            this->add_point_to_display(last_goal_pos_str, ui->line_goal_pos->text());
-            last_goal_pos_str = ui->line_goal_pos->text();
-            return true;
-        }
+        }*/
     }
     return false;
+}
+
+// MAP SETTINGS FUNCTIONS
+
+void MainWindow::on_btn_upload_map_clicked(){
+    auto filename = QFileDialog::getOpenFileName(this, tr("Import Map YAML"), tr(""));
+    //QString filename = "../../lib/maps/example1.yaml";
+    if(filename.endsWith(".yaml")) {
+        Map new_map = MapData::get_map(filename.toStdString());
+        this->update_map(new_map);
+        obstacle_map = new_map;
+        display_map = MapData::copy_map(new_map);
+        map_uploaded = true;
+        //alter_map_click = false;
+        draw_click = false;
+        erase_click = false;
+        ui->sp_bx_inflate->setValue(ui->sp_bx_inflate->minimum());
+        this->clear_results();
+        this->update_results_view();
+    }
+    else if(filename != "") QMessageBox::critical(this, "Import Error", filename + " is not valid. Make sure to provide a YAML file.");
+}
+
+/*void MainWindow::on_btn_obstacles_clicked(){
+    // Reset start and goal position buttons if needed
+    start_pos_click = false;
+    goal_pos_click = false;
+
+    // Set state of altering map obstacles
+    //alter_map_click = !alter_map_click;
+}*/
+
+void MainWindow::on_btn_draw_clicked(){
+    // Reset start position, goal position, and erase buttons
+    if(start_pos_click) ui->btn_start_pos->setText("o");
+    if(goal_pos_click) ui->btn_goal_pos->setText("o");
+    start_pos_click = false;
+    goal_pos_click = false;
+    erase_click = false;
+
+    // Set state of drawing obstacles on map
+    draw_click = !draw_click;
+    QCursor cursor;
+    if(draw_click) cursor = QCursor(QPixmap("../../lib/graphics/icons/cursor_pencil.svg").scaled(20,20), 0, 20);
+    else cursor = QCursor(Qt::ArrowCursor);
+    ui->view_map->viewport()->setCursor(cursor);
+}
+
+void MainWindow::on_btn_erase_clicked(){
+    // Reset start position, goal position, and erase buttons
+    if(start_pos_click) ui->btn_start_pos->setText("o");
+    if(goal_pos_click) ui->btn_goal_pos->setText("o");
+    start_pos_click = false;
+    goal_pos_click = false;
+    draw_click = false;
+
+    // Set state of erasing obstacles on map
+    erase_click = !erase_click;
+    QCursor cursor;
+    int e_size = ui->sp_bx_erase_size->value();
+    if(erase_click) cursor = QCursor(QPixmap("../../lib/graphics/icons/cursor_eraser.svg").scaled(e_size,e_size), e_size/2, e_size/2);
+    else cursor = QCursor(Qt::ArrowCursor);
+    ui->view_map->viewport()->setCursor(cursor);
+}
+
+void MainWindow::on_sp_bx_erase_size_valueChanged(int erase_size){
+    if(erase_click){
+        auto cursor = QCursor(QPixmap("../../lib/graphics/icons/cursor_eraser.svg").scaled(erase_size,erase_size), erase_size/2, erase_size/2);
+        ui->view_map->viewport()->setCursor(cursor);
+    }
+}
+
+void MainWindow::on_ch_bx_match_inflate_toggled(bool checked){
+    if(checked){
+        ui->sp_bx_draw_size->setValue(ui->sp_bx_inflate->value());
+        ui->sp_bx_erase_size->setValue(ui->sp_bx_inflate->value());
+    }
+}
+
+void MainWindow::on_sp_bx_inflate_valueChanged(int inflate_size){
+    // Update map with inflated obstacles if available
+    if(map_uploaded){
+        obstacle_map.boundaries = MapData::remove_boundary_inflation(obstacle_map);
+        obstacle_map.boundaries = MapData::inflate_boundaries(obstacle_map, inflate_size);
+        display_map.boundaries = MapData::copy_boundaries(obstacle_map);
+        ui->txt_results->setText(QString("Map obstacles inflated by %1.").arg(inflate_size));
+
+        QString start_pos_str = ui->line_start_pos->text();
+        QString goal_pos_str = ui->line_goal_pos->text();
+        if(!start_pos_str.isEmpty()) this->add_point_to_display(start_pos_str, start_pos_str);
+        if(!goal_pos_str.isEmpty()) this->add_point_to_display(goal_pos_str, goal_pos_str);
+        if(start_pos_str.isEmpty() && goal_pos_str.isEmpty()) this->update_map(obstacle_map);
+        path_computed = false;
+    }
+
+    // Match draw and erase size to inflate size if box checked
+    if(ui->ch_bx_match_inflate->isChecked()){
+        ui->sp_bx_draw_size->setValue(inflate_size);
+        ui->sp_bx_erase_size->setValue(inflate_size);
+    }
+}
+
+void MainWindow::on_line_start_pos_editingFinished(){
+    this->add_point_to_display(last_start_pos_str, ui->line_start_pos->text());
+    last_start_pos_str = ui->line_start_pos->text();
+}
+
+void MainWindow::on_line_goal_pos_editingFinished(){
+    this->add_point_to_display(last_goal_pos_str, ui->line_goal_pos->text());
+    last_goal_pos_str = ui->line_goal_pos->text();
 }
 
 void MainWindow::on_btn_start_pos_clicked(){
@@ -227,9 +390,16 @@ void MainWindow::on_btn_start_pos_clicked(){
         ui->btn_goal_pos->setText("o");
         goal_pos_click = false;
         ui->btn_start_pos->setText("x");
-        alter_map_click = false;
+        //alter_map_click = false;
+        if(draw_click || erase_click){
+            draw_click = false;
+            erase_click = false;
+            ui->view_map->viewport()->setCursor(Qt::ArrowCursor);
+        }
     }
     else ui->btn_start_pos->setText("o");
+    draw_click = false;
+    erase_click = false;
 }
 
 void MainWindow::on_btn_goal_pos_clicked(){
@@ -238,10 +408,19 @@ void MainWindow::on_btn_goal_pos_clicked(){
         ui->btn_start_pos->setText("o");
         start_pos_click = false;
         ui->btn_goal_pos->setText("x");
-        alter_map_click = false;
+        //alter_map_click = false;
+        if(draw_click || erase_click){
+            draw_click = false;
+            erase_click = false;
+            ui->view_map->viewport()->setCursor(Qt::ArrowCursor);
+        }
     }
     else ui->btn_goal_pos->setText("o");
+    draw_click = false;
+    erase_click = false;
 }
+
+// ALGORITHM SETTINGS FUNCTIONS
 
 void MainWindow::on_cb_bx_algos_currentTextChanged(const QString &name){
     algo_name = name;
@@ -268,7 +447,7 @@ void MainWindow::on_cb_bx_algos_currentTextChanged(const QString &name){
 
     // Reset results text and map when selected algorithm changed
     if(path_computed){
-        this->update_map(seen_map);
+        this->update_map(display_map);
         this->clear_results();
         ui->txt_results->setText("Data cleared. Hit \"Run\" to get results.");
         path_computed = false;
@@ -283,6 +462,7 @@ void MainWindow::on_ch_bx_debug_toggled(bool checked){
     }
 }
 
+// BFS algorithm module
 void MainWindow::run_bfs(Graph g){
     auto bfs = BFS(g);
     auto start_time = high_resolution_clock::now();
@@ -298,6 +478,7 @@ void MainWindow::run_bfs(Graph g){
     results.push_back(ar);
 }
 
+// A* algorithm module
 void MainWindow::run_a_star(Graph g){
     auto as = AStar(g);
     auto start_time = high_resolution_clock::now();
@@ -313,6 +494,7 @@ void MainWindow::run_a_star(Graph g){
     results.push_back(ar);
 }
 
+// RRT* algorithm module
 void MainWindow::run_rrt_star(Graph g){
     auto rrt = RRTStar(g, obstacle_map.px_width, obstacle_map.px_height, max_iters);
     auto start_time = high_resolution_clock::now();
@@ -326,36 +508,6 @@ void MainWindow::run_rrt_star(Graph g){
     ar.dist = data.second;
     ar.travelled = rrt.get_travelled_nodes();
     results.push_back(ar);
-}
-
-cell MainWindow::get_positon(string pos_str){
-    cell pos;
-    try{
-        string val;
-        char delim = ',';
-        stringstream pos_ss(pos_str);
-        getline(pos_ss, val, delim);
-        pos.first = std::stoi(val);
-        getline(pos_ss, val, delim);
-        pos.second = std::stoi(val);
-    } catch(std::invalid_argument e){
-        pos = {-1,-1};
-    }
-    return pos;
-}
-
-void MainWindow::set_settings_enabled(bool is_enabled){
-    ui->btn_upload_map->setEnabled(is_enabled);
-    ui->btn_obstacles->setEnabled(is_enabled);
-    ui->sp_bx_inflate->setEnabled(is_enabled);
-    ui->line_start_pos->setEnabled(is_enabled);
-    ui->line_goal_pos->setEnabled(is_enabled);
-    ui->btn_start_pos->setEnabled(is_enabled);
-    ui->btn_start_pos->setEnabled(is_enabled);
-    ui->cb_bx_algos->setEnabled(is_enabled);
-    ui->ch_bx_debug->setEnabled(is_enabled);
-    ui->sp_bx_iterations->setEnabled(is_enabled);
-    ui->btn_run_algo->setEnabled(is_enabled);
 }
 
 void MainWindow::on_btn_run_algo_clicked(){
@@ -396,8 +548,10 @@ void MainWindow::on_btn_run_algo_clicked(){
         path_computed = true;
     }
     this->set_settings_enabled(true);
-    alter_map_click = false;
+    //alter_map_click = false;
 }
+
+// RESULTS DISPLAY FUNCTIONS
 
 void MainWindow::clear_results(){
     results.clear();
@@ -432,40 +586,3 @@ void MainWindow::update_results_view(){
     }
    ui->txt_results->setText(data);
 }
-
-void MainWindow::add_point_to_display(QString last_pos_str, QString pos_str){
-    if(map_uploaded){
-        // Remove old point if applicable
-        if(!last_pos_str.isEmpty() && last_pos_str != pos_str){
-            auto last_pos = get_positon(last_pos_str.toStdString());
-            if(last_pos.first >= 0 && last_pos.first < seen_map.px_width && last_pos.second >= 0 && last_pos.second < seen_map.px_height){
-                seen_map.boundaries[last_pos.second][last_pos.first] = 0;
-                MapData::inflate_point(seen_map, last_pos, 5);
-            }
-        }
-
-        // Add new point
-        if(!pos_str.isEmpty()){
-            auto pos = get_positon(pos_str.toStdString());
-            if(pos.first >= 0 && pos.first < seen_map.px_width && pos.second >= 0 && pos.second < seen_map.px_height){
-                seen_map.boundaries[pos.second][pos.first] = 1;
-                MapData::inflate_point(seen_map, pos, 5);
-                this->update_map(seen_map);
-            }
-        }
-    }
-}
-
-void MainWindow::on_line_start_pos_editingFinished()
-{
-    this->add_point_to_display(last_start_pos_str, ui->line_start_pos->text());
-    last_start_pos_str = ui->line_start_pos->text();
-}
-
-
-void MainWindow::on_line_goal_pos_editingFinished()
-{
-    this->add_point_to_display(last_goal_pos_str, ui->line_goal_pos->text());
-    last_goal_pos_str = ui->line_goal_pos->text();
-}
-

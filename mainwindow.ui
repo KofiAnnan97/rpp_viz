@@ -37,13 +37,13 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>850</width>
+      <width>983</width>
       <height>577</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="layout_main">
      <property name="sizeConstraint">
-      <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+      <enum>QLayout::SizeConstraint::SetFixedSize</enum>
      </property>
      <item alignment="Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignVCenter">
       <widget class="QGraphicsView" name="view_map">
@@ -61,8 +61,8 @@
        </property>
        <property name="baseSize">
         <size>
-         <width>575</width>
-         <height>575</height>
+         <width>0</width>
+         <height>0</height>
         </size>
        </property>
        <property name="verticalScrollBarPolicy">
@@ -101,6 +101,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="btn_upload_map">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Upload map to display using yaml file.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
@@ -110,7 +116,169 @@
           </widget>
          </item>
          <item>
+          <layout class="QHBoxLayout" name="layout_obstacle">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="sizeConstraint">
+            <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="lbl_obstacle">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>90</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="baseSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Obstacles:</string>
+             </property>
+             <property name="indent">
+              <number>-1</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_draw">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>30</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="autoFillBackground">
+              <bool>true</bool>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="sp_bx_draw_size">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>50</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>100</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_erase">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>30</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="sp_bx_erase_size">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>50</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>100</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="layout_match_inflate">
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <spacer name="spacer_match">
+             <property name="orientation">
+              <enum>Qt::Orientation::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="ch_bx_match_inflate">
+             <property name="text">
+              <string>match &quot;Inflate Size&quot;</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
           <widget class="QPushButton" name="btn_obstacles">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="toolTip">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Update map obstacles using a mouse.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
@@ -136,7 +304,7 @@
               </size>
              </property>
              <property name="text">
-              <string>Inflate: </string>
+              <string>Inflate Size: </string>
              </property>
             </widget>
            </item>
@@ -274,7 +442,14 @@
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="cb_bx_algos"/>
+          <widget class="QComboBox" name="cb_bx_algos">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
          </item>
          <item>
           <layout class="QHBoxLayout" name="layout_iterations">
@@ -312,6 +487,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="btn_run_algo">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="text">
             <string>Run</string>
            </property>
@@ -339,6 +520,12 @@
          </item>
          <item>
           <widget class="QScrollArea" name="scroll_area_results">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="widgetResizable">
             <bool>true</bool>
            </property>
@@ -347,8 +534,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>261</width>
-              <height>202</height>
+              <width>394</width>
+              <height>137</height>
              </rect>
             </property>
             <property name="minimumSize">
@@ -362,12 +549,12 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>258</width>
+               <width>256</width>
                <height>255</height>
               </rect>
              </property>
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -380,8 +567,8 @@
              </property>
              <property name="baseSize">
               <size>
-               <width>300</width>
-               <height>320</height>
+               <width>0</width>
+               <height>0</height>
               </size>
              </property>
              <property name="horizontalScrollBarPolicy">

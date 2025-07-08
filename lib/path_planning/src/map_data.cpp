@@ -194,7 +194,8 @@ void MapData::inflate_point(Map map, cell pt, int buffer_size){
     for(int y = pt.second-dy; y <= pt.second+dy; y++){
         for(int x = pt.first-dx; x <= pt.first+dx; x++){
             if(y >= 0 && y < map.px_height && x >= 0 && x < map.px_width){
-                b[y][x] = cell_val;
+                if(cell_val == -1 && b[y][x] != -1) b[y][x] = -2; //&& pt != cell{x,y}
+                else b[y][x] = cell_val;
             }
         }
     }

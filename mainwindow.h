@@ -21,6 +21,7 @@
 #include <QPointF>
 #include <QMouseEvent>
 #include <QThread>
+#include <QCursor>
 
 #include "map_data.hpp"
 
@@ -56,21 +57,21 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    void initialize_window();
     void update_map(Map map);
     void update_path(Map map, cell start, cell goal);
     void clear_results();
     void update_results_view();
 
 private:
-    void update_pixmap(Map map, QImage* image);
-    void initialize_window();
     cell get_positon(string pos_str);
+    void set_settings_enabled(bool is_enabled);
+    void update_pixmap(Map map, QImage* image);
+    void add_point_to_display(QString last_pos_str, QString pos_str);
+    bool eventFilter(QObject *object, QEvent *event);
     void run_bfs(Graph g);
     void run_a_star(Graph g);
     void run_rrt_star(Graph g);
-    void set_settings_enabled(bool is_enabled);
-    bool eventFilter(QObject *object, QEvent *event);
-    void add_point_to_display(QString last_pos_str, QString pos_str);
 
     // UI Variables
     Ui::MainWindow *ui;
@@ -82,11 +83,13 @@ private:
     QString last_start_pos_str;
     bool goal_pos_click = false;
     QString last_goal_pos_str;
-    bool alter_map_click = false;
+    //bool alter_map_click = false;
+    bool draw_click = false;
+    bool erase_click = false;
     QPoint mouse_pos;
 
     // State Variables
-    Map obstacle_map, seen_map;
+    Map obstacle_map, display_map;
     Graph graph;
     bool debug = false;
     bool path_computed = false;
@@ -101,7 +104,11 @@ private:
 
 private slots:
     void on_btn_upload_map_clicked();
-    void on_btn_obstacles_clicked();
+    //void on_btn_obstacles_clicked();
+    void on_btn_draw_clicked();
+    void on_btn_erase_clicked();
+    void on_sp_bx_erase_size_valueChanged(int erase_size);
+    void on_ch_bx_match_inflate_toggled(bool checked);
     void on_sp_bx_inflate_valueChanged(int val);
     void on_line_start_pos_editingFinished();
     void on_line_goal_pos_editingFinished();
