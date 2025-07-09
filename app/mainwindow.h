@@ -24,24 +24,15 @@
 #include <QCursor>
 
 #include "map_data.hpp"
+#include "pathworker.h"
 
 using namespace std::chrono;
 using namespace std;
-
-typedef std::chrono::_V2::system_clock::time_point c_time_point;
 
 struct ColorIdx{
     int idx;
     array<int,3> rgb_vals;
     string name;
-};
-
-struct AlgoResult{
-    string type;
-    int duration;
-    vector<cell> path;
-    vector<cell> travelled;
-    float dist;
 };
 
 QT_BEGIN_NAMESPACE
@@ -59,7 +50,7 @@ public:
     ~MainWindow();
     void initialize_window();
     void update_map(Map map);
-    void update_path(Map map, cell start, cell goal);
+    void show_path(Map map, cell start, cell goal);
     void clear_results();
     void update_results_view();
 
@@ -88,6 +79,10 @@ private:
     bool erase_click = false;
     QPoint mouse_pos;
 
+    // For multi-threading
+    QThread *worker_thread;
+    PathWorker *p_worker;
+
     // State Variables
     Map obstacle_map, display_map;
     Graph graph;
@@ -104,7 +99,6 @@ private:
 
 private slots:
     void on_btn_upload_map_clicked();
-    //void on_btn_obstacles_clicked();
     void on_btn_draw_clicked();
     void on_btn_erase_clicked();
     void on_sp_bx_erase_size_valueChanged(int erase_size);
@@ -117,5 +111,9 @@ private slots:
     void on_cb_bx_algos_currentTextChanged(const QString &name);
     void on_ch_bx_debug_toggled(bool checked);
     void on_btn_run_algo_clicked();
+    void handle_thread_finished();
+    void handle_thread_started();
+    void handle_compute_path_finished(vector<AlgoResult> results);
+    void handle_compute_path_error(const QString& message);
 };
 #endif // MAINWINDOW_H

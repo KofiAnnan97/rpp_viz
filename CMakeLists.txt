@@ -38,19 +38,21 @@ include_directories(
     ${OpenCV_INCLUDE_DIRS}
 )
 
-set(TS_FILES rpp_viz_en_US.ts)
+set(TS_FILES app/rpp_viz_en_US.ts)
 
 set(PROJECT_SOURCES
-        main.cpp
-        mainwindow.cpp
-        mainwindow.h
-        mainwindow.ui
+        app/main.cpp
+        app/mainwindow.cpp
+        app/mainwindow.h
+        app/mainwindow.ui
+        app/pathworker.h 
+        app/pathworker.cpp
         ${TS_FILES}
         ${PATH_PLANNING_SRC}
 )
 
 #add_executable(old_tests
-#    script/old_tests.cpp
+#    scripts/old_tests.cpp
 #    ${PATH_PLANNING_SRC}
 #)
 #target_link_libraries(old_tests ${OpenCV_LIBS})

@@ -1,9 +1,6 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
-
-#include "bfs.hpp"
-#include "a_star.hpp"
-#include "rrt_star.hpp"
+#include "pathworker.h"
 
 const int COLOR_PATH_IDX = 3;
 
@@ -57,8 +54,8 @@ void MainWindow::initialize_window(){
     // Set up draw and erase buttons
     ui->btn_draw->setIcon(QIcon("../../app/icons/pencil.svg"));
     ui->btn_erase->setIcon(QIcon("../../app/icons/eraser.svg"));
-    ui->btn_obstacles->hide();
     ui->ch_bx_match_inflate->setChecked(true);
+    ui->btn_obstacles->hide();
 }
 
 // HELPER FUNCTIONS
@@ -138,7 +135,7 @@ void MainWindow::update_map(Map map){
     this->scene->addPixmap(px_map);
 }
 
-void MainWindow::update_path(Map map, cell start, cell goal){
+void MainWindow::show_path(Map map, cell start, cell goal){
     Map path_map = MapData::copy_map(display_map);
     if(results.empty()) return;
     else if(results.size() == 1){
@@ -192,7 +189,6 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event){
         ui->txt_results->setText("Please upload map first.");
         if(start_pos_click) set_position_button(ui->btn_start_pos, start_pos_click, false);
         if(goal_pos_click) set_position_button(ui->btn_goal_pos, goal_pos_click, false);
-        //if(alter_map_click) alter_map_click = false;
     }
     else if(object == ui->view_map && event->type() == QEvent::MouseButtonPress){
         QMouseEvent *mouse_event = static_cast<QMouseEvent*>(event);
@@ -247,29 +243,6 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event){
                 return true;
             }
         }
-        /* REDUNDANT CODE
-        else if(alter_map_click){
-            if(scaled_x >= 0 && scaled_x < obstacle_map.px_width && scaled_y >= 0 && scaled_y < obstacle_map.px_height){
-                if(obstacle_map.boundaries[scaled_y][scaled_x] < 0){
-                    obstacle_map.boundaries[scaled_y][scaled_x] = 0;
-                    MapData::inflate_point(obstacle_map, {scaled_x, scaled_y}, ui->sp_bx_inflate->value());
-                }
-                else {
-                    obstacle_map.boundaries[scaled_y][scaled_x] = -1;
-                    obstacle_map.boundaries = MapData::remove_boundary_inflation(obstacle_map);
-                    obstacle_map.boundaries = MapData::inflate_boundaries(obstacle_map, ui->sp_bx_inflate->value());
-                }
-                this->update_map(display_map);
-
-                // Update seen map with start and goal position
-                display_map.boundaries = MapData::copy_boundaries(obstacle_map);
-                auto start_pos_str = ui->line_start_pos->text();
-                auto goal_pos_str = ui->line_goal_pos->text();
-                if(!start_pos_str.isEmpty()) this->add_point_to_display(start_pos_str, start_pos_str);
-                if(!goal_pos_str.isEmpty()) this->add_point_to_display(goal_pos_str, goal_pos_str);
-                return true;
-            }
-        }*/
     }
     return false;
 }
@@ -285,24 +258,15 @@ void MainWindow::on_btn_upload_map_clicked(){
         obstacle_map = new_map;
         display_map = MapData::copy_map(new_map);
         map_uploaded = true;
-        //alter_map_click = false;
         draw_click = false;
         erase_click = false;
+        ui->view_map->viewport()->setCursor(Qt::ArrowCursor);
         ui->sp_bx_inflate->setValue(ui->sp_bx_inflate->minimum());
         this->clear_results();
         this->update_results_view();
     }
     else if(filename != "") QMessageBox::critical(this, "Import Error", filename + " is not valid. Make sure to provide a YAML file.");
 }
-
-/*void MainWindow::on_btn_obstacles_clicked(){
-    // Reset start and goal position buttons if needed
-    start_pos_click = false;
-    goal_pos_click = false;
-
-    // Set state of altering map obstacles
-    //alter_map_click = !alter_map_click;
-}*/
 
 void MainWindow::on_btn_draw_clicked(){
     // Reset start position, goal position, and erase buttons
@@ -390,7 +354,6 @@ void MainWindow::on_btn_start_pos_clicked(){
         ui->btn_goal_pos->setText("o");
         goal_pos_click = false;
         ui->btn_start_pos->setText("x");
-        //alter_map_click = false;
         if(draw_click || erase_click){
             draw_click = false;
             erase_click = false;
@@ -408,7 +371,6 @@ void MainWindow::on_btn_goal_pos_clicked(){
         ui->btn_start_pos->setText("o");
         start_pos_click = false;
         ui->btn_goal_pos->setText("x");
-        //alter_map_click = false;
         if(draw_click || erase_click){
             draw_click = false;
             erase_click = false;
@@ -458,69 +420,32 @@ void MainWindow::on_ch_bx_debug_toggled(bool checked){
     debug = checked;
     if(path_computed){
         this->update_results_view();
-        this->update_path(obstacle_map, graph.root, graph.end);
+        this->show_path(obstacle_map, graph.root, graph.end);
     }
 }
 
-// BFS algorithm module
-void MainWindow::run_bfs(Graph g){
-    auto bfs = BFS(g);
-    auto start_time = high_resolution_clock::now();
-    bfs.solve(g.root, g.end);
-    auto end_time = high_resolution_clock::now();
-    auto data = bfs.reconstruct_path(g.root, g.end);
-    AlgoResult ar;
-    ar.type = "BFS";
-    ar.duration = duration_cast<milliseconds>(end_time - start_time).count();
-    ar.path = data.first;
-    ar.dist = data.second;
-    ar.travelled = bfs.get_travelled_nodes();
-    results.push_back(ar);
+void MainWindow::handle_compute_path_finished(vector<AlgoResult> c_results){
+    qDebug("Status: Path compuatution finished successfully.");
+    results = c_results;
+    this->show_path(obstacle_map, graph.root, graph.end);
+    this->update_results_view();
+    path_computed = true;
+    this->set_settings_enabled(true);
 }
 
-// A* algorithm module
-void MainWindow::run_a_star(Graph g){
-    auto as = AStar(g);
-    auto start_time = high_resolution_clock::now();
-    as.solve(g.root, g.end);
-    auto end_time = high_resolution_clock::now();
-    auto data = as.reconstruct_path(g.root, g.end);
-    AlgoResult ar;
-    ar.type = "A*";
-    ar.duration = duration_cast<milliseconds>(end_time- start_time).count();
-    ar.path = data.first;
-    ar.dist = data.second;
-    ar.travelled = as.get_travelled_nodes();
-    results.push_back(ar);
-}
-
-// RRT* algorithm module
-void MainWindow::run_rrt_star(Graph g){
-    auto rrt = RRTStar(g, obstacle_map.px_width, obstacle_map.px_height, max_iters);
-    auto start_time = high_resolution_clock::now();
-    rrt.solve(g.root, g.end);
-    auto end_time = high_resolution_clock::now();
-    auto data = rrt.reconstruct_path(g.root, g.end);
-    AlgoResult ar;
-    ar.type = "RRT*";
-    ar.duration = duration_cast<milliseconds>(end_time- start_time).count();
-    ar.path = data.first;
-    ar.dist = data.second;
-    ar.travelled = rrt.get_travelled_nodes();
-    results.push_back(ar);
+void MainWindow::handle_compute_path_error(const QString& message){
+    qDebug("Result: Error!");
+    auto err_msg = QString("Status: Error - %1").arg(message);
+    qDebug() << err_msg;
 }
 
 void MainWindow::on_btn_run_algo_clicked(){
-    // Convert map into a graph
-    graph = MapData::get_graph_from_map(obstacle_map);
-
     // Get start and goal position
     start_pos = get_positon(ui->line_start_pos->text().toStdString());
     goal_pos = get_positon(ui->line_goal_pos->text().toStdString());
 
     // Run algorithm(s)
-    this->set_settings_enabled(false);
-    if(!map_uploaded) ui->txt_results->setText("Error:\n  - Map has not been uploaded yet.");
+    if(!map_uploaded) QMessageBox::critical(this, "Map Error ", "Map has not been uploaded yet. Please click the \"Upload Map\" button to retrieve a map.");
     else if(!graph.is_node_valid(start_pos) || !graph.is_node_valid(goal_pos)){
         string err_msg = "Error:\n";
         if(!graph.is_node_valid(start_pos)) err_msg += "  - Start position is not valid\n";
@@ -529,26 +454,38 @@ void MainWindow::on_btn_run_algo_clicked(){
         ui->txt_results->setText(QString::fromStdString(err_msg));
     }
     else{
+        this->set_settings_enabled(false);
+        // Convert map into a graph
+        graph = MapData::get_graph_from_map(obstacle_map);
         graph.root = start_pos;
         graph.end = goal_pos;
+
         max_iters = ui->sp_bx_iterations->value();
-        this->clear_results();
         path_computed = false;
         ui->txt_results->setText("Data cleared. Running algoritm(s)...");
-        if(algo_name == "BFS") this->run_bfs(graph);
-        else if(algo_name ==  "A*") this->run_a_star(graph);
-        else if(algo_name == "RRT*") this->run_rrt_star(graph);
-        else if(algo_name =="All"){
-            this->run_bfs(graph);
-            this->run_a_star(graph);
-            this->run_rrt_star(graph);
-        }
-        this->update_path(obstacle_map, graph.root, graph.end);
-        this->update_results_view();
-        path_computed = true;
+
+        // Create thread for running path computation
+        worker_thread = new QThread(this);
+        p_worker = new PathWorker();
+        p_worker->moveToThread(worker_thread);
+        connect(worker_thread, &QThread::started, p_worker, [this]{
+            p_worker->compute_path(algo_name, graph, obstacle_map.px_width, obstacle_map.px_height, max_iters);
+        });
+
+        // Set signal for MainWindow functions
+        connect(p_worker, &PathWorker::compute_finished, this, &MainWindow::handle_compute_path_finished);
+        //connect(p_worker, &PathWorker::compute_error, this, &MainWindow::handle_compute_path_error);
+
+        // Exit worker
+        connect(p_worker, &PathWorker::compute_finished, worker_thread, &QThread::quit);
+        //connect(p_worker, &PathWorker::compute_error, worker_thread, &QThread::quit);
+
+        // Thread cleanup
+        connect(worker_thread, &QThread::finished, this, &MainWindow::handle_thread_finished);
+        connect(worker_thread, &QThread::started, this, &MainWindow::handle_thread_started);
+
+        worker_thread->start();
     }
-    this->set_settings_enabled(true);
-    //alter_map_click = false;
 }
 
 // RESULTS DISPLAY FUNCTIONS
@@ -585,4 +522,18 @@ void MainWindow::update_results_view(){
         }
     }
    ui->txt_results->setText(data);
+}
+
+// THREAD FUNCTIONS
+
+void MainWindow::handle_thread_finished(){
+    qDebug() << "Worker thread finished and cleaned up.";
+    p_worker->deleteLater();
+    worker_thread->deleteLater();
+    p_worker = nullptr;
+    worker_thread = nullptr;
+}
+
+void MainWindow::handle_thread_started(){
+    qDebug() << "Worker thread started.";
 }
