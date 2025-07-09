@@ -83,12 +83,16 @@ cell MainWindow::get_positon(string pos_str){
 
 void MainWindow::set_settings_enabled(bool is_enabled){
     ui->btn_upload_map->setEnabled(is_enabled);
-    ui->btn_obstacles->setEnabled(is_enabled);
+    ui->btn_draw->setEnabled(is_enabled);
+    ui->btn_erase->setEnabled(is_enabled);
+    ui->sp_bx_draw_size->setEnabled(is_enabled);
+    ui->sp_bx_erase_size->setEnabled(is_enabled);
+    ui->ch_bx_match_inflate->setEnabled(is_enabled);
     ui->sp_bx_inflate->setEnabled(is_enabled);
     ui->line_start_pos->setEnabled(is_enabled);
     ui->line_goal_pos->setEnabled(is_enabled);
     ui->btn_start_pos->setEnabled(is_enabled);
-    ui->btn_start_pos->setEnabled(is_enabled);
+    ui->btn_goal_pos->setEnabled(is_enabled);
     ui->cb_bx_algos->setEnabled(is_enabled);
     ui->ch_bx_debug->setEnabled(is_enabled);
     ui->sp_bx_iterations->setEnabled(is_enabled);
@@ -444,6 +448,9 @@ void MainWindow::on_btn_run_algo_clicked(){
     start_pos = get_positon(ui->line_start_pos->text().toStdString());
     goal_pos = get_positon(ui->line_goal_pos->text().toStdString());
 
+    // Convert map to graph
+    if(map_uploaded) graph = MapData::get_graph_from_map(obstacle_map);
+
     // Run algorithm(s)
     if(!map_uploaded) QMessageBox::critical(this, "Map Error ", "Map has not been uploaded yet. Please click the \"Upload Map\" button to retrieve a map.");
     else if(!graph.is_node_valid(start_pos) || !graph.is_node_valid(goal_pos)){
@@ -455,8 +462,6 @@ void MainWindow::on_btn_run_algo_clicked(){
     }
     else{
         this->set_settings_enabled(false);
-        // Convert map into a graph
-        graph = MapData::get_graph_from_map(obstacle_map);
         graph.root = start_pos;
         graph.end = goal_pos;
 
