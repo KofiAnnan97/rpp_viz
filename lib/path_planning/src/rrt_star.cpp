@@ -1,20 +1,24 @@
 #include "rrt_star.hpp"
 
+using namespace std::chrono;
+
 const float PI = 3.14159;
 
-RRTStar::RRTStar(Graph g, int w, int h, int iter){
+RRTStar::RRTStar(Graph g, int iter){
     tree = g;
     max_iter = iter;
-    width = w;
-    height = h;
     all_valid_nodes = tree.get_nodes();
     goal_reached = false;
 }
 
-void RRTStar::solve(cell sp, cell ep){
+void RRTStar::solve(cell sp, cell ep, int timeout){
     node_list.push_back(sp);
+    //int compute_timeout = 60000;
+    auto start = high_resolution_clock::now();
     for(int i = 0; i < max_iter; i++){
         //if(i%1000 == 0) cout << "Iteration: " << i << endl;
+        auto now = high_resolution_clock::now();
+        if(duration_cast<milliseconds>(now-start).count() >= timeout) break;
         auto random_node = get_random_node();
         auto nearest_node = get_nearest_node(node_list, random_node);
         auto new_node = steer(nearest_node, random_node);

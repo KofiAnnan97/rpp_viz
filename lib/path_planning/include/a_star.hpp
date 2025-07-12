@@ -8,7 +8,7 @@
 class AStar{
     public:
         AStar(Graph g);
-        void solve(cell sp, cell ep);
+        void solve(cell sp, cell ep, int timeout);
         pair<vector<cell>, float> reconstruct_path(cell sp, cell ep);
         void print_map(string name, map<cell, float> map);
         vector<cell> get_travelled_nodes();

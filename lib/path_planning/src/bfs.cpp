@@ -1,5 +1,7 @@
 #include "bfs.hpp"
 
+using namespace std::chrono;
+
 BFS::BFS(Graph g){
     tree = g;
     for(auto it = tree.g.begin(); it != tree.g.end(); ++it){
@@ -8,10 +10,13 @@ BFS::BFS(Graph g){
     }
 }
         
-void BFS::solve(cell sp, cell ep){
+void BFS::solve(cell sp, cell ep, int timeout){
     q.push_back(sp);
     visited[sp] = true;
+    auto start = high_resolution_clock::now();
     while(!q.empty()){
+        auto now = high_resolution_clock::now();
+        if(duration_cast<milliseconds>(now-start).count() >= timeout) break;
         cell curr = {q[0].first, q[0].second};
         q.erase(q.begin());
         auto children = tree.get_edges(curr);

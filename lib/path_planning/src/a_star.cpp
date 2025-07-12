@@ -1,5 +1,7 @@
 #include "a_star.hpp"
 
+using namespace std::chrono;
+
 AStar::AStar(Graph g){
     tree = g;
     for(auto it = tree.g.begin(); it != tree.g.end(); ++it){
@@ -21,13 +23,16 @@ pair<vector<cell>, float> AStar::reconstruct_path(cell sp, cell ep){
     return data;
 }
 
-void AStar::solve(cell sp, cell ep){
+void AStar::solve(cell sp, cell ep, int timeout){
     dist[sp] = 0;
     f[sp] = AStar::get_f_score(sp);
     vector<cell> open_set;
     open_set.push_back(sp);
     int kill_count = 0;
+    auto start = high_resolution_clock::now();
     while(!open_set.empty() && kill_count < tree.get_size()){
+        auto now = high_resolution_clock::now();
+        if(duration_cast<milliseconds>(now-start).count() >= timeout) break;
         cell curr = get_min_f(open_set);
         if(curr == ep) break;
         auto children = tree.get_edges(curr);

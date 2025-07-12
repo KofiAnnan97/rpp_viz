@@ -9,8 +9,8 @@
 
 class RRTStar{
     public:
-        RRTStar(Graph g, int width, int height, int max_iter);
-        void solve(cell sp, cell ep);
+        RRTStar(Graph g, int max_iter);
+        void solve(cell sp, cell ep, int timeout);
         pair<vector<cell>, float> reconstruct_path(cell sp, cell ep);
         bool goal_reached;
         vector<cell> get_travelled_nodes();
@@ -24,7 +24,7 @@ class RRTStar{
         void rewire(cell new_node, vector<cell> neighbors);
         float euclidean_distance(cell a, cell b);
         Graph tree;
-        int max_iter, height, width;
+        int max_iter;
         map<cell, float> cost_map;
         vector<cell> node_list;
         vector<cell> all_valid_nodes;

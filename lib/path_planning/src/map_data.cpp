@@ -218,6 +218,8 @@ Map MapData::add_path_to_map_with_value(Map map, int pixel_val, vector<cell> pat
     for(auto p: path) new_map.boundaries[p.second][p.first] = pixel_val;
     new_map.boundaries[sp.second][sp.first] = 1;
     new_map.boundaries[ep.second][ep.first] = 1;
+    MapData::inflate_point(new_map, sp, 5);
+    MapData::inflate_point(new_map, ep, 5);
     return new_map;
 }
 
@@ -231,8 +233,10 @@ Map MapData::debug_map(Map map, vector<cell> path, vector<cell> travelled, cell 
     new_map.boundaries = MapData::copy_boundaries(map);
     for(auto t: travelled) new_map.boundaries[t.second][t.first] = 2;
     for(auto p: path) new_map.boundaries[p.second][p.first] = 3;
-    MapData::inflate_point(new_map, sp, 5); //new_map.boundaries[sp.second][sp.first] = 1;
-    MapData::inflate_point(new_map, ep, 5); //new_map.boundaries[ep.second][ep.first] = 1;
+    new_map.boundaries[sp.second][sp.first] = 1;
+    new_map.boundaries[ep.second][ep.first] = 1;
+    MapData::inflate_point(new_map, sp, 5);
+    MapData::inflate_point(new_map, ep, 5);
     return new_map;
 }
 

@@ -12,6 +12,8 @@ using namespace std::chrono;
 
 typedef std::chrono::_V2::system_clock::time_point c_time_point;
 
+const int COMPUTE_TIMEOUT = 60000; // in milliseconds
+
 c_time_point get_time(string time_title){
     auto now = high_resolution_clock::now();
     /*auto n = std::chrono::system_clock::to_time_t(now);
@@ -333,7 +335,7 @@ void test_bfs_simple(){
     g.end = {16, 7};
     
     auto start_time = get_time("Start Time"); 
-    bfs.solve(g.root, g.end);
+    bfs.solve(g.root, g.end, COMPUTE_TIMEOUT);
     auto end_time = get_time("End Time");
     auto duration = duration_cast<milliseconds>(end_time- start_time);
 
@@ -394,7 +396,7 @@ void test_a_star_simple(){
     auto as = AStar(g);
 
     auto start_time = get_time("Start Time"); 
-    as.solve(g.root, g.end);
+    as.solve(g.root, g.end, COMPUTE_TIMEOUT);
     auto end_time = get_time("End Time"); 
     auto duration = duration_cast<milliseconds>(end_time- start_time);
 
@@ -514,11 +516,11 @@ void test_rrt_star_simple(){
     auto m = get_simple_map();
     auto g = MapData::get_graph_from_map(m);
     g.root = {3, 3};
-    g.end = {16, 7}; 
-    auto rrt = RRTStar(g, m.px_width, m.px_height, 1000);
-    
+    g.end = {16, 7};
+    auto rrt = RRTStar(g, 1000);
+
     auto start_time = get_time("Start Time"); 
-    rrt.solve(g.root, g.end);
+    rrt.solve(g.root, g.end, COMPUTE_TIMEOUT);
     auto end_time = get_time("End Time"); 
     auto duration = duration_cast<milliseconds>(end_time- start_time);
     
@@ -565,8 +567,8 @@ void test_rrt_star_simple(){
 
     cout << "\tTest Invalid Point: ";
     test_invalid_node(g, {0,0}, passed_count);
-    auto short_rrt = RRTStar(g, m.px_width, m.px_height, 10);
-    short_rrt.solve(g.root, g.end);
+    auto short_rrt = RRTStar(g, 10);
+    short_rrt.solve(g.root, g.end, COMPUTE_TIMEOUT);
     auto invalid_result = short_rrt.reconstruct_path(g.root, g.end);
     cout << "\tTest Limited Iteration Failure: ";
     auto inv_path = invalid_result.first;

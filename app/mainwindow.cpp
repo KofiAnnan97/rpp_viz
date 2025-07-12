@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include "pathworker.h"
@@ -94,7 +96,6 @@ void MainWindow::set_settings_enabled(bool is_enabled){
     ui->btn_start_pos->setEnabled(is_enabled);
     ui->btn_goal_pos->setEnabled(is_enabled);
     ui->cb_bx_algos->setEnabled(is_enabled);
-    ui->ch_bx_debug->setEnabled(is_enabled);
     ui->sp_bx_iterations->setEnabled(is_enabled);
     ui->btn_run_algo->setEnabled(is_enabled);
 }
@@ -429,7 +430,7 @@ void MainWindow::on_ch_bx_debug_toggled(bool checked){
 }
 
 void MainWindow::handle_compute_path_finished(vector<AlgoResult> c_results){
-    qDebug("Status: Path compuatution finished successfully.");
+    //qDebug("Status: Path compuatution finished successfully.");
     results = c_results;
     this->show_path(obstacle_map, graph.root, graph.end);
     this->update_results_view();
@@ -437,10 +438,10 @@ void MainWindow::handle_compute_path_finished(vector<AlgoResult> c_results){
     this->set_settings_enabled(true);
 }
 
-void MainWindow::handle_compute_path_error(const QString& message){
-    qDebug("Result: Error!");
-    auto err_msg = QString("Status: Error - %1").arg(message);
-    qDebug() << err_msg;
+void MainWindow::handle_compute_path_error(vector<AlgoResult> c_results, const QString& message){
+    auto err_msg = QString("STATUS:\n%1").arg(message);
+    QMessageBox::critical(this, "Computation Error", err_msg);
+    this->handle_compute_path_finished(c_results);
 }
 
 void MainWindow::on_btn_run_algo_clicked(){
@@ -452,43 +453,49 @@ void MainWindow::on_btn_run_algo_clicked(){
     if(map_uploaded) graph = MapData::get_graph_from_map(obstacle_map);
 
     // Run algorithm(s)
-    if(!map_uploaded) QMessageBox::critical(this, "Map Error ", "Map has not been uploaded yet. Please click the \"Upload Map\" button to retrieve a map.");
+    if(!map_uploaded){
+        this->set_settings_enabled(false);
+        QMessageBox::critical(this, "Map Error ", "Map has not been uploaded yet. Please click the \"Upload Map\" button to retrieve a map.");
+        this->set_settings_enabled(true);
+    }
     else if(!graph.is_node_valid(start_pos) || !graph.is_node_valid(goal_pos)){
         string err_msg = "Error:\n";
         if(!graph.is_node_valid(start_pos)) err_msg += "  - Start position is not valid\n";
         if(!graph.is_node_valid(goal_pos)) err_msg += "  - Goal position is not valid\n";
         err_msg += "\nMake sure the position text field is not empty, is clear of obstacles, and in this format: \"int,int\"\n";
         ui->txt_results->setText(QString::fromStdString(err_msg));
+        this->set_settings_enabled(true);
     }
     else{
-        this->set_settings_enabled(false);
         graph.root = start_pos;
         graph.end = goal_pos;
 
         max_iters = ui->sp_bx_iterations->value();
         path_computed = false;
-        ui->txt_results->setText("Data cleared. Running algoritm(s)...");
+        ui->txt_results->setText("Running algoritm(s)...");
+        this->set_settings_enabled(false);
 
         // Create thread for running path computation
-        worker_thread = new QThread(this);
+        worker_thread = new QThread;
         p_worker = new PathWorker();
         p_worker->moveToThread(worker_thread);
         connect(worker_thread, &QThread::started, p_worker, [this]{
-            p_worker->compute_path(algo_name, graph, obstacle_map.px_width, obstacle_map.px_height, max_iters);
+            p_worker->compute_path(algo_name, graph, max_iters);
         });
 
         // Set signal for MainWindow functions
         connect(p_worker, &PathWorker::compute_finished, this, &MainWindow::handle_compute_path_finished);
-        //connect(p_worker, &PathWorker::compute_error, this, &MainWindow::handle_compute_path_error);
+        connect(p_worker, &PathWorker::compute_error, this, &MainWindow::handle_compute_path_error);
 
         // Exit worker
         connect(p_worker, &PathWorker::compute_finished, worker_thread, &QThread::quit);
-        //connect(p_worker, &PathWorker::compute_error, worker_thread, &QThread::quit);
+        connect(p_worker, &PathWorker::compute_error, worker_thread, &QThread::quit);
 
         // Thread cleanup
         connect(worker_thread, &QThread::finished, this, &MainWindow::handle_thread_finished);
         connect(worker_thread, &QThread::started, this, &MainWindow::handle_thread_started);
 
+        // Start worker thread
         worker_thread->start();
     }
 }
@@ -504,14 +511,19 @@ void MainWindow::update_results_view(){
     for(auto r : results){
         QString sub_data = "";
         if(results.size()>1) sub_data += QString("Algorithm: %1 <br>").arg(r.type);
-        if(r.duration < 1000) sub_data += QString("Duration: %1 ms <br>").arg(r.duration);
-        else sub_data += QString("Duration: %1 s <br>").arg((float)r.duration/1000);
-        sub_data += QString("Distance: %1 <br>").arg(r.dist);
+        sub_data += "Duration: ";
+        if(r.duration < 1000) sub_data += QString("%1 ms").arg(r.duration);
+        else{
+            float in_secs = (float)r.duration/1000;
+            if(in_secs > 60) sub_data += QString("%1 mins").arg(in_secs/60);
+            else sub_data += QString("%1 s").arg(in_secs);
+        }
+        sub_data += QString("<br> Distance: %1 <br>").arg(r.dist);
         if(debug){
             sub_data += "Path Nodes: [ ";
             for(int i = 0; i<r.path.size(); i++){
-                if(i == r.path.size()-1) sub_data += QString("  %1,%2 ] <br>").arg(r.path[i].first).arg(r.path[i].second);
-                else sub_data += QString("  %1,%2 ").arg(r.path[i].first).arg(r.path[i].second);
+                if(i == r.path.size()-1) sub_data += QString("  (%1,%2) ] <br> <br>").arg(r.path[i].first).arg(r.path[i].second);
+                else sub_data += QString("  (%1,%2) ").arg(r.path[i].first).arg(r.path[i].second);
             }
         }
         if(results.size() == 1) data += sub_data;
@@ -542,3 +554,4 @@ void MainWindow::handle_thread_finished(){
 void MainWindow::handle_thread_started(){
     qDebug() << "Worker thread started.";
 }
+//

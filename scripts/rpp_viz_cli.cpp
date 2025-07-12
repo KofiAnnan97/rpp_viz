@@ -15,6 +15,8 @@ using namespace std::chrono;
 
 typedef std::chrono::_V2::system_clock::time_point c_time_point;
 
+int COMPUTE_TIMEOUT = 600000; //in milliseconds
+
 struct Parameters{
     string algo, map_yaml;
     bool show_debug = false, get_help = false, kill_script = false;
@@ -23,19 +25,21 @@ struct Parameters{
 };
 
 void print_help_menu(){
-    cout << "Description: A simple script to test different path planning algorithms." << endl;
-    cout << "options: " << endl;
-    cout << "   -h, --help                            Show this help message and exit." << endl;
-    cout << "   -f FILE, --file FILE                  Provide map yaml filepath." << endl;
-    cout << "   -i INFLATE_SIZE. --inflate-size INFLATE_SIZE" << endl;
-    cout << "                                         Set size of boundaries (Default: 3)." << endl;
-    cout << "   -a ALGORITHM, --algorithm ALGORITHM   Set executed algoritm to one of the following:" << endl;
-    cout << "                                         [bfs, a-star, rrt-star, all]." << endl;
-    cout << "   -l MAX_ITER, --max-iter MAX_ITER      Set limit the number of iterations executed." << endl;
-    cout << "                                         Only supported for sample-based methods (Default: 10000)." << endl;
-    cout << "   -s START_POS, --start-pos START_POS   Set start position [Format: \"int,int\"]." << endl;
-    cout << "   -e END_POS, --end-pos END_POS         Set end position [Format: \"int,int\"]." << endl;
-    cout << "   -d, --debug                           Provide more information for debugging." << endl;
+    cout << "Description: A simple script to test different path planning algorithms.\n";
+    cout << "options: \n";
+    cout << "   -h, --help                            Show this help message and exit.\n";
+    cout << "   -f FILE, --file FILE                  Provide map yaml filepath.\n";
+    cout << "   -i INFLATE_SIZE. --inflate-size INFLATE_SIZE\n";
+    cout << "                                         Set size of boundaries (Default: 3).\n";
+    cout << "   -a ALGORITHM, --algorithm ALGORITHM   Set executed algoritm to one of the following:\n";
+    cout << "                                         [bfs, a-star, rrt-star, all].\n";
+    cout << "   -l MAX_ITER, --max-iter MAX_ITER      Set limit the number of iterations executed.\n";
+    cout << "                                         Only supported for sample-based methods (Default: 10000).\n";
+    cout << "   -s START_POS, --start-pos START_POS   Set start position [Format: \"int,int\"].\n";
+    cout << "   -e END_POS, --end-pos END_POS         Set end position [Format: \"int,int\"].\n";
+    cout << "   -d, --debug                           Provide more information for debugging.\n";
+    cout << "   -t TIMEOUT, timeout TIMEOUT           Set timeout limit for algorithm computation\n";
+    cout << "                                         (Default: 600000 ms).\n";
 }
 
 cell get_positon(string pos_str){
@@ -133,6 +137,26 @@ Parameters get_params(int argc, char* argv[]){
         else if(strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--debug") == 0){
             params.show_debug = true;
         }
+        else if(strcmp(argv[i], "-t") == 0 || strcmp(argv[i], "--timeout") == 0){
+            if (i+1 >= argc){
+                cout << "Mising timeout value" << endl;
+                params.kill_script = true;
+                break;                
+            }
+            else{
+                try{
+                    COMPUTE_TIMEOUT = std::stoi(argv[i+1]);
+                    i++;
+                }
+                catch(std::invalid_argument e){
+                    cout << "Could not convert \"" << argv[i+1] << "\" value to integer. Defaulting to 600000 ms." << endl;
+                    params.kill_script = true;
+                    break;
+                }
+            }
+            
+
+        }
         else if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0){
             params.get_help = true;
             break;
@@ -146,9 +170,10 @@ Parameters get_params(int argc, char* argv[]){
     return params;
 }
 
-void print_results(Graph g, vector<cell> path, float dist, c_time_point start_time, c_time_point end_time, bool debug){
+void print_results(Graph g, vector<cell> path, float dist, c_time_point start_time, c_time_point end_time, bool debug, int timeout){
     auto duration = duration_cast<milliseconds>(end_time- start_time);
-    std::cout << "Elapsed Time: " << duration.count() << " ms\n";
+    if(duration.count() >= timeout) cout << "Computation exceeded " << duration.count() << " ms\n";
+    else std::cout << "Elapsed Time: " << duration.count() << " ms\n";
     cout << "# of Nodes: " << path.size() << endl;
     if(debug){
         std::cout << "Path: [";
@@ -182,13 +207,13 @@ void run_bfs(Map &m, Graph g, bool debug){
     auto bfs = BFS(g);
     
     auto start_time = get_time("Start Time");
-    bfs.solve(g.root, g.end);
+    bfs.solve(g.root, g.end, COMPUTE_TIMEOUT);
     auto end_time = get_time("End Time");
     
     auto results = bfs.reconstruct_path(g.root, g.end);
     vector<cell> path = results.first;
     float dist = results.second;
-    print_results(g, path, dist, start_time, end_time, debug);
+    print_results(g, path, dist, start_time, end_time, debug, COMPUTE_TIMEOUT);
     vector<cell> travelled;
     if(debug) travelled = bfs.get_travelled_nodes();
     show_map("BFS", m, g.root, g.end, path, travelled, debug);
@@ -199,13 +224,13 @@ void run_astar(Map &m, Graph g, bool debug){
     auto as = AStar(g);
     
     auto start_time = get_time("Start Time");
-    as.solve(g.root, g.end);
+    as.solve(g.root, g.end, COMPUTE_TIMEOUT);
     auto end_time = get_time("End Time");
     
     auto results = as.reconstruct_path(g.root, g.end);
     vector<cell> path = results.first;
     float dist = results.second;
-    print_results(g, path, dist, start_time, end_time, debug);
+    print_results(g, path, dist, start_time, end_time, debug, COMPUTE_TIMEOUT);
     vector<cell> travelled;
     if(debug) travelled = as.get_travelled_nodes();
     show_map("A*", m, g.root, g.end, path, travelled, debug);
@@ -222,17 +247,17 @@ void run_astar(Map &m, Graph g, bool debug){
     auto results = d_lite.reconstruct_path(g.root, g.end);
     vector<cell> path = results.first;
     float dist = results.second;
-    print_results(g, path, dist, start_time, end_time, debug);
+    print_results(g, path, dist, start_time, end_time, debug, COMPUTE_TIMEOUT);
     vector<cell> travelled;
     show_map("D* Lite", m, g.root, g.end, path, travelled, debug);
 }*/
 
 void run_rrt_star(Map &m, Graph g, int max_iter, bool debug){
     cout << "RRT-STAR" << endl;
-    auto rrt = RRTStar(g, m.px_width, m.px_height, max_iter);
+    auto rrt = RRTStar(g, max_iter);
     
     auto start_time = get_time("Start Time");
-    rrt.solve(g.root, g.end);
+    rrt.solve(g.root, g.end, COMPUTE_TIMEOUT);
     auto end_time = get_time("End Time");
     
     vector<cell> path;
@@ -240,12 +265,11 @@ void run_rrt_star(Map &m, Graph g, int max_iter, bool debug){
         auto results = rrt.reconstruct_path(g.root, g.end);
         path = results.first;
         float dist = results.second;
-        print_results(g, path, dist, start_time, end_time, debug);
+        print_results(g, path, dist, start_time, end_time, debug, COMPUTE_TIMEOUT);
     }
     else {
         cout << "Goal could not be reached. Please check the following:";
-        cout << "\n\tstart point\n\tend point\n\t# of max iterations\n";
-    }
+        cout << "\n\tstart point\n\tend point\n\t# of max iterations\n\talgorithm timeout limit\n";    }
     vector<cell> travelled;
     if(debug) travelled = rrt.get_travelled_nodes(); 
     show_map("RRT*", m, g.root, g.end, path, travelled, debug);

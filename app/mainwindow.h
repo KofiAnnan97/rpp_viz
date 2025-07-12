@@ -2,8 +2,6 @@
 #define MAINWINDOW_H
 
 #include <string>
-#include <iomanip>
-#include <sstream>
 
 #include <QMainWindow>
 #include <QString>
@@ -114,6 +112,6 @@ private slots:
     void handle_thread_finished();
     void handle_thread_started();
     void handle_compute_path_finished(vector<AlgoResult> results);
-    void handle_compute_path_error(const QString& message);
+    void handle_compute_path_error(vector<AlgoResult> results, const QString& message);
 };
 #endif // MAINWINDOW_H

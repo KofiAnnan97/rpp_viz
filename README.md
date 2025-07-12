@@ -22,6 +22,7 @@ A testing ground for path planning strategies for ROS.
     - [ ] [Optional] Change behavior of Add/remove obstacles to be more like a pen or eraser
 - [ ] Optimizations/Bug Fixes    
     - [X] Implement multi-threading for running algorithms 
+        - [X] Terminate algorithm if it runs for more than 10 minutes 
     - [ ] Reduce code redundancies
     - [ ] Add more extensive error handling for GUI
     - [ ] Fix eraser outline to scale with size
@@ -75,18 +76,20 @@ options:
    -f FILE, --file FILE                  Provide map yaml filepath.
    -i INFLATE_SIZE. --inflate-size INFLATE_SIZE
                                          Set size of boundaries (Default: 3).
-   -a ALGORITHM, --algorithm ALGORITHM   Set executed algoritm to one of the following: 
+   -a ALGORITHM, --algorithm ALGORITHM   Set executed algoritm to one of the following:
                                          [bfs, a-star, rrt-star, all].
    -l MAX_ITER, --max-iter MAX_ITER      Set limit the number of iterations executed.
                                          Only supported for sample-based methods (Default: 10000).
    -s START_POS, --start-pos START_POS   Set start position [Format: "int,int"].
    -e END_POS, --end-pos END_POS         Set end position [Format: "int,int"].
    -d, --debug                           Provide more information for debugging.
+   -t timeout, timeout TIMEOUT           Set timeout limit for algorithm computation
+                                         (Default: 600000 ms).
 ```
 
 Example execution:
 ```
-./build/<build_folder>/rpp_cli -f "/path/to/example1.yaml" -i 3 -a "rrt-star" -l 10000 -s "300,50" -e "381,360" -d
+./build/<build_folder>/rpp_cli -f "/path/to/example1.yaml" -i 5 -a "rrt-star" -l 10000 -s "300,50" -e "381,360" -d
 ```
 
 ## Maps
