@@ -10,12 +10,8 @@
 #include "a_star.hpp"
 //#include "d_star_lite.hpp"
 #include "rrt_star.hpp"
-
-using namespace std::chrono;
-
-typedef std::chrono::_V2::system_clock::time_point c_time_point;
-
-int COMPUTE_TIMEOUT = 600000; //in milliseconds
+#include "time_helper.hpp"
+#include "map_helper.hpp"
 
 struct Parameters{
     string algo, map_yaml;
@@ -23,6 +19,15 @@ struct Parameters{
     int inflate_size = 3, max_iter = 10000;
     cell start, goal;
 };
+
+int COMPUTE_TIMEOUT = 600000; //in milliseconds
+vector<AlgoResult> algo_results;
+
+// Constants
+const string BFS_ID = "bfs";
+const string A_STAR_ID = "a-star";
+const string RRT_STAR_ID = "rrt-star";
+const string ALL_ID = "all";
 
 void print_help_menu(){
     cout << "Description: A simple script to test different path planning algorithms.\n";
@@ -40,22 +45,6 @@ void print_help_menu(){
     cout << "   -d, --debug                           Provide more information for debugging.\n";
     cout << "   -t TIMEOUT, timeout TIMEOUT           Set timeout limit for algorithm computation\n";
     cout << "                                         (Default: 600000 ms).\n";
-}
-
-cell get_positon(string pos_str){
-    cell pos;
-    try{
-        string val;
-        char delim = ',';
-        stringstream pos_ss(pos_str);
-        getline(pos_ss, val, delim);
-        pos.first = std::stoi(val);
-        getline(pos_ss, val, delim);
-        pos.second = std::stoi(val);
-    } catch(std::invalid_argument e){
-        cout << "One or both values cannot be resolved as an integer: " << pos_str << endl;
-    }
-    return pos;
 }
 
 Parameters get_params(int argc, char* argv[]){
@@ -119,7 +108,7 @@ Parameters get_params(int argc, char* argv[]){
                  break;
             }
             else{
-                params.start = get_positon(argv[i+1]);
+                params.start = MapHelper::get_positon(argv[i+1]);
                 i++;
             } 
         }
@@ -130,7 +119,7 @@ Parameters get_params(int argc, char* argv[]){
                 break;                
             } 
             else{
-                params.goal = get_positon(argv[i+1]);
+                params.goal = MapHelper::get_positon(argv[i+1]);
                 i++;
             }
         }
@@ -154,8 +143,6 @@ Parameters get_params(int argc, char* argv[]){
                     break;
                 }
             }
-            
-
         }
         else if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0){
             params.get_help = true;
@@ -170,19 +157,28 @@ Parameters get_params(int argc, char* argv[]){
     return params;
 }
 
-void print_results(Graph g, vector<cell> path, float dist, c_time_point start_time, c_time_point end_time, bool debug, int timeout){
-    auto duration = duration_cast<milliseconds>(end_time- start_time);
-    if(duration.count() >= timeout) cout << "Computation exceeded " << duration.count() << " ms\n";
-    else std::cout << "Elapsed Time: " << duration.count() << " ms\n";
-    cout << "# of Nodes: " << path.size() << endl;
+void print_results(AlgoResult ar, bool debug, int timeout){
+    auto duration_converted = TimeHelper::convert_from_ms(ar.duration);
+    if(ar.duration >= timeout)
+        cout << "Computation exceeded " << duration_converted.first << " " <<  duration_converted.second << endl;
+    else
+        cout << "Elapsed Time: " << duration_converted.first << " " <<  duration_converted.second << endl;
+
     if(debug){
+        cout << "# of Nodes: " << ar.path.size() << endl;
         std::cout << "Path: [";
-        for(auto p: path){
-            std::cout << "(" << p.first << "," << p.second << "), ";
-        }
-        std::cout << "]\n"; 
+        for(auto p: ar.path) std::cout << "(" << p.first << "," << p.second << "), ";
+        std::cout << "]\n";
     }
-    std::cout << "Distance: " << dist << std::endl;
+    std::cout << "Distance: " << ar.dist << std::endl;
+}
+
+bool is_valid_algo(string name){
+    vector<string> valid_algos = {BFS_ID, A_STAR_ID, RRT_STAR_ID, ALL_ID};
+    for(auto algo: valid_algos){
+        if(name == algo) return true;
+    }
+    return false;
 }
 
 void show_map(string title, Map &m, cell sp, cell ep, vector<cell> path, vector<cell> travelled, bool debug){
@@ -195,27 +191,21 @@ void show_map(string title, Map &m, cell sp, cell ep, vector<cell> path, vector<
     MapData::show_map(title, sm);
 }
 
-c_time_point get_time(string time_title){
-    auto now = high_resolution_clock::now();
-    auto n = std::chrono::system_clock::to_time_t(now);
-    cout << time_title << ": " << std::put_time(std::localtime(&n), "%F %T\n") << std::flush;
-    return now;
-}
-
 void run_bfs(Map &m, Graph g, bool debug){
     cout << "BFS" << endl;
     auto bfs = BFS(g);
     
-    auto start_time = get_time("Start Time");
+    auto start_time = TimeHelper::get_time("Start Time", true);
     bfs.solve(g.root, g.end, COMPUTE_TIMEOUT);
-    auto end_time = get_time("End Time");
+    auto end_time = TimeHelper::get_time("End Time", true);
+    int duration = duration_cast<milliseconds>(end_time - start_time).count();
     
     auto results = bfs.reconstruct_path(g.root, g.end);
     vector<cell> path = results.first;
     float dist = results.second;
-    print_results(g, path, dist, start_time, end_time, debug, COMPUTE_TIMEOUT);
-    vector<cell> travelled;
-    if(debug) travelled = bfs.get_travelled_nodes();
+    vector<cell> travelled = bfs.get_travelled_nodes();
+    AlgoResult ar = {BFS_ID, duration, path, travelled, dist};
+    print_results(ar, debug, COMPUTE_TIMEOUT);
     show_map("BFS", m, g.root, g.end, path, travelled, debug);
 }
 
@@ -223,55 +213,42 @@ void run_astar(Map &m, Graph g, bool debug){
     cout << "A-STAR" << endl;
     auto as = AStar(g);
     
-    auto start_time = get_time("Start Time");
+    auto start_time = TimeHelper::get_time("Start Time", true);
     as.solve(g.root, g.end, COMPUTE_TIMEOUT);
-    auto end_time = get_time("End Time");
+    auto end_time = TimeHelper::get_time("End Time", true);
+    int duration = duration_cast<milliseconds>(end_time - start_time).count();
     
     auto results = as.reconstruct_path(g.root, g.end);
     vector<cell> path = results.first;
     float dist = results.second;
-    print_results(g, path, dist, start_time, end_time, debug, COMPUTE_TIMEOUT);
-    vector<cell> travelled;
-    if(debug) travelled = as.get_travelled_nodes();
+    vector<cell> travelled = as.get_travelled_nodes();
+    AlgoResult ar = {A_STAR_ID, duration, path, travelled, dist};
+    print_results(ar, debug, COMPUTE_TIMEOUT);
     show_map("A*", m, g.root, g.end, path, travelled, debug);
 }
-
-/*void run_d_star_lite(Map &m, Graph g, bool debug){
-    cout << "D-STAR-LITE" << endl;
-    auto d_lite = DStarLite(g);
-
-    auto start_time = get_time("Start Time");
-    d_lite.solve(g.root, g.end);
-    auto end_time = get_time("End Time");
-
-    auto results = d_lite.reconstruct_path(g.root, g.end);
-    vector<cell> path = results.first;
-    float dist = results.second;
-    print_results(g, path, dist, start_time, end_time, debug, COMPUTE_TIMEOUT);
-    vector<cell> travelled;
-    show_map("D* Lite", m, g.root, g.end, path, travelled, debug);
-}*/
 
 void run_rrt_star(Map &m, Graph g, int max_iter, bool debug){
     cout << "RRT-STAR" << endl;
     auto rrt = RRTStar(g, max_iter);
     
-    auto start_time = get_time("Start Time");
+    auto start_time = TimeHelper::get_time("Start Time", true);
     rrt.solve(g.root, g.end, COMPUTE_TIMEOUT);
-    auto end_time = get_time("End Time");
-    
-    vector<cell> path;
+    auto end_time = TimeHelper::get_time("End Time", true);
+    int duration = (end_time - start_time).count();
+
+    vector<cell> path, travelled;
     if(rrt.goal_reached){
         auto results = rrt.reconstruct_path(g.root, g.end);
         path = results.first;
         float dist = results.second;
-        print_results(g, path, dist, start_time, end_time, debug, COMPUTE_TIMEOUT);
+        travelled = rrt.get_travelled_nodes();
+        AlgoResult ar = {RRT_STAR_ID, duration, path, travelled, dist};
+        print_results(ar, debug, COMPUTE_TIMEOUT);
     }
     else {
         cout << "Goal could not be reached. Please check the following:";
-        cout << "\n\tstart point\n\tend point\n\t# of max iterations\n\talgorithm timeout limit\n";    }
-    vector<cell> travelled;
-    if(debug) travelled = rrt.get_travelled_nodes(); 
+        cout << "\n\tstart point\n\tend point\n\t# of max iterations\n\talgorithm timeout limit\n";
+    }
     show_map("RRT*", m, g.root, g.end, path, travelled, debug);
 }
 
@@ -295,16 +272,11 @@ int main(int argc, char* argv[]){
         else cout << "End node: {" << params.goal.first << "," << params.goal.second << "} is invalid\n"; 
 
         if(g.is_node_valid(params.start) && g.is_node_valid(params.goal)){
-            if(params.algo == "bfs") run_bfs(map, g, params.show_debug);
-            else if(params.algo == "a-star") run_astar(map, g, params.show_debug);
-            else if(params.algo == "rrt-star") run_rrt_star(map, g, params.max_iter, params.show_debug);
-            //else if(params.algo == "d-lite") run_d_star_lite(map, g, params.show_debug);
-            else if(params.algo == "all"){
-                run_bfs(map, g, params.show_debug);
-                run_astar(map, g, params.show_debug);
-                run_rrt_star(map, g, params.max_iter, params.show_debug);
-            }
-            else cout << "Unrecognized algorithm: " << params.algo << endl;
+            if(params.algo == BFS_ID || params.algo == ALL_ID) run_bfs(map, g, params.show_debug);
+            if(params.algo == A_STAR_ID || params.algo == ALL_ID) run_astar(map, g, params.show_debug);
+            if(params.algo == RRT_STAR_ID || params.algo == ALL_ID) run_rrt_star(map, g, params.max_iter, params.show_debug);
+            //if(params.algo == "d-lite" || params.algo == ALL_ID) run_d_star_lite(map, g, params.show_debug);
+            if(!is_valid_algo(params.algo)) cout << "Unrecognized algorithm: " << params.algo << endl;
         }
     }
 }

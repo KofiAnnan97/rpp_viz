@@ -36,7 +36,7 @@ A testing ground for path planning strategies for ROS.
 1. Install dependencies:
     ```
     # Ubuntu
-    sudo apt-get install libopencv-dev
+    sudo apt-get install libopencv-dev build-essential libgl1-mesa-dev
     ```
     [//]: # (2. Compile code and generate executables:)
     [//]: # (```)
@@ -83,7 +83,7 @@ options:
    -s START_POS, --start-pos START_POS   Set start position [Format: "int,int"].
    -e END_POS, --end-pos END_POS         Set end position [Format: "int,int"].
    -d, --debug                           Provide more information for debugging.
-   -t timeout, timeout TIMEOUT           Set timeout limit for algorithm computation
+   -t TIMEOUT, timeout TIMEOUT           Set timeout limit for algorithm computation
                                          (Default: 600000 ms).
 ```
 

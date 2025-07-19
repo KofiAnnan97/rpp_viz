@@ -22,6 +22,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools)
 #endif()
 
 set(PATH_PLANNING_LIB_PATH "./lib/path_planning/")
+set(TOOLS_LIB_PATH "./lib/tools/")
 
 FILE(GLOB PATH_PLANNING_SRC
   ${PATH_PLANNING_LIB_PATH}/src/map_data.cpp
@@ -31,10 +32,17 @@ FILE(GLOB PATH_PLANNING_SRC
   #${PATH_PLANNING_LIB_PATH}/src/d_star_lite.cpp
 )
 
+FILE(GLOB TOOLS_SRC
+    ${TOOLS_LIB_PATH}/src/map_helper.cpp
+    ${TOOLS_LIB_PATH}/src/time_helper.cpp
+)
+
 include_directories(
     #include
     ${PATH_PLANNING_LIB_PATH}/include
     ${PATH_PLANNING_LIB_PATH}/src
+    ${TOOLS_LIB_PATH}/include
+    ${TOOLS_LIB_PATH}/src
     ${OpenCV_INCLUDE_DIRS}
 )
 
@@ -49,6 +57,7 @@ set(PROJECT_SOURCES
         app/pathworker.cpp
         ${TS_FILES}
         ${PATH_PLANNING_SRC}
+        ${TOOLS_SRC}
 )
 
 #add_executable(old_tests
@@ -68,6 +77,7 @@ target_link_libraries(run_tests ${OpenCV_LIBS}) #gtest gtest_main)
 add_executable(rpp_cli
     scripts/rpp_viz_cli.cpp
     ${PATH_PLANNING_SRC}
+    ${TOOLS_SRC}
 )
 target_link_libraries(rpp_cli ${OpenCV_LIBS})
 
@@ -106,7 +116,7 @@ target_link_libraries(rpp_viz PRIVATE ${OpenCV_LIBS})
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
 if(${QT_VERSION} VERSION_LESS 6.1.0)
-  set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.rpp_viz)
+  set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.kofiannan97.rpp_viz)
 endif()
 set_target_properties(rpp_viz PROPERTIES
     ${BUNDLE_ID_OPTION}

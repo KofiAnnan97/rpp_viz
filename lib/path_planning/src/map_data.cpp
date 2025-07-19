@@ -31,7 +31,7 @@ Map MapData::parse_pgm(string mp){
                 j=0;
             }
             if(i >= height) break;
-            temp[i][j] = val > 0 ? 0 : -1;
+            temp[i][j] = val > 0 ? OPEN_SPACE_INT : OBSTACLE_INT;
         }
         data.px_height = height;
         data.px_width = width;
@@ -134,12 +134,12 @@ Map MapData::copy_map(Map map){
 void MapData::inflate_pixel(int** nb, int width, int height, int col, int row, int buffer_size){
     int dx = buffer_size/2;
     int dy = buffer_size/2;
-    if(dx == 0 && dy == 0) nb[row][col] = -1;
+    if(dx == 0 && dy == 0) nb[row][col] = OBSTACLE_INT;
     else{
         for(int y = row-dy; y <= row+dy; y++){
             for(int x = col-dx; x <= col+dx; x++){
-                if(y >= 0 && y < height && x >= 0 && x < width && nb[y][x] != -1){
-                    nb[y][x] = -2;
+                if(y >= 0 && y < height && x >= 0 && x < width && nb[y][x] != OBSTACLE_INT){
+                    nb[y][x] = INFLATE_INT;
                 }
             }
         }  
@@ -153,7 +153,7 @@ int** MapData::inflate_boundaries(Map map, int buffer_size){
     // Expand boundary based on buffer size
     for(int row = 0; row <= map.px_height-1; row++){
         for(int col = 0; col < map.px_width; col++){
-            if(map.boundaries[row][col] != 0){ //-1){
+            if(map.boundaries[row][col] != OPEN_SPACE_INT){ //-1){
                 MapData::inflate_pixel(new_boundaries, map.px_width, map.px_height, col, row, buffer_size);
             }
         }
@@ -173,8 +173,8 @@ int** MapData::remove_boundary_inflation(Map map){
     // Remove inflation from boundaries
     for(int row = 0; row <= map.px_height-1; row++){
         for(int col = 0; col < map.px_width; col++){
-            if(map.boundaries[row][col] == -2){
-                original_boundaries[row][col] = 0;
+            if(map.boundaries[row][col] == INFLATE_INT){
+                original_boundaries[row][col] = OPEN_SPACE_INT;
             }
         }
     }
@@ -194,7 +194,7 @@ void MapData::inflate_point(Map map, cell pt, int buffer_size){
     for(int y = pt.second-dy; y <= pt.second+dy; y++){
         for(int x = pt.first-dx; x <= pt.first+dx; x++){
             if(y >= 0 && y < map.px_height && x >= 0 && x < map.px_width){
-                if(cell_val == -1 && b[y][x] != -1) b[y][x] = -2; //&& pt != cell{x,y}
+                if(cell_val == -1 && b[y][x] != OBSTACLE_INT) b[y][x] = INFLATE_INT; //&& pt != cell{x,y}
                 else b[y][x] = cell_val;
             }
         }
@@ -215,11 +215,14 @@ Map MapData::add_path_to_map_with_value(Map map, int pixel_val, vector<cell> pat
     new_map.m_width = map.m_width;
     new_map.resolution = map.resolution;
     new_map.boundaries = MapData::copy_boundaries(map);
-    for(auto p: path) new_map.boundaries[p.second][p.first] = pixel_val;
-    new_map.boundaries[sp.second][sp.first] = 1;
-    new_map.boundaries[ep.second][ep.first] = 1;
-    MapData::inflate_point(new_map, sp, 5);
-    MapData::inflate_point(new_map, ep, 5);
+    for(auto p: path){
+        new_map.boundaries[p.second][p.first] = pixel_val;
+        MapData::inflate_point(new_map, p, PATH_SIZE);
+    }
+    new_map.boundaries[sp.second][sp.first] = NAV_POINT_INT;
+    new_map.boundaries[ep.second][ep.first] = NAV_POINT_INT;
+    MapData::inflate_point(new_map, sp, POINT_SIZE);
+    MapData::inflate_point(new_map, ep, POINT_SIZE);
     return new_map;
 }
 
@@ -231,12 +234,15 @@ Map MapData::debug_map(Map map, vector<cell> path, vector<cell> travelled, cell 
     new_map.m_width = map.m_width;
     new_map.resolution = map.resolution;
     new_map.boundaries = MapData::copy_boundaries(map);
-    for(auto t: travelled) new_map.boundaries[t.second][t.first] = 2;
-    for(auto p: path) new_map.boundaries[p.second][p.first] = 3;
-    new_map.boundaries[sp.second][sp.first] = 1;
-    new_map.boundaries[ep.second][ep.first] = 1;
-    MapData::inflate_point(new_map, sp, 5);
-    MapData::inflate_point(new_map, ep, 5);
+    for(auto t: travelled) new_map.boundaries[t.second][t.first] = TRAVELLED_INT;
+    for(auto p: path) {
+        new_map.boundaries[p.second][p.first] = PATH_INT;
+        MapData::inflate_point(new_map, p, PATH_SIZE);
+    }
+    new_map.boundaries[sp.second][sp.first] = NAV_POINT_INT;
+    new_map.boundaries[ep.second][ep.first] = NAV_POINT_INT;
+    MapData::inflate_point(new_map, sp, POINT_SIZE);
+    MapData::inflate_point(new_map, ep, POINT_SIZE);
     return new_map;
 }
 
@@ -302,11 +308,11 @@ void MapData::show_map(string title, Map map){
     Mat img(map.px_height, map.px_width, CV_8UC3);
     for(int row = 0; row < map.px_height; row++){
         for(int col = 0; col < map.px_width; col++){
-            if(map.boundaries[row][col] == 3) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,255);            // Path color
-            else if(map.boundaries[row][col] == 2) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(230,216,173);   // Visted node color
-            else if(map.boundaries[row][col] == 1) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(128,0,128);     // Start and goal node
-            else if(map.boundaries[row][col] == 0) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(255,255,255);   // Empty space color
-            else if(map.boundaries[row][col] < 0) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,0);          // Obstacle color
+            if(map.boundaries[row][col] == PATH_INT) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,255);            // Path color
+            else if(map.boundaries[row][col] == TRAVELLED_INT) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(230,216,173);   // Visted node color
+            else if(map.boundaries[row][col] == NAV_POINT_INT) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(128,0,128);     // Start and goal node
+            else if(map.boundaries[row][col] == OPEN_SPACE_INT) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(255,255,255);   // Empty space color
+            else if(map.boundaries[row][col] <= OBSTACLE_INT) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,0);          // Obstacle color
         }
     }
     cout << "Showing image: " << title;

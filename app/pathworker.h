@@ -10,17 +10,8 @@
 
 #include "map_data.hpp"
 
-using namespace std::chrono;
-
-typedef std::chrono::_V2::system_clock::time_point c_time_point;
-
-struct AlgoResult{
-    string type;
-    int duration;
-    vector<cell> path;
-    vector<cell> travelled;
-    float dist;
-};
+#include "map_helper.hpp"
+#include "time_helper.hpp"
 
 class PathWorker : public QObject
 {
@@ -34,6 +25,7 @@ public slots:
     void compute_path(QString algo_name, Graph g, int max_iters);
 
 signals:
+    void algo_progress(int completed);
     void compute_finished(vector<AlgoResult> results);
     void compute_error(vector<AlgoResult> results, const QString& message);
 
