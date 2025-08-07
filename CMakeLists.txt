@@ -74,22 +74,10 @@ add_executable(rpp_cli
 )
 target_link_libraries(rpp_cli ${OpenCV_LIBS})
 
-#qt_add_resources(rpp_viz "app_icons"
-#    PREFIX "/icons"
-#    FILES
-#        app/icon/eraser.svg
-#        app/icon/pencil.svg
-#        app/icon/cursor_eraser.svg
-#        app/icon/cursor_pencil.svg
-#)
-
-#qt_add_resources(UI_RES_RCC app/icons.qrc)
-
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(rpp_viz
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        #${UI_RES_RCC}
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET test APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
