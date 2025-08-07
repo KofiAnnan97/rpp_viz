@@ -23,7 +23,7 @@ A testing ground for path planning strategies for ROS.
 - [ ] Optimizations/Bug Fixes    
     - [X] Implement multi-threading for running algorithms 
         - [X] Terminate algorithm if it runs for more than 10 minutes 
-    - [ ] Reduce code redundancies
+    - [X] Reduce code redundancies
     - [ ] Add more extensive error handling for GUI
     - [ ] Fix eraser outline to scale with size
 
@@ -36,12 +36,18 @@ A testing ground for path planning strategies for ROS.
 1. Install dependencies:
     ```
     # Ubuntu
-    sudo apt-get install libopencv-dev build-essential libgl1-mesa-dev
+    sudo apt -y install libopencv-dev build-essential libgl1-mesa-dev qt6-base-dev qt6-tools-dev libqt6svg6-dev
     ```
     [//]: # (2. Compile code and generate executables:)
     [//]: # (```)
     [//]: # (make)
     [//]: # (```)
+2. Build Executables
+    ```
+    cmake .
+    make
+    ```
+3. Run executable files
 
 ## Usage
 This project can be run as a GUI or as a script. 
@@ -49,13 +55,13 @@ This project can be run as a GUI or as a script.
 ### GUI
 To open the GUI run this command:
 ```
-./build/<build_folder>/rpp_viz
+./rpp_viz
 ```
 
 ![](/resources/graphics/gui.png)
 
 Features
- - Upload ROS map using yaml and pgm files
+ - Upload ROS maps (.yaml file paired with a .pgm file)
  - Dynamically inflation the size of obstacles
  - Add or remove obstacles from map
  - Set algorithm (if the "All" option is chosen the results will be color coded)
@@ -67,7 +73,7 @@ Features
 ### Script
 This script requires the user to specify a yaml file for map information, the name of algorithm being used, and the start & end position. Certain algorithms require the user to specify the number of iterations to reduce the likelihood of an infinite loop (by default it is set to 10,000). If the map has thin or unexpected broken boudnaries it may also be benefitial to inflate their size to remedy this issue(by default boundaries are inflated by a 3x3 matrix). Look below for a more thorough breakdown of the possible commands for this script.
 ```
-./build/<build_folder>/rpp_cli -h
+./rpp_cli -h
 
 # Ouptut
 Description: A simple script to test different path planning algorithms.
@@ -89,7 +95,7 @@ options:
 
 Example execution:
 ```
-./build/<build_folder>/rpp_cli -f "/path/to/example1.yaml" -i 5 -a "rrt-star" -l 10000 -s "300,50" -e "381,360" -d
+./rpp_cli -f "/path/to/example1.yaml" -i 5 -a "rrt-star" -l 10000 -s "300,50" -e "381,360" -d
 ```
 
 ## Maps

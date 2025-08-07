@@ -12,13 +12,8 @@ PathWorker::PathWorker(QObject *parent)
     qDebug() << "Worker created in thread:" << QThread::currentThreadId();
 }
 
-PathWorker::~PathWorker()
-{
+PathWorker::~PathWorker(){
     qDebug() << "Worker destroyed in thread:" << QThread::currentThreadId();
-}
-
-void PathWorker::add_result(string algo_type, int duration, vector<cell> path, float dist, vector<cell> travelled){
-    results.push_back(AlgoResult{algo_type, duration, path, travelled, dist});
 }
 
 // BFS algorithm module
@@ -70,7 +65,7 @@ void PathWorker::compute_path(QString algo_name, Graph g, int max_iters){
     if(algo_name == bfs_id || algo_name == all_id){
         this->run_bfs(g);
         if(timeout_occurred){
-            err_msg += QString("   - BFS Computation exceeded %1 %2\n").arg(time_converted.first).arg(time_converted.second);
+            err_msg += QString("   - BFS Computation exceeded %1 %2\n").arg(time_converted.first).arg(time_converted.second.c_str());
             timeout_occurred = false;
         }
         algos_finished++;
@@ -79,7 +74,7 @@ void PathWorker::compute_path(QString algo_name, Graph g, int max_iters){
     if(algo_name ==  a_star_id || algo_name == all_id){
         this->run_a_star(g);
         if(timeout_occurred){
-            err_msg += QString("   - A* Computation exceeded %1 %2\n").arg(time_converted.first).arg(time_converted.second);
+            err_msg += QString("   - A* Computation exceeded %1 %2\n").arg(time_converted.first).arg(time_converted.second.c_str());
             timeout_occurred = false;
         }
         algos_finished++;
@@ -88,7 +83,7 @@ void PathWorker::compute_path(QString algo_name, Graph g, int max_iters){
     if(algo_name == rrt_star_id || algo_name == all_id){
         this->run_rrt_star(g, max_iters);
         if(timeout_occurred){
-            err_msg += QString("   - RRT* Computation exceeded %1 %2\n").arg(time_converted.first).arg(time_converted.second);
+            err_msg += QString("   - RRT* Computation exceeded %1 %2\n").arg(time_converted.first).arg(time_converted.second.c_str());
             timeout_occurred = false;
         }
         algos_finished++;

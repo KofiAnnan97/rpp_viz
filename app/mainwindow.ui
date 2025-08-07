@@ -177,6 +177,18 @@
              <property name="text">
               <string/>
              </property>
+             <property name="icon">
+              <iconset resource="icons.qrc">
+               <normaloff>:/icons/pencil.svg</normaloff>
+               <normalon>:/icons/pencil.svg</normalon>
+               <disabledoff>:/icons/pencil.svg</disabledoff>
+               <activeoff>:/icons/pencil.svg</activeoff>
+               <selectedoff>:/icons/pencil.svg</selectedoff>
+               <selectedon>:/icons/pencil.svg</selectedon>:/icons/pencil.svg</iconset>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
             </widget>
            </item>
            <item>
@@ -217,6 +229,11 @@
              </property>
              <property name="text">
               <string/>
+             </property>
+             <property name="icon">
+              <iconset>
+               <normalon>:/icons/eraser.svg</normalon>
+              </iconset>
              </property>
             </widget>
            </item>
@@ -538,7 +555,7 @@
               <x>0</x>
               <y>0</y>
               <width>394</width>
-              <height>137</height>
+              <height>139</height>
              </rect>
             </property>
             <property name="minimumSize">
@@ -589,6 +606,8 @@
    </widget>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

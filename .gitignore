@@ -7,7 +7,9 @@ CMakeFiles/
 Makefile
 CMakeCache.txt
 CMakeList.txt.usr
-
+rpp_cli_autogen/
+rpp_viz_autogen/
+run_tests_autogen/
 
 # Executable
 *.o
