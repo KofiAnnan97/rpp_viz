@@ -55,6 +55,7 @@ public:
     void update_results_view();
 
 private:
+    QCursor set_erase_cursor(int erase_size);
     void set_settings_enabled(bool is_enabled);
     void set_position_button(QPushButton *obj, bool is_enabled);
     void update_pixmap(Map map, QImage* image);
@@ -99,6 +100,7 @@ private:
     const QString draw_btn_icon = ":/icons/pencil.svg";
     const QString erase_btn_icon = ":/icons/eraser.svg";
     const QString draw_cursor = ":/icons/cursor_pencil.svg";
+    const QString erase_cursor_small = ":/icons/cursor_eraser_small.svg";
     const QString erase_cursor = ":/icons/cursor_eraser.svg";
     const QString bfs_id = "BFS";
     const QString a_star_id = "A*";

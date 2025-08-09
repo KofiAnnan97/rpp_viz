@@ -282,6 +282,19 @@ void MainWindow::on_btn_draw_clicked(){
     ui->view_map->viewport()->setCursor(cursor);
 }
 
+QCursor MainWindow::set_erase_cursor(int size){
+    QCursor cursor;
+    if(size >= 16)
+        cursor = QCursor(QPixmap(erase_cursor).scaled(size,size), size/2, size/2);
+    else if(size >= 3 && size < 16)
+        cursor = QCursor(QPixmap(erase_cursor_small).scaled(size,size), size/2, size/2);  
+    else{
+        size = 3;
+        cursor = QCursor(QPixmap(erase_cursor_small).scaled(size,size), size/2, size/2);
+    }
+    return cursor;
+}
+
 void MainWindow::on_btn_erase_clicked(){
     // Reset start position, goal position, and erase buttons
     if(start_pos_click) this->set_position_button(ui->btn_start_pos, false);
@@ -292,7 +305,7 @@ void MainWindow::on_btn_erase_clicked(){
     erase_click = !erase_click;
     QCursor cursor;
     int e_size = ui->sp_bx_erase_size->value();
-    if(erase_click) cursor = QCursor(QPixmap(erase_cursor).scaled(e_size,e_size), e_size/2, e_size/2);
+    if(erase_click) cursor = this->set_erase_cursor(e_size);
     else cursor = QCursor(Qt::ArrowCursor);
     ui->view_map->viewport()->setCursor(cursor);
 }
@@ -304,7 +317,7 @@ void MainWindow::on_sp_bx_draw_size_valueChanged(int erase_size){
 
 void MainWindow::on_sp_bx_erase_size_valueChanged(int erase_size){
     if(erase_click){
-        auto cursor = QCursor(QPixmap(erase_cursor).scaled(erase_size,erase_size), erase_size/2, erase_size/2);
+        auto cursor = this->set_erase_cursor(erase_size);
         ui->view_map->viewport()->setCursor(cursor);    
     }
 

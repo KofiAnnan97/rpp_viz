@@ -15,7 +15,7 @@ A testing ground for path planning strategies for ROS.
         - [X] Implement multi-threading for running algorithms 
         - [X] Terminate algorithm if it runs for more than 10 minutes 
         - [X] Reduce code redundancies
-        - [ ] Fix eraser outline to scale with size
+        - [X] Fix eraser outline to scale with size
     - Testing
         - [X] Test when the start or end point is invalid
         - [X] Test when the max number of iterations is too small with RRT*
@@ -24,10 +24,11 @@ A testing ground for path planning strategies for ROS.
     - Command Line Scripts
         - [ ] Implement D* Lite algorithm
     - GUI
-        - [ ] Change behavior of Add/remove obstacles to be more like a pen or eraser
+        - [ ] Change behavior of the pen and eraser to support dragging movements
         - [ ] [Optional] Animate traversal of map and final path
     - Bug Fixes/Optimizations
         - [ ] Add more extensive error handling for GUI
+        - [ ] Get eraser to scale with map scaling in graphics view
     - Testing
         - [ ] Test D* Replan with changing map
         - [ ] Rewrite tests with GTest

@@ -4,5 +4,6 @@
         <file alias="eraser.svg">icons/eraser.svg</file>
         <file alias="cursor_pencil.svg">icons/cursor_pencil.svg</file>
         <file alias="cursor_eraser.svg">icons/cursor_eraser.svg</file>
+        <file alias="cursor_eraser_small.svg">icons/cursor_eraser_small.svg</file>
     </qresource>
 </RCC>
