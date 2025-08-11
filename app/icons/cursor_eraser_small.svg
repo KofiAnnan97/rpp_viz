@@ -2,7 +2,7 @@
  <g>
   <title>Layer 1</title>
   <g id="svg_2"/>
-  <rect fill="#fff" stroke="#000" x="5" y="5" width="90" height="90" id="svg_3" rx="2" stroke-width="10"/>
+  <rect fill="#fff" stroke="#000" x="10" y="10" width="80" height="80" id="svg_3" rx="2" stroke-width="20"/>
  </g>
 
 </svg>

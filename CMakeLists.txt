@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(rpp_viz VERSION 0.1 LANGUAGES CXX)
+project(rpp_viz VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -11,34 +11,32 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(OpenCV REQUIRED)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets LinguistTools)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets LinguistTools)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets LinguistTools Svg)
 
-#if( CMAKE_RUNTIME_OUTPUT_DIRECTORY )
-#	set( executableOutputPath ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} )
-#elseif( EXECUTABLE_OUTPUT_PATH )
-#	set( executableOutputPath ${EXECUTABLE_OUTPUT_PATH} )
-#else()
-#	set( executableOutputPath ${CMAKE_CURRENT_BINARY_DIR} )
-#endif()
+set(PATH_PLANNING_LIB_PATH "./lib/path_planning")
+set(TOOLS_LIB_PATH "./lib/tools")
+set(APP_PATH "./app")
+set(SCRIPTS_PATH "./scripts")
 
-set(PATH_PLANNING_LIB_PATH "./lib/path_planning/")
-set(TOOLS_LIB_PATH "./lib/tools/")
-
-FILE(GLOB PATH_PLANNING_SRC
-  ${PATH_PLANNING_LIB_PATH}/src/map_data.cpp
-  ${PATH_PLANNING_LIB_PATH}/src/a_star.cpp
-  ${PATH_PLANNING_LIB_PATH}/src/bfs.cpp
-  ${PATH_PLANNING_LIB_PATH}/src/rrt_star.cpp
-  #${PATH_PLANNING_LIB_PATH}/src/d_star_lite.cpp
+FILE(GLOB PATH_PLANNING_LIB
+    ${PATH_PLANNING_LIB_PATH}/include/*.hpp
+    ${PATH_PLANNING_LIB_PATH}/src/*.cpp
 )
 
-FILE(GLOB TOOLS_SRC
-    ${TOOLS_LIB_PATH}/src/map_helper.cpp
-    ${TOOLS_LIB_PATH}/src/time_helper.cpp
+FILE(GLOB TOOLS_LIB
+    ${TOOLS_LIB_PATH}/include/*.hpp
+    ${TOOLS_LIB_PATH}/src/*.cpp
+)
+
+FILE(GLOB APP_CODE
+    ${APP_PATH}/include/*.h
+    ${APP_PATH}/src/*.cpp
 )
 
 include_directories(
-    #include
+    ${APP_PATH}/include/
+    ${APP_PATH}/src/
+    ${SCRIPTS_PATH}/include
     ${PATH_PLANNING_LIB_PATH}/include
     ${PATH_PLANNING_LIB_PATH}/src
     ${TOOLS_LIB_PATH}/include
@@ -49,35 +47,42 @@ include_directories(
 set(TS_FILES app/rpp_viz_en_US.ts)
 
 set(PROJECT_SOURCES
-        app/main.cpp
-        app/mainwindow.cpp
-        app/mainwindow.h
-        app/mainwindow.ui
-        app/pathworker.h 
-        app/pathworker.cpp
-        ${TS_FILES}
-        ${PATH_PLANNING_SRC}
-        ${TOOLS_SRC}
+    ${APP_CODE}
+    ${APP_PATH}/mainwindow.ui
+    ${PATH_PLANNING_LIB}
+    ${TOOLS_LIB}
+    ${APP_PATH}/icons.qrc
+    ${TS_FILES}
 )
 
+# Old testing script
 #add_executable(old_tests
 #    scripts/old_tests.cpp
-#    ${PATH_PLANNING_SRC}
+#    ${PATH_PLANNING_LIB}
 #)
 #target_link_libraries(old_tests ${OpenCV_LIBS})
 
+# Generate ROS Map
+add_executable(generate_map
+    ${SCRIPTS_PATH}/gen_ros_map.cpp
+    ${SCRIPTS_PATH}/include/gen_ros_map.hpp
+    ${PATH_PLANNING_LIB}    
+)
+target_link_libraries(generate_map ${OpenCV_LIBS})
+
 # Map Manipulation and Algorithm Testing
 add_executable(run_tests
-    scripts/run_tests.cpp
-    ${PATH_PLANNING_SRC} 
+    ${SCRIPTS_PATH}/run_tests.cpp
+    ${SCRIPTS_PATH}/include/gen_ros_map.hpp
+    ${PATH_PLANNING_LIB} 
 )
 target_link_libraries(run_tests ${OpenCV_LIBS}) #gtest gtest_main)
 
 # Command line implementation
 add_executable(rpp_cli
-    scripts/rpp_viz_cli.cpp
-    ${PATH_PLANNING_SRC}
-    ${TOOLS_SRC}
+    ${SCRIPTS_PATH}/rpp_viz_cli.cpp
+    ${PATH_PLANNING_LIB}
+    ${TOOLS_LIB}
 )
 target_link_libraries(rpp_cli ${OpenCV_LIBS})
 
@@ -111,6 +116,7 @@ endif()
 target_link_libraries(rpp_viz PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_include_directories(rpp_viz PRIVATE ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(rpp_viz PRIVATE ${OpenCV_LIBS})
+target_link_libraries(rpp_viz PRIVATE Qt6::Svg)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

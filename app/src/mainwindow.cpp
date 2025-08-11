@@ -1,7 +1,7 @@
 #include <sstream>
 
 #include "mainwindow.h"
-#include "./ui_mainwindow.h"
+#include "../ui_mainwindow.h"
 #include "pathworker.h"
 #include "time_helper.hpp"
 
@@ -25,7 +25,7 @@ MainWindow::~MainWindow(){
 
 void MainWindow::initialize_window(){
     // Initialize combobox for algorithms
-    QStringList algos_lst = {"BFS", "A*", "RRT*", "All"};
+    QStringList algos_lst = {bfs_id, a_star_id, rrt_star_id, all_id};
     ui->cb_bx_algos->addItems(algos_lst);
     num_of_algos = algos_lst.size()-1;
 
@@ -170,7 +170,7 @@ void MainWindow::add_point_to_display(QString last_pos_str, QString pos_str){
             auto last_pos = MapHelper::get_positon(last_pos_str.toStdString());
             if(last_pos.first >= 0 && last_pos.first < display_map.px_width && last_pos.second >= 0 && last_pos.second < display_map.px_height){
                 display_map.boundaries[last_pos.second][last_pos.first] = MapData::OPEN_SPACE_INT;
-                MapData::inflate_point(display_map, last_pos, 5);
+                MapData::inflate_point(display_map, last_pos, MapData::POINT_SIZE);
             }
         }
 
@@ -179,7 +179,7 @@ void MainWindow::add_point_to_display(QString last_pos_str, QString pos_str){
             auto pos = MapHelper::get_positon(pos_str.toStdString());
             if(pos.first >= 0 && pos.first < display_map.px_width && pos.second >= 0 && pos.second < display_map.px_height){
                 display_map.boundaries[pos.second][pos.first] = MapData::NAV_POINT_INT;
-                MapData::inflate_point(display_map, pos, 5);
+                MapData::inflate_point(display_map, pos, MapData::POINT_SIZE);
                 this->update_map(display_map);
             }
         }
@@ -251,7 +251,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event){
 
 void MainWindow::on_btn_upload_map_clicked(){
     auto filename = QFileDialog::getOpenFileName(this, tr("Import Map YAML"), tr(""));
-    //QString filename = "../../resources/maps/example2.yaml";
+    //QString filename = "../../resources/maps/example1.yaml";
     if(filename.endsWith(".yaml")) {
         Map new_map = MapData::get_map(filename.toStdString());
         this->update_map(new_map);
@@ -282,6 +282,19 @@ void MainWindow::on_btn_draw_clicked(){
     ui->view_map->viewport()->setCursor(cursor);
 }
 
+QCursor MainWindow::set_erase_cursor(int size){
+    QCursor cursor;
+    if(size >= 16)
+        cursor = QCursor(QPixmap(erase_cursor).scaled(size,size), size/2, size/2);
+    else if(size >= 3 && size < 16)
+        cursor = QCursor(QPixmap(erase_cursor_small).scaled(size,size), size/2, size/2);  
+    else{
+        size = 3;
+        cursor = QCursor(QPixmap(erase_cursor_small).scaled(size,size), size/2, size/2);
+    }
+    return cursor;
+}
+
 void MainWindow::on_btn_erase_clicked(){
     // Reset start position, goal position, and erase buttons
     if(start_pos_click) this->set_position_button(ui->btn_start_pos, false);
@@ -292,16 +305,24 @@ void MainWindow::on_btn_erase_clicked(){
     erase_click = !erase_click;
     QCursor cursor;
     int e_size = ui->sp_bx_erase_size->value();
-    if(erase_click) cursor = QCursor(QPixmap(erase_cursor).scaled(e_size,e_size), e_size/2, e_size/2);
+    if(erase_click) cursor = this->set_erase_cursor(e_size);
     else cursor = QCursor(Qt::ArrowCursor);
     ui->view_map->viewport()->setCursor(cursor);
 }
 
+void MainWindow::on_sp_bx_draw_size_valueChanged(int erase_size){
+    if(ui->sp_bx_inflate->value() != ui->sp_bx_draw_size->value())
+        ui->ch_bx_match_inflate->setChecked(false);
+}
+
 void MainWindow::on_sp_bx_erase_size_valueChanged(int erase_size){
     if(erase_click){
-        auto cursor = QCursor(QPixmap(erase_cursor).scaled(erase_size,erase_size), erase_size/2, erase_size/2);
-        ui->view_map->viewport()->setCursor(cursor);
+        auto cursor = this->set_erase_cursor(erase_size);
+        ui->view_map->viewport()->setCursor(cursor);    
     }
+
+    if(ui->sp_bx_inflate->value() != ui->sp_bx_erase_size->value())
+        ui->ch_bx_match_inflate->setChecked(false);
 }
 
 void MainWindow::on_ch_bx_match_inflate_toggled(bool checked){
@@ -380,7 +401,7 @@ void MainWindow::on_cb_bx_algos_currentTextChanged(const QString &name){
     algo_name = name;
 
     // Update debug checkbox
-    if(name == "All"){
+    if(name == all_id){
         ui->ch_bx_debug->setChecked(false);
         ui->ch_bx_debug->setCheckable(false);
         ui->ch_bx_debug->hide();
@@ -391,7 +412,7 @@ void MainWindow::on_cb_bx_algos_currentTextChanged(const QString &name){
     }
 
     // Update max iterations spinbox
-    if(name == "RRT*" || name == "All"){
+    if(name == rrt_star_id || name == all_id){
         ui->lbl_iterations->show();
         ui->sp_bx_iterations->show();
     }else{
@@ -497,7 +518,7 @@ void MainWindow::clear_results(){
 
 void MainWindow::handle_algo_progress(int val){
     int max;
-    if(ui->cb_bx_algos->currentText() != "All") max = 1;
+    if(ui->cb_bx_algos->currentText() != all_id) max = 1;
     else max = num_of_algos;
     ui->txt_results->setText(QString("Running algoritm(s)...\nCompleted: %1/%2").arg(val).arg(max));
 }
@@ -506,9 +527,9 @@ void MainWindow::update_results_view(){
     QString data = "";
     for(auto r : results){
         QString sub_data = "";
-        if(results.size()>1) sub_data += QString("Algorithm: %1 <br>").arg(r.type);
+        if(results.size()>1) sub_data += QString("Algorithm: %1 <br>").arg(r.type.c_str());
         auto duration_converted = TimeHelper::convert_from_ms(r.duration);
-        sub_data += QString("Duration: %1 %2 <br>").arg(duration_converted.first).arg(duration_converted.second);
+        sub_data += QString("Duration: %1 %2 <br>").arg(duration_converted.first).arg(duration_converted.second.c_str());
         sub_data += QString("Distance: %1 <br>").arg(r.dist);
         if(debug){
             sub_data += "Path Nodes: [ ";

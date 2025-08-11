@@ -30,7 +30,6 @@ signals:
     void compute_error(vector<AlgoResult> results, const QString& message);
 
 private:
-    void add_result(string algo_type, int duration, vector<cell> path, float dist, vector<cell> travelled);
     void run_bfs(Graph g);
     void run_a_star(Graph g);
     void run_rrt_star(Graph g, int max_iters);

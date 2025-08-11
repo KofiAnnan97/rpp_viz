@@ -1,5 +1,7 @@
 #include <chrono>
 #include <iomanip>
+#include <filesystem>
+#include <cstdio>
 //#include <gtest/gtest.h>
 
 #include "map_data.hpp" 
@@ -7,8 +9,10 @@
 #include "a_star.hpp"
 //#include "d_star_lite.hpp"
 #include "rrt_star.hpp"
+#include "gen_ros_map.hpp"
 
 using namespace std::chrono;
+namespace fs = std::filesystem;
 
 typedef std::chrono::_V2::system_clock::time_point c_time_point;
 
@@ -48,6 +52,169 @@ Map get_simple_map(){
     map.m_width = 1.12;
     map.resolution = 0.05;
     return map;
+}
+
+/* Data Extraction 
+    Check that map data is correctly converted to obstacle maps
+    Make sure the yaml and pgm have the correct data
+*/
+void test_data_extraction(){
+    cout << "FILE FORMAT TESTS\n";
+    int passed_count = 0;
+    Map original = get_simple_map();
+    fs::path tmp_path = "temp";
+    string title = "test";
+    fs::create_directory(tmp_path);
+    auto pgm_file = title+".pgm";
+    auto yaml_file = title+".yaml";
+    auto pgm_path = tmp_path / pgm_file;
+    auto yaml_path = tmp_path / yaml_file;
+   
+    // Generate map files
+    GenerateMap::generate_map_pgm(original, tmp_path, title);
+    GenerateMap::generate_map_yaml(original, tmp_path, title);
+
+    // CHECK PGM values
+    cout << "\tPgm Correctness Test: ";
+    fstream pgm;
+    pgm.open(pgm_path, ios::in | ios::binary);
+    if(pgm.is_open()){
+        string line, word;
+        bool vals_correct = true;
+        int expected_height = 10;
+        int expected_width = 20;
+        int expected_highest_value = 255;
+        string err_msg = "Error: ";
+        getline(pgm, line);
+        if(strcmp("P5",line.c_str()) != 0){
+            vals_correct = false;
+            err_msg += "P5 ,";
+        }
+        getline(pgm, line);
+        if(strcmp("# CREATOR: gen_ros_map.cpp 0.05 m/pix",line.c_str()) != 0){
+            if(vals_correct) vals_correct = false;
+            err_msg += " comment is incorrect, ";
+        }
+        getline(pgm, line);
+        stringstream ss(line);
+        getline(ss, word, ' ');
+        if(stoi(word) != expected_width){
+            if(vals_correct) vals_correct = false;
+            auto sub_err = " width should be " + std::to_string(expected_width) + " but is " + word + ", ";
+            err_msg += sub_err;
+        }
+        getline(ss, word, ' ');
+        if(stoi(word) != expected_height){
+            if(vals_correct) vals_correct = false;
+            auto sub_err = " height should be " + std::to_string(expected_height) + " but is " + word + ", ";
+            err_msg += sub_err;
+        }
+        getline(pgm, line);
+        if(stoi(line) != expected_highest_value){
+            if(vals_correct) vals_correct = false;
+            auto sub_err = " highest value should be " + std::to_string(expected_highest_value) + " but is " + line + ", ";
+            err_msg += sub_err;
+        }
+        if(vals_correct){
+            cout << "passed\n";
+            passed_count++;
+        }
+        else cout << "failed, " << err_msg << endl;
+    }
+    else cout << "failed, Could not open" << title << ".pgm\n";
+
+    // CHECK YAML values
+    cout << "\tYaml Correctness Test: ";
+    fstream yaml;
+    yaml.open(yaml_path, ios::in);
+    if(yaml.is_open()){
+        string line, word;
+        bool vals_correct = true;
+        string expected_image = " "+title+".pgm";
+        float expected_resolution = 0.05;
+        string expected_origin = " [-0.56, -0.28, 0]";
+        int expected_negate = 0;
+        float expected_occupied_thresh =  0.65;
+        float expected_free_thresh = 0.25;
+        string err_msg = "Errors: ";
+        for(int i=0; i<6; i++){
+            getline(yaml, line);
+            stringstream ss(line);
+            getline(ss, word, ':');
+            string id = word;
+            getline(ss, word, ':');
+            if(strcmp("image", id.c_str()) == 0 && strcmp(expected_image.c_str(), word.c_str()) != 0){
+                if(vals_correct) vals_correct = false;
+                auto sub_err = " image name should be " + expected_image + ", ";
+                err_msg += sub_err;
+            }
+            else if(strcmp("resolution", id.c_str()) == 0 && expected_resolution != stof(word)){
+                if(vals_correct) vals_correct = false;
+                auto sub_err = " resolution should be " + std::to_string(expected_resolution) + " not " + word + ", ";
+                err_msg += sub_err;
+            }
+            else if(strcmp("origin", id.c_str()) == 0 && strcmp(expected_origin.c_str(), word.c_str()) != 0){
+                if(vals_correct) vals_correct = false;
+                auto sub_err = " resolution should be " + expected_origin + " not " + word + ", ";
+                err_msg += sub_err;
+            }
+            else if(strcmp("negate", id.c_str()) == 0 && expected_negate != stoi(word)){
+                if(vals_correct) vals_correct = false;
+                auto sub_err = " negate should be " + std::to_string(expected_negate) + " not " + word + ", ";
+                err_msg += sub_err;
+            }
+            else if(strcmp("occupied_thresh", id.c_str()) == 0 && expected_occupied_thresh != stof(word)){
+                if(vals_correct) vals_correct = false;
+                auto sub_err = " occupied threshold should be " + std::to_string(expected_occupied_thresh) + " not " + word + ", ";
+                err_msg += sub_err;
+            }
+            else if(strcmp("free_thresh", id.c_str()) == 0 && expected_free_thresh != stof(word)){
+                if(vals_correct) vals_correct = false;
+                auto sub_err = " free threshold should be " + std::to_string(expected_free_thresh) + " not " + word + ", ";
+                err_msg += sub_err;
+            }
+        }
+        if(vals_correct){
+            cout << "passed\n";
+            passed_count++;
+        } 
+        else cout << "failed, " << err_msg << endl; 
+    }
+    else cout << "failed\n";
+
+    // Check Map boundary values
+    Map extracted_map = MapData::get_map(yaml_path.string());
+    cout << "\tMap Boundary Correctness Test: ";
+    try{
+        bool boundaries_match = true;
+        if(extracted_map.px_height != original.px_height ||
+           extracted_map.px_width != original.px_width){
+            cout << " failed, dimension for the original and extracted map are not the same.\n";
+        }
+        else{
+            for(int row=0; row<extracted_map.px_height; row++){
+                for(int col=0; col<extracted_map.px_width; col++){
+                    if(original.boundaries[row][col] != extracted_map.boundaries[row][col]){
+                        cout << " failed\n";
+                        boundaries_match = false;
+                        break;
+                    }
+                }
+                if(!boundaries_match) break;
+            }
+        }
+        if(boundaries_match){
+            cout << " passed\n";
+            passed_count++;
+        } 
+    }
+    catch(std::exception e){
+        cout << "failed, " << e.what() << endl;
+    }
+    cout << "File Format Tests Passed: " << passed_count << "/3\n\n";
+    fs::remove_all(tmp_path);
+    //MapData::print_boundary(original.boundaries, original.px_width, original.px_height);
+    //MapData::print_boundary(extracted_map.boundaries, extracted_map.px_width, extracted_map.px_height);
 }
 
 /*
@@ -236,7 +403,7 @@ void test_map_data(){
             cout << "]\n";
         }
     }
-    cout << "Map Tests Passed: " << passed_count << "/3\n";
+    cout << "Map Tests Passed: " << passed_count << "/3\n\n";
 }
 
 /*
@@ -256,7 +423,7 @@ void test_conversions(){
     vector<cell> expected_pxs = {{m.px_width/2,m.px_height/2}, {0,0}, {m.px_width-1,0}, {0,m.px_height-1}, {m.px_width-1,m.px_height-1}};
     vector<pair<float,float>> expected_poses = {{0,0}, {m.m_width/2,-m.m_height/2}, {m.m_width/2,m.m_height/2}, {-m.m_width/2,m.m_height/2}, {-m.m_width/2,-m.m_height/2}};
 
-    cout << "\nCONVERSION TESTS\n";
+    cout << "CONVERSION TESTS\n";
     for(int t = 0; t < expected_pxs.size(); t++){
         cell tpx = expected_pxs[t];
         pair<float,float> pose = MapData::PIXEL2POSE(m, {tpx.first, tpx.second});
@@ -282,7 +449,7 @@ void test_conversions(){
             cout << tpx.first << "," << tpx.second << ") not ("<< px.first << "," << px.second << ")\n"; 
         }
     }
-    cout << "Conversion Tests Passed: " << total_passed << "/" << 2*(expected_pxs.size()) << endl;
+    cout << "Conversion Tests Passed: " << total_passed << "/" << 2*(expected_pxs.size()) << "\n\n";
 }
 
 void test_valid_node(Graph g, cell node, int &pass_count){
@@ -347,7 +514,7 @@ void test_bfs_simple(){
     int duration_limit = 10;
     float path_err_thresh = 2.5;
     int passed_count = 0;
-    cout << "\nBFS TESTS\n";
+    cout << "BFS TESTS\n";
     cout << "\tTest Start Point: ";
     test_valid_node(g, g.root, passed_count);
     cout << "\tTest End Point: ";
@@ -378,7 +545,7 @@ void test_bfs_simple(){
 
     cout << "\tTest Invalid Point: ";
     test_invalid_node(g, {0,0}, passed_count);
-    cout << "BFS Tests Passed: " << passed_count << "/6\n";
+    cout << "BFS Tests Passed: " << passed_count << "/6\n\n";
 }
 
 /*
@@ -408,7 +575,7 @@ void test_a_star_simple(){
     int duration_limit = 10;
     float path_err_thresh = 2.5;
     int passed_count = 0;
-    cout << "\nA-STAR TESTS\n";
+    cout << "A-STAR TESTS\n";
     cout << "\tTest Start Point: ";
     test_valid_node(g, g.root, passed_count);
     cout << "\tTest End Point: ";
@@ -439,7 +606,7 @@ void test_a_star_simple(){
 
     cout << "\tTest Invalid Point: ";
     test_invalid_node(g, {0,0}, passed_count);
-    cout << "A-Star Tests Passed: " << passed_count << "/6\n";
+    cout << "A-Star Tests Passed: " << passed_count << "/6\n\n";
 }
 
 /*
@@ -470,7 +637,7 @@ D* (Using Simple Data)
     int duration_limit = 10;
     float path_err_thresh = 2.5;
     int passed_count = 0;
-    cout << "\nD-STAR-LITE TESTS\n";
+    cout << "D-STAR-LITE TESTS\n";
     cout << "\tTest Start Point: ";
     test_valid_node(g, g.root, passed_count);
     cout << "\tTest End Point: ";
@@ -503,7 +670,7 @@ D* (Using Simple Data)
 
     cout << "\tTest Invalid Point: ";
     test_invalid_node(g, {0,0}, passed_count);
-    cout << "D-Star-Lite Tests Passed: " << passed_count << "/6\n";
+    cout << "D-Star-Lite Tests Passed: " << passed_count << "/6\n\n";
 }*/
 
 /*
@@ -536,7 +703,7 @@ void test_rrt_star_simple(){
     int duration_limit = 10;
     float path_err_thresh = 2.5;
     int passed_count = 0;
-    cout << "\nRRT-STAR TESTS\n";
+    cout << "RRT-STAR TESTS\n";
     cout << "\tTest Start Point: ";
     test_valid_node(g, g.root, passed_count);
     cout << "\tTest End Point: ";
@@ -584,13 +751,14 @@ void test_rrt_star_simple(){
         for(auto ip: inv_path) cout <<  "(" << ip.first << "," << ip.second << ") ";
         cout << "]\n";
     }
-    cout << "RRT-Star Tests Passed: " << passed_count << "/7\n";
+    cout << "RRT-Star Tests Passed: " << passed_count << "/7\n\n";
 }
 
 /*+------------+
   | Unit Tests |
   +------------+*/
 int main(){
+    test_data_extraction();
     test_map_data();
     test_conversions();
     test_bfs_simple();

@@ -1,31 +1,37 @@
 # Robot Path Planning Visualization
 A testing ground for path planning strategies for ROS.
 
-## ToDo
-- [ ] Command Line Scripts
-    - [ ] Implement D* Lite algorithm
-    - [ ] Implement more tests 
+## Future Work
+- Release 0.1.0
+    - [X] Implement as GUI
+        - [X] Import map from yaml & pgm file
+        - [X] Update obstacle inflation in interface
+        - [X] Toggle between implemented algorithms or run all (disable visualization of travelled nodes) 
+        - [X] Provide results data including time duration, distance, travelled nodes, and nodes of the selected path
+        - [X] Use text box to set start or goal position
+        - [X] Set start or goal position using mouse click (enabled by button)
+        - [X] Update map with new obstacles or delete them (with inflation) 
+    - Bug Fixes/Optimizations    
+        - [X] Implement multi-threading for running algorithms 
+        - [X] Terminate algorithm if it runs for more than 10 minutes 
+        - [X] Reduce code redundancies
+        - [X] Fix eraser outline to scale with size
+    - Testing
         - [X] Test when the start or end point is invalid
         - [X] Test when the max number of iterations is too small with RRT*
-        - [ ] Yaml and pgm parsing
+        - [X] Yaml and pgm parsing
+- Release 0.2.0
+    - Command Line Scripts
+        - [ ] Implement D* Lite algorithm
+    - GUI
+        - [ ] Change behavior of the pen and eraser to support dragging movements
+        - [ ] [Optional] Animate traversal of map and final path
+    - Bug Fixes/Optimizations
+        - [ ] Add more extensive error handling for GUI
+        - [ ] Get eraser to scale with map scaling in graphics view
+    - Testing
         - [ ] Test D* Replan with changing map
-    - [ ] Rewrite tests with GTest
-- [X] Implement as GUI
-    - [X] Import map from yaml & pgm file
-    - [X] Update obstacle inflation in interface
-    - [X] Toggle between implemented algorithms or run all (disable visualization of travelled nodes) 
-    - [X] Provide results data including time duration, distance, travelled nodes, and nodes of the selected path
-    - [X] Use text box to set start or goal position
-    - [X] Set start or goal position using mouse click (enabled by button)
-    - [X] Update map with new obstacles or delete them (with inflation) 
-    - [ ] [Optional] Animate traversal of map and final path
-    - [ ] [Optional] Change behavior of Add/remove obstacles to be more like a pen or eraser
-- [ ] Optimizations/Bug Fixes    
-    - [X] Implement multi-threading for running algorithms 
-        - [X] Terminate algorithm if it runs for more than 10 minutes 
-    - [ ] Reduce code redundancies
-    - [ ] Add more extensive error handling for GUI
-    - [ ] Fix eraser outline to scale with size
+        - [ ] Rewrite tests with GTest
 
 ## Dependencies
 - CMake
@@ -34,28 +40,34 @@ A testing ground for path planning strategies for ROS.
 
 ## Quick Start
 1. Install dependencies:
-    ```
+
+    ```bash
     # Ubuntu
-    sudo apt-get install libopencv-dev build-essential libgl1-mesa-dev
+    sudo apt -y install libopencv-dev build-essential libgl1-mesa-dev qt6-base-dev qt6-tools-dev libqt6svg6-dev
     ```
-    [//]: # (2. Compile code and generate executables:)
-    [//]: # (```)
-    [//]: # (make)
-    [//]: # (```)
+2. Build Executables
+
+    ```bash
+    # Unix-based OS
+    mkdir build
+    cmake -S . -B ./build
+    cmake --build ./build
+    ```
+3. Run executable files
 
 ## Usage
 This project can be run as a GUI or as a script. 
 
 ### GUI
 To open the GUI run this command:
-```
-./build/<build_folder>/rpp_viz
+```bash
+./build/rpp_viz
 ```
 
 ![](/resources/graphics/gui.png)
 
 Features
- - Upload ROS map using yaml and pgm files
+ - Upload ROS maps (.yaml file paired with a .pgm file)
  - Dynamically inflation the size of obstacles
  - Add or remove obstacles from map
  - Set algorithm (if the "All" option is chosen the results will be color coded)
@@ -66,8 +78,8 @@ Features
 
 ### Script
 This script requires the user to specify a yaml file for map information, the name of algorithm being used, and the start & end position. Certain algorithms require the user to specify the number of iterations to reduce the likelihood of an infinite loop (by default it is set to 10,000). If the map has thin or unexpected broken boudnaries it may also be benefitial to inflate their size to remedy this issue(by default boundaries are inflated by a 3x3 matrix). Look below for a more thorough breakdown of the possible commands for this script.
-```
-./build/<build_folder>/rpp_cli -h
+```bash
+./build/rpp_cli -h
 
 # Ouptut
 Description: A simple script to test different path planning algorithms.
@@ -88,12 +100,36 @@ options:
 ```
 
 Example execution:
-```
-./build/<build_folder>/rpp_cli -f "/path/to/example1.yaml" -i 5 -a "rrt-star" -l 10000 -s "300,50" -e "381,360" -d
+```bash
+./build/rpp_cli -f "/path/to/example1.yaml" -i 5 -a "rrt-star" -l 10000 -s "300,50" -e "381,360" -d
 ```
 
 ## Maps
 Maps are based on a occupancy grid generated by the slam_toolbox ROS package. Therefore a yaml and pgm file are necessary to retreive the map data.
+
+### Generating ROS Maps
+ROS maps can also be generated with a text file. Within the text file a `0` indicates a vacant space while a `1` is used to illustrate an obstacle. The generated pgm and yaml map files will appear in the current working directory.
+
+File format:
+```
+0.05                                        ; resolution
+10 20                                       ; height, width
+1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0     ; map data
+1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0     ; map data
+1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,1,1     ; map data
+1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1     ; map data
+1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,1     ; map data
+1,0,0,0,1,1,0,0,0,0,1,0,0,0,1,0,0,0,0,1     ; map data
+1,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1     ; map data
+1,0,0,0,0,0,0,0,0,1,1,1,0,0,1,0,0,0,0,1     ; map data
+1,0,0,0,0,0,0,0,0,1,0,1,0,0,1,0,0,0,0,1     ; map data
+1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1     ; map data
+```
+
+Script execution:
+```bash
+./build/generate_map -f "/path/to/map.txt" -t "map_name"
+```
 
 ## Algorithms Tested
 ### Graph Search Algorithms
