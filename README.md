@@ -2,24 +2,6 @@
 A testing ground for path planning strategies for ROS.
 
 ## Future Work
-- Release 0.1.0
-    - [X] Implement as GUI
-        - [X] Import map from yaml & pgm file
-        - [X] Update obstacle inflation in interface
-        - [X] Toggle between implemented algorithms or run all (disable visualization of travelled nodes) 
-        - [X] Provide results data including time duration, distance, travelled nodes, and nodes of the selected path
-        - [X] Use text box to set start or goal position
-        - [X] Set start or goal position using mouse click (enabled by button)
-        - [X] Update map with new obstacles or delete them (with inflation) 
-    - Bug Fixes/Optimizations    
-        - [X] Implement multi-threading for running algorithms 
-        - [X] Terminate algorithm if it runs for more than 10 minutes 
-        - [X] Reduce code redundancies
-        - [X] Fix eraser outline to scale with size
-    - Testing
-        - [X] Test when the start or end point is invalid
-        - [X] Test when the max number of iterations is too small with RRT*
-        - [X] Yaml and pgm parsing
 - Release 0.2.0
     - Command Line Scripts
         - [ ] Implement D* Lite algorithm
