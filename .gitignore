@@ -12,6 +12,7 @@ CMakeLists.txt.user
 rpp_cli_autogen/
 rpp_viz_autogen/
 run_tests_autogen/
+generate_map_autogen/
 
 # Executable
 *.o
@@ -19,3 +20,4 @@ run_tests_autogen/
 run_tests
 rpp_cli
 rpp_viz
+generate_map

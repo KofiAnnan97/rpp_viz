@@ -16,6 +16,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets LinguistTool
 set(PATH_PLANNING_LIB_PATH "./lib/path_planning")
 set(TOOLS_LIB_PATH "./lib/tools")
 set(APP_PATH "./app")
+set(SCRIPTS_PATH "./scripts")
 
 FILE(GLOB PATH_PLANNING_LIB
     ${PATH_PLANNING_LIB_PATH}/include/*.hpp
@@ -35,6 +36,7 @@ FILE(GLOB APP_CODE
 include_directories(
     ${APP_PATH}/include/
     ${APP_PATH}/src/
+    ${SCRIPTS_PATH}/include
     ${PATH_PLANNING_LIB_PATH}/include
     ${PATH_PLANNING_LIB_PATH}/src
     ${TOOLS_LIB_PATH}/include
@@ -53,22 +55,32 @@ set(PROJECT_SOURCES
     ${TS_FILES}
 )
 
+# Old testing script
 #add_executable(old_tests
 #    scripts/old_tests.cpp
 #    ${PATH_PLANNING_LIB}
 #)
 #target_link_libraries(old_tests ${OpenCV_LIBS})
 
+# Generate ROS Map
+add_executable(generate_map
+    ${SCRIPTS_PATH}/gen_ros_map.cpp
+    ${SCRIPTS_PATH}/include/gen_ros_map.hpp
+    ${PATH_PLANNING_LIB}    
+)
+target_link_libraries(generate_map ${OpenCV_LIBS})
+
 # Map Manipulation and Algorithm Testing
 add_executable(run_tests
-    scripts/run_tests.cpp
+    ${SCRIPTS_PATH}/run_tests.cpp
+    ${SCRIPTS_PATH}/include/gen_ros_map.hpp
     ${PATH_PLANNING_LIB} 
 )
 target_link_libraries(run_tests ${OpenCV_LIBS}) #gtest gtest_main)
 
 # Command line implementation
 add_executable(rpp_cli
-    scripts/rpp_viz_cli.cpp
+    ${SCRIPTS_PATH}/rpp_viz_cli.cpp
     ${PATH_PLANNING_LIB}
     ${TOOLS_LIB}
 )

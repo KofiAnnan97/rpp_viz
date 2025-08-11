@@ -25,13 +25,14 @@ Map MapData::parse_pgm(string mp){
         int j = 0;
         for(char px : line) {
             int val = (int)px >= 0 ? (int)px : 256+(int)px;
+            //cout << "{" << i << ", " << j << "}: "<< (int)px << " => " << val << endl;
+            temp[i][j] = val > 0 ? OPEN_SPACE_INT : OBSTACLE_INT;
             j++;
             if(j >= width){
                 i++;
                 j=0;
             }
             if(i >= height) break;
-            temp[i][j] = val > 0 ? OPEN_SPACE_INT : OBSTACLE_INT;
         }
         data.px_height = height;
         data.px_width = width;
