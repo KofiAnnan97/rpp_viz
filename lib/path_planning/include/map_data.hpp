@@ -81,6 +81,7 @@ class Graph {
 class MapData {
     public:
         static Map get_map(string yp);
+        static int** set_boundaries(int width, int height, vector<signed char> data);
         static int** copy_boundaries(Map m);
         static Map copy_map(Map map);
         static int** inflate_boundaries(Map map, int buffer_size);

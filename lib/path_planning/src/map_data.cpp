@@ -111,6 +111,17 @@ Map MapData::get_map(string yp){
     }
 }
 
+int** MapData::set_boundaries(int width, int height, vector<signed char> data){
+    int** b = new int*[height];
+    for(int h = 0; h < height; h++) b[h] = new int[width];
+    for(long unsigned int i = 0; i < data.size(); i++){                    
+        int row = i/width;
+        int col = i%width;
+        b[row][col] = (data[i] == 0) ? data[i] : -1;
+    }
+    return b;
+}
+
 int** MapData::copy_boundaries(Map map){
     int** new_boundaries = new int*[map.px_height];
     for(int k = 0; k < map.px_height; k++) new_boundaries[k] = new int[map.px_width];
