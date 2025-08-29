@@ -10,7 +10,8 @@ A testing ground for path planning strategies for ROS.
         - [ ] [Optional] Animate traversal of map and final path
     - Bug Fixes/Optimizations
         - [ ] Add more extensive error handling for GUI
-        - [ ] Get eraser to scale with map scaling in graphics view
+        - [X] Get eraser to scale with map scaling in graphics view
+        - [X] Disable fullscreen
     - Testing
         - [ ] Test D* Replan with changing map
         - [ ] Rewrite tests with GTest
@@ -22,15 +23,12 @@ A testing ground for path planning strategies for ROS.
 
 ## Quick Start
 1. Install dependencies:
-
     ```bash
-    # Ubuntu
     sudo apt -y install libopencv-dev build-essential libgl1-mesa-dev qt6-base-dev qt6-tools-dev libqt6svg6-dev
     ```
 2. Build Executables
 
     ```bash
-    # Unix-based OS
     mkdir build
     cmake -S . -B ./build
     cmake --build ./build
