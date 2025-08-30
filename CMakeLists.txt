@@ -74,9 +74,10 @@ target_link_libraries(generate_map ${OpenCV_LIBS})
 add_executable(run_tests
     ${SCRIPTS_PATH}/run_tests.cpp
     ${SCRIPTS_PATH}/include/gen_ros_map.hpp
-    ${PATH_PLANNING_LIB} 
+    ${PATH_PLANNING_LIB}
+    ${TOOLS_LIB}
 )
-target_link_libraries(run_tests ${OpenCV_LIBS}) #gtest gtest_main)
+target_link_libraries(run_tests ${OpenCV_LIBS} gtest gtest_main)
 
 # Command line implementation
 add_executable(rpp_cli
@@ -113,10 +114,8 @@ else()
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif()
 
-target_link_libraries(rpp_viz PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(rpp_viz PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${OpenCV_LIBS} Qt6::Svg)
 target_include_directories(rpp_viz PRIVATE ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(rpp_viz PRIVATE ${OpenCV_LIBS})
-target_link_libraries(rpp_viz PRIVATE Qt6::Svg)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

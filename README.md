@@ -14,7 +14,7 @@ A testing ground for path planning strategies for ROS.
         - [X] Disable fullscreen
     - Testing
         - [ ] Test D* Replan with changing map
-        - [ ] Rewrite tests with GTest
+        - [X] Rewrite tests with GTest
 
 ## Dependencies
 - CMake
