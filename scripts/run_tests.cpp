@@ -457,6 +457,13 @@ namespace  testing {
         EXPECT_TRUE(checkGraph(map));
     }
 
+    TEST(Map_Data, valid_point){
+        auto m = testing::get_simple_map();
+        auto graph = MapData::get_graph_from_map(m);
+        cell test_pt = (graph.g.size() > 0) ? graph.g.begin()->first : cell{-1,-1};
+        EXPECT_TRUE(testing::is_node_valid(graph, test_pt));
+    }
+
     TEST(Map_Data, invalid_point){
         auto m = testing::get_simple_map();
         auto g = MapData::get_graph_from_map(m);
@@ -583,7 +590,6 @@ namespace  testing {
         Duration is <= 10 ms
         Check distance
     */
-
     class BFS_Tests: public testing::Test {
         public:
             float dist;
@@ -612,14 +618,6 @@ namespace  testing {
             }   
     };
 
-    TEST_F(BFS_Tests, start_point_valid){
-        EXPECT_TRUE(testing::is_node_valid(g, g.root));
-    }
-
-    TEST_F(BFS_Tests, goal_point_valid){
-        EXPECT_TRUE(testing::is_node_valid(g, g.end));
-    }
-
     TEST_F(BFS_Tests, path_generated){
         vector<cell> expected_path = {{3,3}, {4,3}, {5,4}, {6,5}, {7,5}, {8,5}, 
                                       {9,4}, {10,3}, {11,3}, {12,3}, {13,3}, 
@@ -640,7 +638,6 @@ namespace  testing {
         Path Generated between start and goal
         Duration is <= 10 ms
     */
-
     class A_Star_Tests: public testing::Test {
         public:
             float dist;
@@ -669,14 +666,6 @@ namespace  testing {
             }   
     };
 
-    TEST_F(A_Star_Tests, start_point_valid){
-        EXPECT_TRUE(testing::is_node_valid(g, g.root));
-    }
-
-    TEST_F(A_Star_Tests, goal_point_valid){
-        EXPECT_TRUE(testing::is_node_valid(g, g.end));
-    }
-
     TEST_F(A_Star_Tests, path_generated){
         vector<cell> expected_path = {{3,3}, {4,3}, {5,4}, {6,5}, {7,5}, {8,5}, 
                                       {9,4}, {10,3}, {11,3}, {12,3}, {13,3}, 
@@ -698,7 +687,6 @@ namespace  testing {
         Duration is <= 10 ms
         Algorithm fails correctly with limited number of iterations
     */
-
     class RRT_Star_Tests: public testing::Test {
         public:
             float dist;
@@ -731,18 +719,7 @@ namespace  testing {
             }   
     };
 
-    TEST_F(RRT_Star_Tests, start_point_valid){
-        EXPECT_TRUE(testing::is_node_valid(g, g.root));
-    }
-
-    TEST_F(RRT_Star_Tests, goal_point_valid){
-        EXPECT_TRUE(testing::is_node_valid(g, g.end));
-    }
-
     TEST_F(RRT_Star_Tests, path_generated){
-        /*vector<cell> expected_path = {{3,3}, {4,4}, {5,4}, {6,5}, {7,5},
-                                      {8,5}, {9,4}, {10,3}, {11,3}, {12,3},
-                                      {13,4}, {14,4}, {15,5}, {16,6}, {16,7}};*/
         vector<cell> expected_path = {{3,3}, {4,4}, {5,4}, {6,5}, {7,4}, {8,3}, 
                                       {9,3}, {10,3}, {11,3}, {12,3}, {13,2}, {14,2},
                                       {15,3}, {16,4}, {16,5}, {16,6}, {16,7}};
@@ -773,70 +750,56 @@ namespace  testing {
             err_msg += "]";
         }*/ 
     }
+
+    /* D* Lite (Using Simple Data)
+        Algorithm Completes
+        Path Generated between start and goal
+        Duration is <=  10 ms
+    */
+    /*class D_Star_Lite_Tests: public testing::Test {
+        public:
+            float dist;
+            int duration;
+            vector<cell> path;
+
+        protected:
+            Map m = testing::get_simple_map();
+            Graph g = MapData::get_graph_from_map(m);
+            const int DURATION_LIMIT = 10;
+            const float PATH_ERR_THRESH = 2.5;
+            const float DIST_LIMIT = 25;
+
+            void SetUp() override {
+                g.root = {3, 3};
+                g.end = {16, 7};
+                auto ds = DStarLite(g);
+
+                auto start_time = get_time("Start Time"); 
+                ds.solve(g.root, g.end);
+                auto end_time = get_time("End Time"); 
+                auto duration = duration_cast<milliseconds>(end_time- start_time);
+
+                auto results = ds.reconstruct_path(g.root, g.end);
+                vector<cell> path = results.first;
+                float dist = results.second;
+            }   
+    };
+
+    TEST_F(D_Star_Lite_Tests, path_generated){
+        vector<cell> expected_path = {{3,3}, {4,3}, {5,4}, {6,5}, {7,5}, {8,5}, 
+                                      {9,4}, {10,3}, {11,3}, {12,3}, {13,3}, 
+                                      {14,4}, {15,5}, {15,6}, {16,7}};
+        EXPECT_TRUE(checkPath(path, expected_path, PATH_ERR_THRESH));
+    }
+
+    TEST_F(D_Star_Lite_Tests, check_distance){
+        EXPECT_TRUE(checkDistance(dist, DIST_LIMIT));
+    }
+        
+    TEST_F(D_Star_Lite_Tests, speed_test){
+        EXPECT_TRUE(checkSpeed(duration, DURATION_LIMIT));
+    }*/
 }
-
-/* D* Lite (Using Simple Data)
-    Algorithm Completes
-    Path Generated between start and goal
-    Duration is less than 2 minutes
-*/
-/*void test_d_star_lite_simple(){
-    auto m = get_simple_map();
-    //m.boundaries = MapData::inflate_boundaries(m, 3);
-    auto g = MapData::get_graph_from_map(m);
-
-    g.root = {3, 3};
-    g.end = {16, 7};
-    auto ds = DStarLite(g);
-
-    auto start_time = get_time("Start Time"); 
-    ds.solve(g.root, g.end);
-    auto end_time = get_time("End Time"); 
-    auto duration = duration_cast<milliseconds>(end_time- start_time);
-
-    auto results = ds.reconstruct_path(g.root, g.end);
-    vector<cell> path = results.first;
-    float dist = results.second;
-
-    // Test component
-    int duration_limit = 10;
-    float path_err_thresh = 2.5;
-    int passed_count = 0;
-    cout << "D-STAR-LITE TESTS\n";
-    cout << "\tTest Start Point: ";
-    test_valid_node(g, g.root, passed_count);
-    cout << "\tTest End Point: ";
-    test_valid_node(g, g.end, passed_count);
-    cout << "\tTest Speed: ";
-    if(duration.count() < duration_limit){
-        cout << "passed\n";
-        passed_count++;
-    } 
-    else cout << "failed, " << duration.count() << " ms > " << duration_limit << " ms (time threshold)\n";
-    vector<cell> expected_path = {{3,3}, {4,3}, {5,4}, {6,5}, {7,5}, {8,5}, 
-                                  {9,4}, {10,3}, {11,3}, {12,3}, {13,3}, 
-                                  {14,4}, {15,5}, {15,6}, {16,7}};
-    int dist_limit = 25;
-    cout << "\tTest Path: ";
-    float rmse_err = path_rmse_error(expected_path, path);
-    if(rmse_err <= path_err_thresh){
-        cout << "passed\n";
-        passed_count++;
-    }
-    else cout << "failed, RMSE for path is " << rmse_err << endl;
-    cout << "\tTest Distance: ";
-    if(dist <= dist_limit){
-        cout << "passed\n";
-        passed_count++;
-    }
-    else cout << "failed, distance is greater than " << dist_limit << endl;
-    auto nm = MapData::add_path_to_map(m, path);
-    MapData::show_map("D* Lite", nm);
-
-    cout << "\tTest Invalid Point: ";
-    test_invalid_node(g, {0,0}, passed_count);
-    cout << "D-Star-Lite Tests Passed: " << passed_count << "/6\n\n";
-}*/
 
 int main(int argc, char** argv){
     testing::InitGoogleTest(&argc, argv);

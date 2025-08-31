@@ -20,11 +20,12 @@ A testing ground for path planning strategies for ROS.
 - CMake
 - OpenCV
 - Qt6
+- GTest
 
 ## Quick Start
 1. Install dependencies:
     ```bash
-    sudo apt -y install libopencv-dev build-essential libgl1-mesa-dev qt6-base-dev qt6-tools-dev libqt6svg6-dev
+    sudo apt -y install libopencv-dev build-essential libgl1-mesa-dev libgtest-dev qt6-base-dev qt6-tools-dev libqt6svg6-dev
     ```
 2. Build Executables
 
