@@ -1,5 +1,5 @@
-#ifndef DRAWING_PANNEL_HPP_
-#define DRAWING_PANNEL_HPP_
+#ifndef DRAWING_PANNEL_H
+#define DRAWING_PANNEL_H
 
 #include <QWidget>
 #include <QGraphicsView>
@@ -8,6 +8,7 @@
 #include <QColor>
 #include <QPoint>
 
+#include "app_constants.h"
 #include "map_data.hpp"
 #include "map_helper.hpp"
 
@@ -47,11 +48,6 @@ class DrawingPanel : public QGraphicsView{
         void add_point_to_display(QString last_pos_str, QString pos_str);
         void change_map_inflation(int inflate_size);
 
-        // MAP Constants
-        inline static const string OBSTACLE_MAP_ID = "obstacle_map";
-        inline static const string DISPLAY_MAP_ID = "display_map";
-        inline static const string PATH_MAP_ID = "path_map";
-
         // Map Scaling Values;
         float x_scaling = 1.0;
         float y_scaling = 1.0;
@@ -74,13 +70,9 @@ class DrawingPanel : public QGraphicsView{
         bool debug = false;
         vector<ColorIdx> color_idxs;
 
-        // Constants
-        const int pt_size = 5;
-        const int COLOR_PATH_IDX = 3;
-
         // Edit Obstacles
         bool pen_enabled = false;
         bool eraser_enabled = false;
 };
 
-#endif // DRAWING_PANNEL_HPP_
+#endif // DRAWING_PANNEL_H

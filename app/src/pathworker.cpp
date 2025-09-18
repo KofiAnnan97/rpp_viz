@@ -25,7 +25,7 @@ void PathWorker::run_bfs(Graph g){
     auto duration = duration_cast<milliseconds>(end_time-start_time);
     if(duration.count() >= compute_timeout) timeout_occurred = true;
     auto data = bfs.reconstruct_path(g.root, g.end);
-    MapHelper::add_result(results, bfs_id.toStdString(),duration.count(),
+    MapHelper::add_result(results, AppConstants::BFS_ID.toStdString(),duration.count(),
                           data.first, bfs.get_travelled_nodes(), data.second);
 }
 
@@ -38,7 +38,7 @@ void PathWorker::run_a_star(Graph g){
     auto duration = duration_cast<milliseconds>(end_time-start_time);
     if(duration.count() >= compute_timeout) timeout_occurred = true;
     auto data = as.reconstruct_path(g.root, g.end);
-    MapHelper::add_result(results, a_star_id.toStdString(),duration.count(),
+    MapHelper::add_result(results, AppConstants::A_STAR_ID.toStdString(),duration.count(),
                           data.first, as.get_travelled_nodes(), data.second);
 }
 
@@ -51,7 +51,7 @@ void PathWorker::run_rrt_star(Graph g, int max_iters){
     auto duration = duration_cast<milliseconds>(end_time-start_time);
     if(duration.count() >= compute_timeout) timeout_occurred = true;
     auto data = rrt.reconstruct_path(g.root, g.end);
-    MapHelper::add_result(results, rrt_star_id.toStdString(), duration.count(),
+    MapHelper::add_result(results, AppConstants::RRT_STAR_ID.toStdString(), duration.count(),
                           data.first, rrt.get_travelled_nodes(), data.second);
 }
 
@@ -62,7 +62,7 @@ void PathWorker::compute_path(QString algo_name, Graph g, int max_iters){
     auto time_converted = TimeHelper::convert_from_ms(compute_timeout);
     int algos_finished = 0;
     emit algo_progress(algos_finished);
-    if(algo_name == bfs_id || algo_name == all_id){
+    if(algo_name == AppConstants::BFS_ID || algo_name == AppConstants::ALL_ID){
         this->run_bfs(g);
         if(timeout_occurred){
             err_msg += QString("   - BFS Computation exceeded %1 %2\n").arg(time_converted.first).arg(time_converted.second.c_str());
@@ -71,7 +71,7 @@ void PathWorker::compute_path(QString algo_name, Graph g, int max_iters){
         algos_finished++;
         emit algo_progress(algos_finished);
     }
-    if(algo_name ==  a_star_id || algo_name == all_id){
+    if(algo_name ==  AppConstants::A_STAR_ID || algo_name == AppConstants::ALL_ID){
         this->run_a_star(g);
         if(timeout_occurred){
             err_msg += QString("   - A* Computation exceeded %1 %2\n").arg(time_converted.first).arg(time_converted.second.c_str());
@@ -80,7 +80,7 @@ void PathWorker::compute_path(QString algo_name, Graph g, int max_iters){
         algos_finished++;
         emit algo_progress(algos_finished);
     }
-    if(algo_name == rrt_star_id || algo_name == all_id){
+    if(algo_name == AppConstants::RRT_STAR_ID || algo_name == AppConstants::ALL_ID){
         this->run_rrt_star(g, max_iters);
         if(timeout_occurred){
             err_msg += QString("   - RRT* Computation exceeded %1 %2\n").arg(time_converted.first).arg(time_converted.second.c_str());

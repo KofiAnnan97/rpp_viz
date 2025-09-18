@@ -23,7 +23,8 @@ MainWindow::~MainWindow(){
 
 void MainWindow::initialize_window(){
     // Initialize combobox for algorithms
-    QStringList algos_lst = {bfs_id, a_star_id, rrt_star_id, all_id};
+    QStringList algos_lst = {AppConstants::BFS_ID, AppConstants::A_STAR_ID, 
+                             AppConstants::RRT_STAR_ID, AppConstants::ALL_ID};
     ui->cb_bx_algos->addItems(algos_lst);
     num_of_algos = algos_lst.size()-1;
 
@@ -38,8 +39,8 @@ void MainWindow::initialize_window(){
     ui->view_map->installEventFilter(this);
 
     // Set up draw and erase buttons
-    ui->btn_draw->setIcon(QIcon(draw_btn_icon));
-    ui->btn_erase->setIcon(QIcon(erase_btn_icon));
+    ui->btn_draw->setIcon(QIcon(AppConstants::DRAW_ICON));
+    ui->btn_erase->setIcon(QIcon(AppConstants::ERASE_ICON));
     ui->ch_bx_match_inflate->setChecked(true);
     ui->btn_obstacles->hide();
 }
@@ -120,16 +121,16 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event){
             // WORKING CODE
             if(draw_click || erase_click){
                 if(erase_click)
-                    draw_panel->update_point_on_obstacle_map(scaled_pt, ui->sp_bx_erase_size->value(), MapData::OPEN_SPACE_INT);
+                    draw_panel->update_point_on_obstacle_map(scaled_pt, ui->sp_bx_erase_size->value(), MapConstants::OPEN_SPACE_INT);
                 else if(draw_click)
-                    draw_panel->update_point_on_obstacle_map(scaled_pt, ui->sp_bx_draw_size->value(), MapData::OBSTACLE_INT);
+                    draw_panel->update_point_on_obstacle_map(scaled_pt, ui->sp_bx_draw_size->value(), MapConstants::OBSTACLE_INT);
 
                 // Update display map with start and goal position
                 auto start_pos_str = ui->line_start_pos->text();
                 auto goal_pos_str = ui->line_goal_pos->text();
                 if(!start_pos_str.isEmpty()) draw_panel->add_point_to_display(start_pos_str, start_pos_str);
                 if(!goal_pos_str.isEmpty()) draw_panel->add_point_to_display(goal_pos_str, goal_pos_str);
-                if(start_pos_str.isEmpty() && goal_pos_str.isEmpty()) draw_panel->update_map(DrawingPanel::DISPLAY_MAP_ID);
+                if(start_pos_str.isEmpty() && goal_pos_str.isEmpty()) draw_panel->update_map(AppConstants::DISPLAY_MAP_ID);
                 return true;
             }
             else if(start_pos_click){
@@ -158,17 +159,17 @@ void MainWindow::on_btn_upload_map_clicked(){
     //QString filename = "./resources/maps/example1.yaml";      // CLI
     //QString filename = "../../resources/maps/example1.yaml";  // QT Creator
     if(filename.endsWith(".yaml")) {
+        if(!last_start_pos_str.isEmpty()) ui->line_start_pos->setText("");
+        if(!last_goal_pos_str.isEmpty()) ui->line_goal_pos->setText("");
         Map new_map = MapData::get_map(filename.toStdString());
         draw_panel->set_obstacle_map(new_map);
-        draw_panel->update_map(DrawingPanel::OBSTACLE_MAP_ID);
+        draw_panel->update_map(AppConstants::OBSTACLE_MAP_ID);
         draw_panel->set_display_map(MapData::copy_map(new_map));
         draw_panel->set_map_state(true);
         draw_click = false;
         erase_click = false;
         draw_panel->viewport()->setCursor(Qt::ArrowCursor);
         ui->sp_bx_inflate->setValue(ui->sp_bx_inflate->minimum());
-        if(!last_start_pos_str.isEmpty()) ui->line_start_pos->setText("");
-        if(!last_goal_pos_str.isEmpty()) ui->line_goal_pos->setText("");
         this->clear_results();
         this->update_results_view();
     }
@@ -184,7 +185,7 @@ void MainWindow::on_btn_draw_clicked(){
     // Set state of drawing obstacles on map
     draw_click = !draw_click;
     QCursor cursor;
-    if(draw_click) cursor = QCursor(QPixmap(draw_cursor).scaled(20,20), 0, 20);
+    if(draw_click) cursor = QCursor(QPixmap(AppConstants::DRAW_CURSOR).scaled(20,20), 0, 20);
     else cursor = QCursor(Qt::ArrowCursor);
     ui->view_map->viewport()->setCursor(cursor);
 }
@@ -194,12 +195,12 @@ QCursor MainWindow::set_erase_cursor(int size){
     int size_x = std::floor(size/draw_panel->x_scaling);
     int size_y = std::floor(size/draw_panel->y_scaling);
     if(size >= 16)
-        cursor = QCursor(QPixmap(erase_cursor).scaled(size_x,size_y), size_x/2, size_y/2);
+        cursor = QCursor(QPixmap(AppConstants::ERASE_CURSOR).scaled(size_x,size_y), size_x/2, size_y/2);
     else if(size >= 3 && size < 16)
-        cursor = QCursor(QPixmap(erase_cursor_small).scaled(size_x,size_y), size_x/2, size_y/2);
+        cursor = QCursor(QPixmap(AppConstants::ERASE_CURSOR_SMALL).scaled(size_x,size_y), size_x/2, size_y/2);
     else{
         size = 3;
-        cursor = QCursor(QPixmap(erase_cursor_small).scaled(size_x,size_y), size_x/2, size_y/2);
+        cursor = QCursor(QPixmap(AppConstants::ERASE_CURSOR_SMALL).scaled(size_x,size_y), size_x/2, size_y/2);
     }
     return cursor;
 }
@@ -251,7 +252,7 @@ void MainWindow::on_sp_bx_inflate_valueChanged(int inflate_size){
         QString goal_pos_str = ui->line_goal_pos->text();
         if(!start_pos_str.isEmpty()) draw_panel->add_point_to_display(start_pos_str, start_pos_str);
         if(!goal_pos_str.isEmpty()) draw_panel->add_point_to_display(goal_pos_str, goal_pos_str);
-        if(start_pos_str.isEmpty() && goal_pos_str.isEmpty()) draw_panel->update_map(DrawingPanel::OBSTACLE_MAP_ID);
+        if(start_pos_str.isEmpty() && goal_pos_str.isEmpty()) draw_panel->update_map(AppConstants::OBSTACLE_MAP_ID);
         path_computed = false;
     }
 
@@ -308,7 +309,7 @@ void MainWindow::on_cb_bx_algos_currentTextChanged(const QString &name){
     algo_name = name;
 
     // Update debug checkbox
-    if(name == all_id){
+    if(name == AppConstants::ALL_ID){
         ui->ch_bx_debug->setChecked(false);
         ui->ch_bx_debug->setCheckable(false);
         ui->ch_bx_debug->hide();
@@ -319,7 +320,7 @@ void MainWindow::on_cb_bx_algos_currentTextChanged(const QString &name){
     }
 
     // Update max iterations spinbox
-    if(name == rrt_star_id || name == all_id){
+    if(name == AppConstants::RRT_STAR_ID || name == AppConstants::ALL_ID){
         ui->lbl_iterations->show();
         ui->sp_bx_iterations->show();
     }else{
@@ -329,7 +330,7 @@ void MainWindow::on_cb_bx_algos_currentTextChanged(const QString &name){
 
     // Reset results text and map when selected algorithm changed
     if(path_computed){
-        draw_panel->update_map(DrawingPanel::DISPLAY_MAP_ID);
+        draw_panel->update_map(AppConstants::DISPLAY_MAP_ID);
         this->clear_results();
         ui->txt_results->setText("Data cleared. Hit \"Run\" to get results.");
         path_computed = false;
@@ -386,7 +387,7 @@ void MainWindow::on_btn_run_algo_clicked(){
 
         max_iters = ui->sp_bx_iterations->value();
         if(path_computed){
-            draw_panel->update_map(DrawingPanel::DISPLAY_MAP_ID);
+            draw_panel->update_map(AppConstants::DISPLAY_MAP_ID);
             path_computed = false;
         }
         this->set_settings_enabled(false);
@@ -425,7 +426,7 @@ void MainWindow::clear_results(){
 
 void MainWindow::handle_algo_progress(int val){
     int max;
-    if(ui->cb_bx_algos->currentText() != all_id) max = 1;
+    if(ui->cb_bx_algos->currentText() != AppConstants::ALL_ID) max = 1;
     else max = num_of_algos;
     ui->txt_results->setText(QString("Running algoritm(s)...\nCompleted: %1/%2").arg(val).arg(max));
 }

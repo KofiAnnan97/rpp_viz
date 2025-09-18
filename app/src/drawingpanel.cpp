@@ -103,9 +103,9 @@ void DrawingPanel::update_pixmap(Map map, QImage *image){
 
 void DrawingPanel::update_map(string map_type){
     Map map;
-    if(map_type == OBSTACLE_MAP_ID) map = obstacle_map;
-    else if(map_type == DISPLAY_MAP_ID) map = display_map;
-    else if(map_type == PATH_MAP_ID) map = path_map;
+    if(map_type == AppConstants::OBSTACLE_MAP_ID) map = obstacle_map;
+    else if(map_type == AppConstants::DISPLAY_MAP_ID) map = display_map;
+    else if(map_type == AppConstants::PATH_MAP_ID) map = path_map;
     image = new QImage(map.px_width, map.px_height, QImage::Format_RGB666);
     this->update_pixmap(map, image);
     px_map = QPixmap::fromImage(*image).scaled(scene->width(),
@@ -132,7 +132,7 @@ void DrawingPanel::show_path(cell start, cell goal, vector<AlgoResult> results){
     }
     else{
         path_map = MapData::copy_map(obstacle_map);
-        int path_idx = COLOR_PATH_IDX;
+        int path_idx = AppConstants::COLOR_PATH_IDX;
         for(auto r: results){
             path_map = MapData::add_path_to_map_with_value(path_map, path_idx, r.path, start, goal);
             for(int i = 0; i < color_idxs.size(); i++){
@@ -141,19 +141,19 @@ void DrawingPanel::show_path(cell start, cell goal, vector<AlgoResult> results){
             path_idx++;
         }
     }
-    path_map.boundaries[start.second][start.first] = MapData::NAV_POINT_INT;
-    MapData::inflate_point(path_map, start, pt_size);
-    path_map.boundaries[goal.second][goal.first] = MapData::NAV_POINT_INT;
-    MapData::inflate_point(path_map, goal, pt_size);
-    this->update_map(this->PATH_MAP_ID);
+    path_map.boundaries[start.second][start.first] = MapConstants::NAV_POINT_INT;
+    MapData::inflate_point(path_map, start, AppConstants::PT_SIZE);
+    path_map.boundaries[goal.second][goal.first] = MapConstants::NAV_POINT_INT;
+    MapData::inflate_point(path_map, goal, AppConstants::PT_SIZE);
+    this->update_map(AppConstants::PATH_MAP_ID);
     delete path_map.boundaries;
 }
 
 void DrawingPanel::remove_point_from_display(QString last_pos_str){
     auto last_pos = MapHelper::get_positon(last_pos_str.toStdString());
     if(last_pos.first >= 0 && last_pos.first < display_map.px_width && last_pos.second >= 0 && last_pos.second < display_map.px_height){
-        display_map.boundaries[last_pos.second][last_pos.first] = MapData::OPEN_SPACE_INT;
-        MapData::inflate_point(display_map, last_pos, MapData::POINT_SIZE);
+        display_map.boundaries[last_pos.second][last_pos.first] = MapConstants::OPEN_SPACE_INT;
+        MapData::inflate_point(display_map, last_pos, MapConstants::POINT_SIZE);
     }
 }
 
@@ -166,9 +166,9 @@ void DrawingPanel::add_point_to_display(QString last_pos_str, QString pos_str){
         if(!pos_str.isEmpty()){
             auto pos = MapHelper::get_positon(pos_str.toStdString());
             if(pos.first >= 0 && pos.first < display_map.px_width && pos.second >= 0 && pos.second < display_map.px_height){
-                display_map.boundaries[pos.second][pos.first] = MapData::NAV_POINT_INT;
-                MapData::inflate_point(display_map, pos, MapData::POINT_SIZE);
-                this->update_map(this->DISPLAY_MAP_ID);
+                display_map.boundaries[pos.second][pos.first] = MapConstants::NAV_POINT_INT;
+                MapData::inflate_point(display_map, pos, MapConstants::POINT_SIZE);
+                this->update_map(AppConstants::DISPLAY_MAP_ID);
             }
         }
     }

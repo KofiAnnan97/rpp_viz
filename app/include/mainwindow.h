@@ -24,6 +24,7 @@
 #include "map_data.hpp"
 #include "map_helper.hpp"
 
+#include "app_constants.h"
 #include "pathworker.h"
 #include "drawingpanel.h"
 
@@ -78,19 +79,6 @@ private:
     cell start_pos = {-1,-1};
     cell goal_pos = {-1,-1};
     vector<AlgoResult> results;
-
-    // Constants
-    const int pt_size = 5;
-    const int COLOR_PATH_IDX = 3;
-    const QString draw_btn_icon = ":/icons/pencil.svg";
-    const QString erase_btn_icon = ":/icons/eraser.svg";
-    const QString draw_cursor = ":/icons/cursor_pencil.svg";
-    const QString erase_cursor_small = ":/icons/cursor_eraser_small.svg";
-    const QString erase_cursor = ":/icons/cursor_eraser.svg";
-    const QString bfs_id = "BFS";
-    const QString a_star_id = "A*";
-    const QString rrt_star_id = "RRT*";
-    const QString all_id = "All";
 
 private slots:
     void on_btn_upload_map_clicked();
