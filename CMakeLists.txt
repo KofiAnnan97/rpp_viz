@@ -17,6 +17,7 @@ set(PATH_PLANNING_LIB_PATH "./lib/path_planning")
 set(TOOLS_LIB_PATH "./lib/tools")
 set(APP_PATH "./app")
 set(SCRIPTS_PATH "./scripts")
+set(TEST_PATH "./tests")
 
 FILE(GLOB PATH_PLANNING_LIB
     ${PATH_PLANNING_LIB_PATH}/include/*.hpp
@@ -33,6 +34,11 @@ FILE(GLOB APP_CODE
     ${APP_PATH}/src/*.cpp
 )
 
+FILE(GLOB TEST_SUITE
+    ${TEST_PATH}/include/*.hpp
+    ${TEST_PATH}/src/*.cpp
+)
+
 include_directories(
     ${APP_PATH}/include/
     ${APP_PATH}/src/
@@ -41,6 +47,8 @@ include_directories(
     ${PATH_PLANNING_LIB_PATH}/src
     ${TOOLS_LIB_PATH}/include
     ${TOOLS_LIB_PATH}/src
+    ${TEST_PATH}/include
+    ${TEST_PATH}/src
     ${OpenCV_INCLUDE_DIRS}
 )
 
@@ -76,6 +84,7 @@ add_executable(run_tests
     ${SCRIPTS_PATH}/include/gen_ros_map.hpp
     ${PATH_PLANNING_LIB}
     ${TOOLS_LIB}
+    ${TEST_SUITE}
 )
 target_link_libraries(run_tests ${OpenCV_LIBS} gtest gtest_main)
 
