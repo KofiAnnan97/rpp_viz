@@ -10,8 +10,10 @@
 #include "a_star.hpp"
 //#include "d_star_lite.hpp"
 #include "rrt_star.hpp"
+
 #include "time_helper.hpp"
 #include "map_helper.hpp"
+#include "script_constants.hpp"
 
 struct Parameters{
     string algo, map_yaml;
@@ -22,12 +24,6 @@ struct Parameters{
 
 int COMPUTE_TIMEOUT = 600000; //in milliseconds
 vector<AlgoResult> algo_results;
-
-// Constants
-const string BFS_ID = "bfs";
-const string A_STAR_ID = "a-star";
-const string RRT_STAR_ID = "rrt-star";
-const string ALL_ID = "all";
 
 void print_help_menu(){
     cout << "Description: A simple script to test different path planning algorithms.\n";
@@ -174,7 +170,8 @@ void print_results(AlgoResult ar, bool debug, int timeout){
 }
 
 bool is_valid_algo(string name){
-    vector<string> valid_algos = {BFS_ID, A_STAR_ID, RRT_STAR_ID, ALL_ID};
+    vector<string> valid_algos = {ScriptConstants::BFS_ID, ScriptConstants::A_STAR_ID, 
+                                  ScriptConstants::RRT_STAR_ID, ScriptConstants::ALL_ID};
     for(auto algo: valid_algos){
         if(name == algo) return true;
     }
@@ -204,7 +201,7 @@ void run_bfs(Map &m, Graph g, bool debug){
     vector<cell> path = results.first;
     float dist = results.second;
     vector<cell> travelled = bfs.get_travelled_nodes();
-    AlgoResult ar = {BFS_ID, duration, path, travelled, dist};
+    AlgoResult ar = {ScriptConstants::BFS_ID, duration, path, travelled, dist};
     print_results(ar, debug, COMPUTE_TIMEOUT);
     show_map("BFS", m, g.root, g.end, path, travelled, debug);
 }
@@ -222,7 +219,7 @@ void run_astar(Map &m, Graph g, bool debug){
     vector<cell> path = results.first;
     float dist = results.second;
     vector<cell> travelled = as.get_travelled_nodes();
-    AlgoResult ar = {A_STAR_ID, duration, path, travelled, dist};
+    AlgoResult ar = {ScriptConstants::A_STAR_ID, duration, path, travelled, dist};
     print_results(ar, debug, COMPUTE_TIMEOUT);
     show_map("A*", m, g.root, g.end, path, travelled, debug);
 }
@@ -242,7 +239,7 @@ void run_rrt_star(Map &m, Graph g, int max_iter, bool debug){
         path = results.first;
         float dist = results.second;
         travelled = rrt.get_travelled_nodes();
-        AlgoResult ar = {RRT_STAR_ID, duration, path, travelled, dist};
+        AlgoResult ar = {ScriptConstants::RRT_STAR_ID, duration, path, travelled, dist};
         print_results(ar, debug, COMPUTE_TIMEOUT);
     }
     else {
@@ -272,9 +269,12 @@ int main(int argc, char* argv[]){
         else cout << "End node: {" << params.goal.first << "," << params.goal.second << "} is invalid\n"; 
 
         if(g.is_node_valid(params.start) && g.is_node_valid(params.goal)){
-            if(params.algo == BFS_ID || params.algo == ALL_ID) run_bfs(map, g, params.show_debug);
-            if(params.algo == A_STAR_ID || params.algo == ALL_ID) run_astar(map, g, params.show_debug);
-            if(params.algo == RRT_STAR_ID || params.algo == ALL_ID) run_rrt_star(map, g, params.max_iter, params.show_debug);
+            if(params.algo == ScriptConstants::BFS_ID || params.algo == ScriptConstants::ALL_ID) 
+                run_bfs(map, g, params.show_debug);
+            if(params.algo == ScriptConstants::A_STAR_ID || params.algo == ScriptConstants::ALL_ID) 
+                run_astar(map, g, params.show_debug);
+            if(params.algo == ScriptConstants::RRT_STAR_ID || params.algo == ScriptConstants::ALL_ID) 
+                run_rrt_star(map, g, params.max_iter, params.show_debug);
             //if(params.algo == "d-lite" || params.algo == ALL_ID) run_d_star_lite(map, g, params.show_debug);
             if(!is_valid_algo(params.algo)) cout << "Unrecognized algorithm: " << params.algo << endl;
         }

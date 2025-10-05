@@ -2,19 +2,26 @@
 A testing ground for path planning strategies for ROS.
 
 ## Future Work
+- Release 0.1.1
+    - Algorithms
+        - [ ] Probability Roadmap (CLI & GUI)
+    - Bug Fixes/Optimizations
+        - [X] Get eraser to scale with map scaling in graphics view
+        - [X] Disable fullscreen
+    - Testing
+        - [X] Rewrite tests with GTest
+        - [ ] Test Probalility Roadmap (PRM)
 - Release 0.2.0
-    - Command Line Scripts
-        - [ ] Implement D* Lite algorithm
+    - Algorithms
+        - [ ] D* Lite (CLI & GUI)
     - GUI
         - [ ] Change behavior of the pen and eraser to support dragging movements
         - [ ] [Optional] Animate traversal of map and final path
     - Bug Fixes/Optimizations
         - [ ] Add more extensive error handling for GUI
-        - [X] Get eraser to scale with map scaling in graphics view
-        - [X] Disable fullscreen
     - Testing
         - [ ] Test D* Replan with changing map
-        - [X] Rewrite tests with GTest
+
 
 ## Dependencies
 - CMake
@@ -27,7 +34,13 @@ A testing ground for path planning strategies for ROS.
     ```bash
     sudo apt -y install libopencv-dev build-essential libgl1-mesa-dev libgtest-dev qt6-base-dev qt6-tools-dev libqt6svg6-dev
     ```
-2. Build Executables
+2. Set Environment Variables
+    ```bash
+    export QT_VERSION_MAJOR=6
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/to/Qt/<version>/gcc_64/lib
+    export QTDIR=/path/to/Qt/<version>/gcc_64 
+    ```
+3. Build Executables
 
     ```bash
     mkdir build

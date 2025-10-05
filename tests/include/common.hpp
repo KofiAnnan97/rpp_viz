@@ -4,9 +4,9 @@
 
 namespace testing{
     // Constants Values
-    inline static const int COMPUTE_TIMEOUT = 60000; // in milliseconds
-    inline static const float pose_err_thresh = 0.3;
-    inline static const int px_err_thresh = 5;
+    static const int COMPUTE_TIMEOUT = 60000; // in milliseconds
+    static const float pose_err_thresh = 0.3;
+    static const int px_err_thresh = 5;
             
     // Generic Functions
     static Map get_simple_map(){

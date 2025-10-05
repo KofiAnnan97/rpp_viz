@@ -142,9 +142,9 @@ void DrawingPanel::show_path(cell start, cell goal, vector<AlgoResult> results){
         }
     }
     path_map.boundaries[start.second][start.first] = MapConstants::NAV_POINT_INT;
-    MapData::inflate_point(path_map, start, AppConstants::PT_SIZE);
+    MapData::inflate_point(path_map, start, MapConstants::POINT_SIZE);
     path_map.boundaries[goal.second][goal.first] = MapConstants::NAV_POINT_INT;
-    MapData::inflate_point(path_map, goal, AppConstants::PT_SIZE);
+    MapData::inflate_point(path_map, goal, MapConstants::POINT_SIZE);
     this->update_map(AppConstants::PATH_MAP_ID);
     delete path_map.boundaries;
 }

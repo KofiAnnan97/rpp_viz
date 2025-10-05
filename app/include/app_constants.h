@@ -5,12 +5,13 @@
 
 #include <QString>
 
+#include "pp_constants.hpp"
+
 using namespace std;
 
 class AppConstants {
     public:
         // General
-        static const int PT_SIZE = 5;
         static const int COLOR_PATH_IDX = 3;
 
         // Icons
