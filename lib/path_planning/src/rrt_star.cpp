@@ -1,5 +1,7 @@
 #include "rrt_star.hpp"
 
+#include "helper_func.cpp"
+
 using namespace std::chrono;
 
 const float PI = 3.14159;
@@ -7,7 +9,7 @@ const float PI = 3.14159;
 RRTStar::RRTStar(Graph g, int iter){
     tree = g;
     max_iter = iter;
-    all_valid_nodes = tree.get_nodes();
+    all_valid_nodes = tree.get_valid_nodes();
     goal_reached = false;
 }
 
@@ -19,7 +21,7 @@ void RRTStar::solve(cell sp, cell ep, int timeout){
         //if(i%1000 == 0) cout << "Iteration: " << i << endl;
         auto now = high_resolution_clock::now();
         if(duration_cast<milliseconds>(now-start).count() >= timeout) break;
-        auto random_node = get_random_node();
+        auto random_node = RRTStar::get_random_node();
         auto nearest_node = get_nearest_node(node_list, random_node);
         auto new_node = steer(nearest_node, random_node);
         //cout << "Random node: (" << random_node.first <<"," <<random_node.second <<")\n";
@@ -32,11 +34,11 @@ void RRTStar::solve(cell sp, cell ep, int timeout){
             rewire(new_node, neighbors);
             travelled.push_back(new_node);
         }   
-        if(RRTStar::euclidean_distance(new_node,ep) <= 1.5){
+        if(Distance::euclidean(new_node,ep) <= 1.5){
             goal_reached = true;
             if(parent[new_node] != ep) {
                 parent[ep] = new_node;
-                cost_map[ep] = cost_map[new_node] + euclidean_distance(new_node,ep);
+                cost_map[ep] = cost_map[new_node] + Distance::euclidean(new_node,ep);
             }
             break;
         }    
@@ -79,7 +81,7 @@ cell RRTStar::get_nearest_node(vector<cell> node_list, cell random_node){
     cell nearest_node;
     float min_dist = std::numeric_limits<float>::infinity();
     for(auto n: node_list){
-        float dist = RRTStar::euclidean_distance(random_node, n); 
+        float dist = Distance::euclidean(random_node, n); 
         if(dist < min_dist){
             nearest_node = n;
             min_dist = dist;
@@ -91,7 +93,7 @@ cell RRTStar::get_nearest_node(vector<cell> node_list, cell random_node){
 vector<cell> RRTStar::find_neighbors(vector<cell> node_list, cell node){
     vector<cell> neighbors;
     for(cell n: node_list){
-        if(RRTStar::euclidean_distance(n, node) < 2) neighbors.push_back(n);
+        if(Distance::euclidean(n, node) < 2) neighbors.push_back(n);
     }
     return neighbors;
 }
@@ -101,18 +103,18 @@ cell RRTStar::steer(cell from_node, cell to_node){
     int closest_x = std::round(from_node.first + cos(theta*180.0/PI));
     int closest_y = std::round(from_node.second + sin(theta*180.0/PI));
     cell new_node = {closest_x, closest_y};
-    cost_map[new_node] = cost_map[from_node] + RRTStar::euclidean_distance(from_node, new_node);
+    cost_map[new_node] = cost_map[from_node] + Distance::euclidean(from_node, new_node);
     parent[new_node] = from_node;
     return new_node;
 }
 
 cell RRTStar::choose_parent(vector<cell> neighbors, cell nearest_node, cell new_node){
     //std::complex<float> nv (new_node.first-nearest_node.first, new_node.second-nearest_node.second); // norm of vector
-    float min_cost = cost_map[nearest_node] + euclidean_distance(new_node,nearest_node);//sqrt(std::norm(nv));
+    float min_cost = cost_map[nearest_node] + Distance::euclidean(new_node,nearest_node);//sqrt(std::norm(nv));
     cell best_node = {nearest_node.first, nearest_node.second};
     for(auto n: neighbors){
         //std::complex<float> nv2 (new_node.first-n.first, new_node.second-n.second); // norm of vector
-        float cost = cost_map[n] + euclidean_distance(new_node,n);//sqrt(std::norm(nv2));
+        float cost = cost_map[n] + Distance::euclidean(new_node,n);//sqrt(std::norm(nv2));
         if(cost < min_cost && tree.is_node_valid(n)){
             best_node = {n.first,n.second};
             min_cost = cost;
@@ -126,16 +128,12 @@ cell RRTStar::choose_parent(vector<cell> neighbors, cell nearest_node, cell new_
 void RRTStar::rewire(cell new_node, vector<cell> neighbors){
     for(auto n: neighbors){
         //std::complex<float> nv (n.first-new_node.first, n.second-new_node.second); // norm of vector
-        float cost = cost_map[new_node] + euclidean_distance(new_node,n);//sqrt(std::norm(nv));  
+        float cost = cost_map[new_node] + Distance::euclidean(new_node,n);//sqrt(std::norm(nv));  
         if(cost < cost_map[n] && tree.is_node_valid(new_node)){
             parent[n] = new_node;
             cost_map[n] = cost;
         }
     }
-}
-
-float RRTStar::euclidean_distance(cell a, cell b){
-    return sqrt(pow(a.first - b.first, 2) + pow(a.second - b.second, 2));
 }
 
 vector<cell> RRTStar::get_travelled_nodes(){

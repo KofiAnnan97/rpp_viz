@@ -22,7 +22,7 @@ class RRTStar{
         vector<cell> find_neighbors(vector<cell> node_list, cell node);
         cell choose_parent(vector<cell> neighbors, cell nearest_node, cell new_node);
         void rewire(cell new_node, vector<cell> neighbors);
-        float euclidean_distance(cell a, cell b);
+        
         Graph tree;
         int max_iter;
         map<cell, float> cost_map;

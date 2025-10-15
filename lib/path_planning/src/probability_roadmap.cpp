@@ -1,0 +1,203 @@
+#include "probability_roadmap.hpp"
+
+#include "helper_func.cpp"
+
+PROBABILITY_ROADMAP::PROBABILITY_ROADMAP(Graph g, int sample_count, int neighbor_count){
+    tree = g;
+    max_sample_count = sample_count;
+    max_neighbor_count = neighbor_count;
+    all_valid_nodes = tree.get_valid_nodes();
+    all_obstacle_nodes = tree.get_obstacle_nodes();
+}
+
+void PROBABILITY_ROADMAP::find_nearest_neighbors(int k, c_time_point start, int timeout){
+    for(auto it = kd_tree.begin(); it != kd_tree.end(); ++it){
+        auto curr = it->first;
+        for(auto it2 = kd_tree.begin(); it2 != kd_tree.end(); ++it2){
+            auto now = high_resolution_clock::now();
+            if(duration_cast<milliseconds>(now-start).count() >= timeout) return;
+            if(it->first == it2->first) continue;
+            else if(it->second.size() < k && Distance::euclidean(curr, it2->first) < step_dist &&
+                    is_collision_free(curr, it2->first)){
+                it->second.insert(it2->first);
+            }
+            else if(it->second.size() > k){
+                while(it->second.size() > k){
+                    float max_dist = -1;
+                    auto furthest_neighbor = cell{-1,-1};
+                    for(auto n = it->second.begin(); n != it->second.end(); ++n){
+                        auto neighbor = cell{n->first, n->second};
+                        float new_dist = Distance::euclidean(curr, neighbor);
+                        if(new_dist > max_dist){
+                            max_dist = new_dist;
+                            furthest_neighbor = neighbor;
+                        }
+                    }
+                    if(furthest_neighbor != cell{-1,-1}) it->second.erase(it->second.find(furthest_neighbor));
+                } 
+            }
+            else {
+                float max_dist = -1;
+                auto furthest_neighbor = cell{-1,-1};
+                for(auto n = it->second.begin(); n != it->second.end(); ++n){
+                    auto neighbor = cell{n->first, n->second};
+                    float new_dist = Distance::euclidean(curr, neighbor);
+                    if(new_dist > max_dist){
+                        max_dist = new_dist;
+                        furthest_neighbor = neighbor;
+                    }
+                }
+                if(max_dist > Distance::euclidean(curr, it2->first) && furthest_neighbor != cell{-1,-1}){
+                    it->second.erase(it->second.find(furthest_neighbor));
+                    it->second.insert(it2->first);
+                }
+            }
+        }
+    }
+}
+
+void PROBABILITY_ROADMAP::learn(cell sp, cell ep, c_time_point start, int timeout){
+    // Initialize KD tree for sample nodes
+    set<cell> temp;
+    kd_tree.insert({sp, temp});
+    for(int s_idx = 0; s_idx < max_sample_count; s_idx++){
+        auto node = PROBABILITY_ROADMAP::get_random_node();
+        kd_tree.insert({node, set(temp)});
+    }
+    kd_tree.insert({ep, set(temp)});
+
+    // Create roadmap for sample nodes (add collision-free edges)
+    PROBABILITY_ROADMAP::find_nearest_neighbors(max_neighbor_count, start, timeout);
+}
+
+void PROBABILITY_ROADMAP::dijkstra(cell sp, cell ep, c_time_point start, int timeout){
+    dist[sp] = 0;
+    f[sp] = get_f_score(sp);
+    vector<cell> open_set;
+    open_set.push_back(sp);
+    while(!open_set.empty()){
+        auto now = high_resolution_clock::now();
+        if(duration_cast<milliseconds>(now-start).count() >= timeout) return;
+        cell curr = get_min_f(open_set);
+        if(curr == ep) break;
+        auto children = kd_tree[curr];
+        for(auto child : children){
+            auto w = Distance::euclidean(child, curr);
+            auto new_dist = dist[curr] + w;
+            if(new_dist < get_f_score(child)){
+                f[child] = new_dist;
+                dist[child] = new_dist;
+                parent[child] = curr;
+                if(not_in_set(open_set, child)){
+                    open_set.push_back(child);
+                    travelled.push_back(child);
+                }
+            }
+        }
+    }
+}
+
+void PROBABILITY_ROADMAP::solve(cell sp, cell ep, int timeout){
+    auto start = high_resolution_clock::now();
+
+    // Populate Fake KD tree for the sampled nodes 
+    PROBABILITY_ROADMAP::learn(sp, ep, start, timeout);
+    //PROBABILITY_ROADMAP::print_roadmap();
+    
+    // Set all valid nodes to have infinite distance
+    for(auto it = kd_tree.begin(); it != kd_tree.end(); ++it)
+        dist[it->first] = std::numeric_limits<float>::infinity();
+
+    // Determine path using dykstra's algorithm
+    PROBABILITY_ROADMAP::dijkstra(sp, ep, start, timeout);
+}
+
+pair<vector<cell>, float> PROBABILITY_ROADMAP::reconstruct_path(pair<int, int> sp, pair<int, int> ep){
+    /*cout << parent.size() << endl;
+    for(auto n = parent.begin(); n != parent.end(); ++n){
+        cout << "(" << n->first.first << "," << n->first.second 
+             << ") -> (" << n->second.first << "," << n->second.second
+             << ")\n";
+    }
+    cout << "]\n";*/
+    auto data = pair<vector<cell>, float>();
+    if(sp != ep) data.first.push_back(ep);
+    auto curr = ep;
+    while(curr != sp){
+        curr = parent[curr];
+        if(curr == cell{0, 0}) break; // Stop infinite loop if path not found
+        data.first.insert(data.first.begin(), curr);
+    }
+    data.second = dist[ep];
+    return data;
+}
+
+cell PROBABILITY_ROADMAP::get_random_node(){
+    double r = (double)rand()/(double)RAND_MAX;
+    cell random_node;
+    if(r > 0.2) {
+        int r_idx = rand()%all_valid_nodes.size();
+        random_node = {all_valid_nodes[r_idx].first, all_valid_nodes[r_idx].second};
+        all_valid_nodes.erase(all_valid_nodes.begin()+r_idx);
+        all_valid_nodes.push_back(random_node);
+    }
+    else random_node = {tree.end.first, tree.end.second};
+    return random_node;
+}
+
+bool PROBABILITY_ROADMAP::is_collision_free(cell c, cell d){
+    auto line = Bresenham::connect_points(c, d);
+    for(auto pt: line){
+        // Option 1
+        //for(auto o_pt: all_obstacle_nodes){
+        //    if(pt == o_pt) return false;
+        //}
+        // Option 2
+        if(!tree.is_node_valid(pt)) return false;
+    }
+    return true;
+}
+
+vector<cell> PROBABILITY_ROADMAP::get_travelled_nodes(){
+    return travelled;
+}
+
+bool PROBABILITY_ROADMAP::not_in_set(vector<cell> open_set, cell p){
+    for(auto n : open_set){
+        if(n == p) return false;
+    }
+    return true;
+}
+
+cell PROBABILITY_ROADMAP::get_min_f(vector<cell> &s){
+    cell mp;
+    int min_idx = -1;
+    float min_val = std::numeric_limits<float>::infinity();
+    for(int i = 0; i < s.size(); i++){
+        auto n = s[i];
+        if(f[n] <= min_val){
+            min_idx = i;
+            min_val = f[n];
+        }
+    }
+    if(min_idx != -1){
+        mp = {s[min_idx].first, s[min_idx].second};
+        s.erase(s.begin()+min_idx);
+    }
+    return mp;
+}
+
+float PROBABILITY_ROADMAP::get_f_score(cell p){
+    return dist[p];
+}
+
+void PROBABILITY_ROADMAP::print_roadmap(){
+    cout << "ROADMAP\n"; 
+    for(auto t = kd_tree.begin(); t != kd_tree.end(); ++t){
+        cout << "(" << t->first.first << "," << t->first.second << "): [ ";
+        for(auto n: t->second)
+            cout << "(" << n.first << "," << n.second << ") ";
+        cout << "]\n";
+    }
+    cout << "\n";
+}

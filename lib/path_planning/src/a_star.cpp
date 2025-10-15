@@ -1,12 +1,14 @@
 #include "a_star.hpp"
 
+#include "helper_func.cpp"
+
 using namespace std::chrono;
 
 AStar::AStar(Graph g){
     tree = g;
     for(auto it = tree.g.begin(); it != tree.g.end(); ++it){
         dist[it->first] = std::numeric_limits<float>::infinity();
-        h[it->first] = euclidean_heuristic(it->first, tree.end);
+        h[it->first] = Distance::euclidean(it->first, tree.end);
     }
 }
 
@@ -28,9 +30,8 @@ void AStar::solve(cell sp, cell ep, int timeout){
     f[sp] = AStar::get_f_score(sp);
     vector<cell> open_set;
     open_set.push_back(sp);
-    int kill_count = 0;
     auto start = high_resolution_clock::now();
-    while(!open_set.empty() && kill_count < tree.get_size()){
+    while(!open_set.empty()){ 
         auto now = high_resolution_clock::now();
         if(duration_cast<milliseconds>(now-start).count() >= timeout) break;
         cell curr = get_min_f(open_set);
@@ -51,7 +52,6 @@ void AStar::solve(cell sp, cell ep, int timeout){
                 }
             } 
         }
-        kill_count++;
     }
 }
 
@@ -82,10 +82,6 @@ cell AStar::get_min_f(vector<cell> &s){
 
 float AStar::get_f_score(cell p){
     return dist[p] + h[p];
-}
-
-float AStar::euclidean_heuristic(cell a, cell b){
-    return sqrt(pow(a.first - b.first, 2) + pow(a.second - b.second, 2));
 }
 
 void AStar::print_map(string name, map<cell, float> map){

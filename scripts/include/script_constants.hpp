@@ -13,6 +13,7 @@ class ScriptConstants {
         inline static const string BFS_ID = "bfs";
         inline static const string A_STAR_ID = "a-star";
         inline static const string RRT_STAR_ID = "rrt-star";
+        inline static const string PRM_ID = "prm";
         inline static const string ALL_ID = "all";
 };
 

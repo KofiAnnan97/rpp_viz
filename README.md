@@ -78,19 +78,22 @@ This script requires the user to specify a yaml file for map information, the na
 # Ouptut
 Description: A simple script to test different path planning algorithms.
 options: 
-   -h, --help                            Show this help message and exit.
-   -f FILE, --file FILE                  Provide map yaml filepath.
+   -h, --help                                 Show this help message and exit.
+   -f FILE, --file FILE                       Provide map yaml filepath.
    -i INFLATE_SIZE. --inflate-size INFLATE_SIZE
-                                         Set size of boundaries (Default: 3).
-   -a ALGORITHM, --algorithm ALGORITHM   Set executed algoritm to one of the following:
-                                         [bfs, a-star, rrt-star, all].
-   -l MAX_ITER, --max-iter MAX_ITER      Set limit the number of iterations executed.
-                                         Only supported for sample-based methods (Default: 10000).
-   -s START_POS, --start-pos START_POS   Set start position [Format: "int,int"].
-   -e END_POS, --end-pos END_POS         Set end position [Format: "int,int"].
-   -d, --debug                           Provide more information for debugging.
-   -t TIMEOUT, timeout TIMEOUT           Set timeout limit for algorithm computation
-                                         (Default: 600000 ms).
+                                              Set size of boundaries (Default: 3).
+   -a ALGORITHM, --algorithm ALGORITHM        Set executed algoritm to one of the following:
+                                              [bfs, a-star, rrt-star, all].
+   -l SAMPLES_LIMIT, --samples-limit SAMPLES_LIMIT
+                                              Set a limit on the number of samples generated.
+                                              Only supported for sample-based methods (Default: 10000).
+   -k NEIGHBORS, --neighbors NEIGHBORS        Set the number of neighbors a node can have.
+                                              Exlusive to PRM algorithm (Default: 4)
+   -s START_POS, --start-pos START_POS        Set start position [Format: "int,int"].
+   -e END_POS, --end-pos END_POS              Set end position [Format: "int,int"].
+   -d, --debug                                Provide more information for debugging.
+   -t TIMEOUT, timeout TIMEOUT                Set timeout limit for algorithm computation
+                                              (Default: 600000 ms).
 ```
 
 Example execution:
@@ -134,8 +137,14 @@ Script execution:
 - [A*](https://en.wikipedia.org/wiki/A*_search_algorithm)
 
     ![](/resources/graphics/A_star.png)
-
+    
 ### Sampling-Based Algorithms
 - [RRT* (graph-based implementation)](https://arxiv.org/pdf/1105.1186)
 
     ![](/resources/graphics/RRT_star.png)
+
+- [Probabiltiy Roadmap (PRM)](https://en.wikipedia.org/wiki/Probabilistic_roadmap)
+    ![](/resources/graphics/PRM.png)
+
+### Other Algorithms
+- [Bresenham's Line Algorithm](https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)

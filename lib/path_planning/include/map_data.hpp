@@ -29,7 +29,8 @@ struct Map{
 // Change this class to use unordered_map (requires default constructor)
 class Graph {
     public:    
-        map<cell, vector<iw_cell>> g;
+        map<cell, vector<iw_cell>> g;           // Valid nodes
+        vector<cell> obs;                       // Obstacle nodes 
         cell root = {0, 0};
         cell end = {0, 0};
 
@@ -61,10 +62,14 @@ class Graph {
             else return false;
         }
 
-        vector<cell> get_nodes(){
+        vector<cell> get_valid_nodes(){
             vector<cell> nodes;
             for(auto node: g) nodes.push_back(node.first);
             return nodes;
+        }
+
+        vector<cell> get_obstacle_nodes(){
+            return obs;
         }
 
         void add_node(cell node){
@@ -73,6 +78,10 @@ class Graph {
 
         void add_edge(cell parent, cell child, int weight){
             g[parent].push_back({child, weight});
+        }
+        
+        void add_obstacle_node(cell node){
+            if (g.find(node)!=g.end()) obs.push_back(node);
         }
 
         int get_size(){

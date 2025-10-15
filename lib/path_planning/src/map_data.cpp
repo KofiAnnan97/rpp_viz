@@ -296,9 +296,10 @@ Graph MapData::get_graph_from_map(Map map){
                 if(row < map.px_height - 1 && col < map.px_width -1 && map.boundaries[row+1][col+1] == 0){
                     graph.add_edge(curr, cell{col+1, row+1}, 2);
                 }
-                // If cell has no neihbors add it to the graph
+                // If cell has no neighbors add it to the graph
                 if(!graph.is_node_valid(curr)) graph.add_node(curr);
             }
+            else graph.add_obstacle_node(cell{col, row});
         }
     }
     return graph;
