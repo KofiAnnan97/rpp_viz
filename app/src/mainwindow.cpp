@@ -24,7 +24,8 @@ MainWindow::~MainWindow(){
 void MainWindow::initialize_window(){
     // Initialize combobox for algorithms
     QStringList algos_lst = {AppConstants::BFS_ID, AppConstants::A_STAR_ID, 
-                             AppConstants::RRT_STAR_ID, AppConstants::ALL_ID};
+                             AppConstants::RRT_STAR_ID, AppConstants::PRM_ID,
+                             AppConstants::ALL_ID};
     ui->cb_bx_algos->addItems(algos_lst);
     num_of_algos = algos_lst.size()-1;
 
@@ -323,7 +324,12 @@ void MainWindow::on_cb_bx_algos_currentTextChanged(const QString &name){
     if(name == AppConstants::RRT_STAR_ID || name == AppConstants::ALL_ID){
         ui->lbl_iterations->show();
         ui->sp_bx_iterations->show();
-    }else{
+    }else if(name == AppConstants::PRM_ID || name == AppConstants::PRM_ID){
+        ui->lbl_iterations->show();
+        ui->sp_bx_iterations->show();
+        // Add UI element for neighbors and step size 
+    }
+    else{
         ui->lbl_iterations->hide();
         ui->sp_bx_iterations->hide();
     }
@@ -398,7 +404,7 @@ void MainWindow::on_btn_run_algo_clicked(){
         p_worker = new PathWorker();
         p_worker->moveToThread(worker_thread);
         connect(worker_thread, &QThread::started, p_worker, [this]{
-            p_worker->compute_path(algo_name, graph, max_iters);
+            p_worker->compute_path(algo_name, graph, max_iters, neighbor_count);
         });
 
         // Set signal for MainWindow functions

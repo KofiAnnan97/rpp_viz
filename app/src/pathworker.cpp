@@ -5,6 +5,7 @@
 #include "bfs.hpp"
 #include "a_star.hpp"
 #include "rrt_star.hpp"
+#include "probability_roadmap.hpp"
 
 PathWorker::PathWorker(QObject *parent)
     : QObject(parent)
@@ -55,8 +56,21 @@ void PathWorker::run_rrt_star(Graph g, int max_iters){
                           data.first, rrt.get_travelled_nodes(), data.second);
 }
 
+// PRM algorithm module
+void PathWorker::run_prm(Graph g, int sample_count, int neigbor_count){
+    auto prm = PROBABILITY_ROADMAP(g, sample_count, neigbor_count);
+    auto start_time = high_resolution_clock::now();
+    prm.solve(g.root, g.end, compute_timeout);
+    auto end_time = high_resolution_clock::now();
+    auto duration = duration_cast<milliseconds>(end_time-start_time);
+    if(duration.count() >= compute_timeout) timeout_occurred = true;
+    auto data = prm.reconstruct_path(g.root, g.end);
+    MapHelper::add_result(results, AppConstants::PRM_ID.toStdString(), duration.count(),
+                          prm.get_connected_path(data.first), prm.get_travelled_roadmap(), data.second);
+}
+
 // Compute path(s)
-void PathWorker::compute_path(QString algo_name, Graph g, int max_iters){
+void PathWorker::compute_path(QString algo_name, Graph g, int max_iters, int neighbor_count){
     results.clear();
     QString err_msg;
     auto time_converted = TimeHelper::convert_from_ms(compute_timeout);
@@ -82,6 +96,16 @@ void PathWorker::compute_path(QString algo_name, Graph g, int max_iters){
     }
     if(algo_name == AppConstants::RRT_STAR_ID || algo_name == AppConstants::ALL_ID){
         this->run_rrt_star(g, max_iters);
+        if(timeout_occurred){
+            err_msg += QString("   - RRT* Computation exceeded %1 %2\n").arg(time_converted.first).arg(time_converted.second.c_str());
+            timeout_occurred = false;
+        }
+        algos_finished++;
+        emit algo_progress(algos_finished);
+    }
+
+    if(algo_name == AppConstants::PRM_ID || algo_name == AppConstants::ALL_ID){
+        this->run_prm(g, max_iters, neighbor_count);
         if(timeout_occurred){
             err_msg += QString("   - RRT* Computation exceeded %1 %2\n").arg(time_converted.first).arg(time_converted.second.c_str());
             timeout_occurred = false;

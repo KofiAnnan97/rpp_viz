@@ -15,7 +15,9 @@ class PROBABILITY_ROADMAP{
         void dijkstra(cell sp, cell ep, c_time_point start, int timeout);
         void solve(cell sp, cell ep, int timeout);
         pair<vector<cell>, float> reconstruct_path(pair<int, int> sp, pair<int, int> ep);
+        vector<cell> get_connected_path(vector<cell> path);
         vector<cell> get_travelled_nodes();
+        vector<cell> get_travelled_roadmap();
 
     private:
         void learn(cell sp, cell ep, c_time_point start, int timeout);

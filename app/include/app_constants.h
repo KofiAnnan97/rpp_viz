@@ -25,6 +25,7 @@ class AppConstants {
         inline static const QString BFS_ID = "BFS";
         inline static const QString A_STAR_ID = "A*";
         inline static const QString RRT_STAR_ID = "RRT*";
+        inline static const QString PRM_ID = "PRM";
         inline static const QString ALL_ID = "All";
     
         // Map Constants

@@ -8,9 +8,9 @@
 #include "map_data.hpp"
 #include "bfs.hpp"
 #include "a_star.hpp"
-//#include "d_star_lite.hpp"
 #include "rrt_star.hpp"
 #include "probability_roadmap.hpp"
+//#include "d_star_lite.hpp"
 
 #include "time_helper.hpp"
 #include "map_helper.hpp"
@@ -273,6 +273,7 @@ void run_rrt_star(Map &m, Graph g, int sample_count, bool debug){
 }
 
 void run_prm(Map &m, Graph g, int sample_count, int neighbor_count, bool debug){
+    // Add prompt for updating step size
     cout << "PRM" << endl;
     auto prm = PROBABILITY_ROADMAP(g, sample_count, neighbor_count);
     
@@ -283,9 +284,9 @@ void run_prm(Map &m, Graph g, int sample_count, int neighbor_count, bool debug){
 
     vector<cell> path, travelled;
     auto results = prm.reconstruct_path(g.root, g.end);
-    path = results.first;
+    path = prm.get_connected_path(results.first);
     float dist = results.second;
-    travelled = prm.get_travelled_nodes();
+    travelled = prm.get_travelled_roadmap();
     AlgoResult ar = {ScriptConstants::PRM_ID, duration, path, travelled, dist};
     print_results(ar, debug, COMPUTE_TIMEOUT);
     show_map("PRM", m, g.root, g.end, path, travelled, debug);

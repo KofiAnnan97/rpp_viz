@@ -4,13 +4,13 @@ A testing ground for path planning strategies for ROS.
 ## Future Work
 - Release 0.1.1
     - Algorithms
-        - [ ] Probability Roadmap (CLI & GUI)
+        - [X] Probability Roadmap (CLI & GUI)
     - Bug Fixes/Optimizations
         - [X] Get eraser to scale with map scaling in graphics view
         - [X] Disable fullscreen
     - Testing
         - [X] Rewrite tests with GTest
-        - [ ] Test Probalility Roadmap (PRM)
+        - [X] Test Probalility Roadmap (PRM)
 - Release 0.2.0
     - Algorithms
         - [ ] D* Lite (CLI & GUI)
@@ -137,13 +137,14 @@ Script execution:
 - [A*](https://en.wikipedia.org/wiki/A*_search_algorithm)
 
     ![](/resources/graphics/A_star.png)
-    
+
 ### Sampling-Based Algorithms
 - [RRT* (graph-based implementation)](https://arxiv.org/pdf/1105.1186)
 
     ![](/resources/graphics/RRT_star.png)
 
 - [Probabiltiy Roadmap (PRM)](https://en.wikipedia.org/wiki/Probabilistic_roadmap)
+    
     ![](/resources/graphics/PRM.png)
 
 ### Other Algorithms

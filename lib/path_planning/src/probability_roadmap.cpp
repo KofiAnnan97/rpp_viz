@@ -113,13 +113,6 @@ void PROBABILITY_ROADMAP::solve(cell sp, cell ep, int timeout){
 }
 
 pair<vector<cell>, float> PROBABILITY_ROADMAP::reconstruct_path(pair<int, int> sp, pair<int, int> ep){
-    /*cout << parent.size() << endl;
-    for(auto n = parent.begin(); n != parent.end(); ++n){
-        cout << "(" << n->first.first << "," << n->first.second 
-             << ") -> (" << n->second.first << "," << n->second.second
-             << ")\n";
-    }
-    cout << "]\n";*/
     auto data = pair<vector<cell>, float>();
     if(sp != ep) data.first.push_back(ep);
     auto curr = ep;
@@ -148,18 +141,9 @@ cell PROBABILITY_ROADMAP::get_random_node(){
 bool PROBABILITY_ROADMAP::is_collision_free(cell c, cell d){
     auto line = Bresenham::connect_points(c, d);
     for(auto pt: line){
-        // Option 1
-        //for(auto o_pt: all_obstacle_nodes){
-        //    if(pt == o_pt) return false;
-        //}
-        // Option 2
         if(!tree.is_node_valid(pt)) return false;
     }
     return true;
-}
-
-vector<cell> PROBABILITY_ROADMAP::get_travelled_nodes(){
-    return travelled;
 }
 
 bool PROBABILITY_ROADMAP::not_in_set(vector<cell> open_set, cell p){
@@ -189,6 +173,40 @@ cell PROBABILITY_ROADMAP::get_min_f(vector<cell> &s){
 
 float PROBABILITY_ROADMAP::get_f_score(cell p){
     return dist[p];
+}
+
+vector<cell> PROBABILITY_ROADMAP::get_connected_path(vector<cell> path){
+    vector<cell> connected_path;
+    for(int i = 0; i < path.size()-1; i++){
+        connected_path.push_back(path[i]);
+        auto line = Bresenham::connect_points(path[i], path[i+1]);
+        for(int j = 1; j < line.size()-1; j++)
+            connected_path.push_back(line[j]);
+    }
+    connected_path.push_back(path[path.size()-1]);
+    return connected_path;
+}
+
+vector<cell> PROBABILITY_ROADMAP::get_travelled_nodes(){
+    return travelled;
+}
+
+vector<cell> PROBABILITY_ROADMAP::get_travelled_roadmap(){
+    auto travelled_nodes = PROBABILITY_ROADMAP::get_travelled_nodes();
+    set<cell> unique_nodes(travelled_nodes.begin(), travelled_nodes.end());
+    for(int i = 0; i < travelled_nodes.size(); i++){
+        auto neighbors = kd_tree[travelled_nodes[i]];
+        for(auto neighbor: neighbors){
+            if(unique_nodes.find(neighbor) != unique_nodes.end() && is_collision_free(travelled_nodes[i], neighbor)){
+                auto line = Bresenham::connect_points(travelled_nodes[i], neighbor);
+                unique_nodes.insert(line.begin(), line.end());
+            }
+        }
+    }
+    vector<cell> visited;
+    for(auto it = unique_nodes.begin(); it != unique_nodes.end(); ++it)
+        visited.push_back(cell{it->first, it->second});
+    return visited;
 }
 
 void PROBABILITY_ROADMAP::print_roadmap(){
