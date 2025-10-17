@@ -75,8 +75,9 @@ private:
     Graph graph;
     bool path_computed = false;
     QString algo_name;
-    int max_iters = 10000;
-    int neighbor_count = 4;
+    int max_iters = AppConstants::DEFAULT_SAMPLE_COUNT;
+    int neighbor_count = AppConstants::DEFAULT_NEIGHBOR_COUNT;
+    int step_size = AppConstants::DEFAULT_STEP_SIZE;
     cell start_pos = {-1,-1};
     cell goal_pos = {-1,-1};
     vector<AlgoResult> results;

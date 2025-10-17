@@ -17,7 +17,7 @@ void PROBABILITY_ROADMAP::find_nearest_neighbors(int k, c_time_point start, int 
             auto now = high_resolution_clock::now();
             if(duration_cast<milliseconds>(now-start).count() >= timeout) return;
             if(it->first == it2->first) continue;
-            else if(it->second.size() < k && Distance::euclidean(curr, it2->first) < step_dist &&
+            else if(it->second.size() < k && Distance::euclidean(curr, it2->first) < step_size &&
                     is_collision_free(curr, it2->first)){
                 it->second.insert(it2->first);
             }
@@ -57,7 +57,7 @@ void PROBABILITY_ROADMAP::find_nearest_neighbors(int k, c_time_point start, int 
 }
 
 void PROBABILITY_ROADMAP::learn(cell sp, cell ep, c_time_point start, int timeout){
-    // Initialize KD tree for sample nodes
+    // Initialize KD tree with sample nodes
     set<cell> temp;
     kd_tree.insert({sp, temp});
     for(int s_idx = 0; s_idx < max_sample_count; s_idx++){
@@ -100,7 +100,7 @@ void PROBABILITY_ROADMAP::dijkstra(cell sp, cell ep, c_time_point start, int tim
 void PROBABILITY_ROADMAP::solve(cell sp, cell ep, int timeout){
     auto start = high_resolution_clock::now();
 
-    // Populate Fake KD tree for the sampled nodes 
+    // Populate KD tree with sampled nodes 
     PROBABILITY_ROADMAP::learn(sp, ep, start, timeout);
     //PROBABILITY_ROADMAP::print_roadmap();
     
@@ -173,6 +173,10 @@ cell PROBABILITY_ROADMAP::get_min_f(vector<cell> &s){
 
 float PROBABILITY_ROADMAP::get_f_score(cell p){
     return dist[p];
+}
+
+void PROBABILITY_ROADMAP::set_step_size(int size){
+    step_size = size;
 }
 
 vector<cell> PROBABILITY_ROADMAP::get_connected_path(vector<cell> path){

@@ -476,7 +476,7 @@
            <item>
             <widget class="QLabel" name="lbl_iterations">
              <property name="text">
-              <string>Maximum Iterations: </string>
+              <string>Sample Count: </string>
              </property>
             </widget>
            </item>
@@ -493,6 +493,44 @@
              </property>
              <property name="value">
               <number>10000</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="layout_prm">
+           <item>
+            <widget class="QLabel" name="lbl_neighbors">
+             <property name="text">
+              <string>Neighbors: </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="sp_bx_neighbors">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>500</number>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lbl_step_size">
+             <property name="text">
+              <string>Step Size:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="sp_bx_step_size">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>50</number>
              </property>
             </widget>
            </item>
@@ -558,7 +596,7 @@
               <x>0</x>
               <y>0</y>
               <width>394</width>
-              <height>139</height>
+              <height>105</height>
              </rect>
             </property>
             <property name="minimumSize">

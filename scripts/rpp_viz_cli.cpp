@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <chrono>
 #include <iomanip>
@@ -18,14 +19,21 @@
 
 #include "helper_func.cpp"
 
+struct SampleCountByAlgo{
+    int rrt_star_count = ScriptConstants::DEFAULT_SAMPLE_COUNT;
+    int prm_count = ScriptConstants::DEFAULT_SAMPLE_COUNT;
+};
+
 struct Parameters{
     string algo, map_yaml;
     bool show_debug = false, get_help = false, kill_script = false;
-    int inflate_size = 3, sample_count = 10000, neighbor_count = 4;
+    int inflate_size = ScriptConstants::DEFAULT_INFLATE_SIZE, 
+        neighbor_count = ScriptConstants::DEFAULT_NEIGHBOR_COUNT;
+    SampleCountByAlgo sample_counts;
     cell start, goal;
 };
 
-int COMPUTE_TIMEOUT = 600000; //in milliseconds
+int compute_timeout = ScriptConstants::DEFAULT_COMPUTE_TIMEOUT;
 vector<AlgoResult> algo_results;
 
 void print_help_menu(){
@@ -36,7 +44,7 @@ void print_help_menu(){
     cout << "   -i INFLATE_SIZE. --inflate-size INFLATE_SIZE\n";
     cout << "                                              Set size of boundaries (Default: 3).\n";
     cout << "   -a ALGORITHM, --algorithm ALGORITHM        Set executed algoritm to one of the following:\n";
-    cout << "                                              [bfs, a-star, rrt-star, all].\n";
+    cout << "                                              [bfs, a-star, rrt-star, prm, all].\n";
     cout << "   -l SAMPLE_LIMIT, --sample-limit SAMPLE_LIMIT\n";
     cout << "                                              Set a limit on the number of samples generated.\n";
     cout << "                                              Only supported for sample-based methods (Default: 10000).\n";
@@ -47,6 +55,26 @@ void print_help_menu(){
     cout << "   -d, --debug                                Provide more information for debugging.\n";
     cout << "   -t TIMEOUT, timeout TIMEOUT                Set timeout limit for algorithm computation\n";
     cout << "                                              (Default: 600000 ms).\n";
+}
+
+string trim_whitespace(string word){
+    int start = 0;
+    int end = word.length()-1;
+    while(start < end){
+        if(word[start] != ' ' && word[end] != ' ') break;
+        if(word[start] == ' ') start++;
+        if(word[end] == ' ') end--;
+    }
+    return word.substr(start, end-start+1);
+}
+
+string remove_quotes(string word){
+    int start = 0, end = word.length()-1;
+    if(word[start] == '\'' && word[end] == '\'' ||
+       word[start] == '\"' || word[end] == '\"') 
+       return word.substr(start+1, end-start-1);
+    else return word;
+    
 }
 
 Parameters get_params(int argc, char* argv[]){
@@ -95,12 +123,37 @@ Parameters get_params(int argc, char* argv[]){
             }
             else {
                 try{
-                    params.sample_count = std::stoi(argv[i+1]);
-                    i++;
+                    string original_str = trim_whitespace(argv[i+1]);
+                    string bracketless_str = original_str.substr(1, original_str.length()-2);
+                    if(original_str[0] == '{'){  
+                        string key, value, kv_pair;
+                        stringstream json_str(bracketless_str);
+                        while(getline(json_str, kv_pair, ',')){
+                            stringstream kv_ss(kv_pair);
+                            getline(kv_ss, key, ':');
+                            getline(kv_ss, value, ':');
+                            key = trim_whitespace(key);
+                            key = remove_quotes(key);
+                            value = trim_whitespace(value);
+                            if(key == ScriptConstants::RRT_STAR_ID)
+                                params.sample_counts.rrt_star_count = std::stoi(value);
+                            else if(key == ScriptConstants::PRM_ID)
+                                params.sample_counts.prm_count = std::stoi(value);
+                            else {
+                                string err_msg = "Make sure the " + key + " is a supported algoirthm and quotation marks are balanced.";
+                                throw std::invalid_argument(err_msg);
+                            }
+                        }
+                    }
+                    else{
+                        params.sample_counts.rrt_star_count = std::stoi(original_str);
+                        params.sample_counts.prm_count = std::stoi(original_str);
+                    }    
                 }catch(std::invalid_argument e){
-                    cout << "Could not convert \"" << argv[i+1] << "\" value to integer. Defaulting to 10000" << endl;
-                    params.kill_script = true;
+                    cout << "Invalid Argument: " << argv[i+1] << ".\nValue should be a single integer or json string.\n" << e.what() << endl;
+                    params.kill_script = true;   
                 }
+                i++;
             }
         }
         else if(strcmp(argv[i], "-k") == 0 || strcmp(argv[i], "--neighbors") == 0){
@@ -152,7 +205,7 @@ Parameters get_params(int argc, char* argv[]){
             }
             else{
                 try{
-                    COMPUTE_TIMEOUT = std::stoi(argv[i+1]);
+                    compute_timeout = std::stoi(argv[i+1]);
                     i++;
                 }
                 catch(std::invalid_argument e){
@@ -212,11 +265,11 @@ void show_map(string title, Map &m, cell sp, cell ep, vector<cell> path, vector<
 }
 
 void run_bfs(Map &m, Graph g, bool debug){
-    cout << "BFS" << endl;
+    cout << "\nBFS" << endl;
     auto bfs = BFS(g);
     
     auto start_time = TimeHelper::get_time("Start Time", true);
-    bfs.solve(g.root, g.end, COMPUTE_TIMEOUT);
+    bfs.solve(g.root, g.end, compute_timeout);
     auto end_time = TimeHelper::get_time("End Time", true);
     int duration = duration_cast<milliseconds>(end_time - start_time).count();
     
@@ -225,16 +278,16 @@ void run_bfs(Map &m, Graph g, bool debug){
     float dist = results.second;
     vector<cell> travelled = bfs.get_travelled_nodes();
     AlgoResult ar = {ScriptConstants::BFS_ID, duration, path, travelled, dist};
-    print_results(ar, debug, COMPUTE_TIMEOUT);
+    print_results(ar, debug, compute_timeout);
     show_map("BFS", m, g.root, g.end, path, travelled, debug);
 }
 
 void run_astar(Map &m, Graph g, bool debug){
-    cout << "A-STAR" << endl;
+    cout << "\nA-STAR" << endl;
     auto as = AStar(g);
     
     auto start_time = TimeHelper::get_time("Start Time", true);
-    as.solve(g.root, g.end, COMPUTE_TIMEOUT);
+    as.solve(g.root, g.end, compute_timeout);
     auto end_time = TimeHelper::get_time("End Time", true);
     int duration = duration_cast<milliseconds>(end_time - start_time).count();
     
@@ -243,16 +296,17 @@ void run_astar(Map &m, Graph g, bool debug){
     float dist = results.second;
     vector<cell> travelled = as.get_travelled_nodes();
     AlgoResult ar = {ScriptConstants::A_STAR_ID, duration, path, travelled, dist};
-    print_results(ar, debug, COMPUTE_TIMEOUT);
+    print_results(ar, debug, compute_timeout);
     show_map("A*", m, g.root, g.end, path, travelled, debug);
 }
 
 void run_rrt_star(Map &m, Graph g, int sample_count, bool debug){
-    cout << "RRT-STAR" << endl;
+    cout << "\nRRT-STAR" << endl;
+    if(debug) cout << "Configuration:\n\tSample Count: " << sample_count << endl;
     auto rrt = RRTStar(g, sample_count);
     
     auto start_time = TimeHelper::get_time("Start Time", true);
-    rrt.solve(g.root, g.end, COMPUTE_TIMEOUT);
+    rrt.solve(g.root, g.end, compute_timeout);
     auto end_time = TimeHelper::get_time("End Time", true);
     int duration = duration_cast<milliseconds>(end_time - start_time).count();
 
@@ -263,7 +317,7 @@ void run_rrt_star(Map &m, Graph g, int sample_count, bool debug){
         float dist = results.second;
         travelled = rrt.get_travelled_nodes();
         AlgoResult ar = {ScriptConstants::RRT_STAR_ID, duration, path, travelled, dist};
-        print_results(ar, debug, COMPUTE_TIMEOUT);
+        print_results(ar, debug, compute_timeout);
     }
     else {
         cout << "Goal could not be reached. Please check the following:";
@@ -273,12 +327,29 @@ void run_rrt_star(Map &m, Graph g, int sample_count, bool debug){
 }
 
 void run_prm(Map &m, Graph g, int sample_count, int neighbor_count, bool debug){
-    // Add prompt for updating step size
-    cout << "PRM" << endl;
+    cout << "\nPRM" << endl;
+    int step_size;
+    string step_size_str;
+    try{  
+        cout << "Set step size: ";
+        cin >> step_size_str;
+        step_size = std::stoi(step_size_str);
+    } 
+    catch(std::invalid_argument e){
+        step_size = ScriptConstants::DEFAULT_STEP_SIZE;
+        cout << "Invalid value: " << step_size_str << ", Defaulting to " << step_size << endl;
+    }
+    if(debug){
+        cout << "Configuration\n\tSample Count: " << sample_count
+             << "\n\tNeighbor count: " << neighbor_count 
+             << "\n\tStep size: " << step_size << endl;
+    }
+
     auto prm = PROBABILITY_ROADMAP(g, sample_count, neighbor_count);
+    prm.set_step_size(step_size);
     
     auto start_time = TimeHelper::get_time("Start Time", true);
-    prm.solve(g.root, g.end, COMPUTE_TIMEOUT);
+    prm.solve(g.root, g.end, compute_timeout);
     auto end_time = TimeHelper::get_time("End Time", true);
     int duration = duration_cast<milliseconds>(end_time - start_time).count();
 
@@ -288,7 +359,7 @@ void run_prm(Map &m, Graph g, int sample_count, int neighbor_count, bool debug){
     float dist = results.second;
     travelled = prm.get_travelled_roadmap();
     AlgoResult ar = {ScriptConstants::PRM_ID, duration, path, travelled, dist};
-    print_results(ar, debug, COMPUTE_TIMEOUT);
+    print_results(ar, debug, compute_timeout);
     show_map("PRM", m, g.root, g.end, path, travelled, debug);
 }
 
@@ -317,9 +388,9 @@ int main(int argc, char* argv[]){
             if(params.algo == ScriptConstants::A_STAR_ID || params.algo == ScriptConstants::ALL_ID) 
                 run_astar(map, g, params.show_debug);
             if(params.algo == ScriptConstants::RRT_STAR_ID || params.algo == ScriptConstants::ALL_ID) 
-                run_rrt_star(map, g, params.sample_count, params.show_debug);
+                run_rrt_star(map, g, params.sample_counts.rrt_star_count, params.show_debug);
             if(params.algo == ScriptConstants::PRM_ID || params.algo == ScriptConstants::ALL_ID)
-                run_prm(map, g, params.sample_count, params.neighbor_count, params.show_debug);
+                run_prm(map, g, params.sample_counts.prm_count, params.neighbor_count, params.show_debug);
             //if(params.algo == "d-lite" || params.algo == ALL_ID) run_d_star_lite(map, g, params.show_debug);
             if(!is_valid_algo(params.algo)) cout << "Unrecognized algorithm: " << params.algo << endl;
         }

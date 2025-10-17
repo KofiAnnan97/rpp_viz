@@ -44,8 +44,8 @@ void PathWorker::run_a_star(Graph g){
 }
 
 // RRT* algorithm module
-void PathWorker::run_rrt_star(Graph g, int max_iters){
-    auto rrt = RRTStar(g, max_iters);
+void PathWorker::run_rrt_star(Graph g, int sample_count){
+    auto rrt = RRTStar(g, sample_count);
     auto start_time = high_resolution_clock::now();
     rrt.solve(g.root, g.end, compute_timeout);
     auto end_time = high_resolution_clock::now();
@@ -57,8 +57,9 @@ void PathWorker::run_rrt_star(Graph g, int max_iters){
 }
 
 // PRM algorithm module
-void PathWorker::run_prm(Graph g, int sample_count, int neigbor_count){
+void PathWorker::run_prm(Graph g, int sample_count, int neigbor_count, int step_size){
     auto prm = PROBABILITY_ROADMAP(g, sample_count, neigbor_count);
+    prm.set_step_size(step_size);
     auto start_time = high_resolution_clock::now();
     prm.solve(g.root, g.end, compute_timeout);
     auto end_time = high_resolution_clock::now();
@@ -70,7 +71,7 @@ void PathWorker::run_prm(Graph g, int sample_count, int neigbor_count){
 }
 
 // Compute path(s)
-void PathWorker::compute_path(QString algo_name, Graph g, int max_iters, int neighbor_count){
+void PathWorker::compute_path(QString algo_name, Graph g, int sample_count, int neighbor_count, int step_size){
     results.clear();
     QString err_msg;
     auto time_converted = TimeHelper::convert_from_ms(compute_timeout);
@@ -95,7 +96,7 @@ void PathWorker::compute_path(QString algo_name, Graph g, int max_iters, int nei
         emit algo_progress(algos_finished);
     }
     if(algo_name == AppConstants::RRT_STAR_ID || algo_name == AppConstants::ALL_ID){
-        this->run_rrt_star(g, max_iters);
+        this->run_rrt_star(g, sample_count);
         if(timeout_occurred){
             err_msg += QString("   - RRT* Computation exceeded %1 %2\n").arg(time_converted.first).arg(time_converted.second.c_str());
             timeout_occurred = false;
@@ -105,7 +106,7 @@ void PathWorker::compute_path(QString algo_name, Graph g, int max_iters, int nei
     }
 
     if(algo_name == AppConstants::PRM_ID || algo_name == AppConstants::ALL_ID){
-        this->run_prm(g, max_iters, neighbor_count);
+        this->run_prm(g, sample_count, neighbor_count, step_size);
         if(timeout_occurred){
             err_msg += QString("   - RRT* Computation exceeded %1 %2\n").arg(time_converted.first).arg(time_converted.second.c_str());
             timeout_occurred = false;

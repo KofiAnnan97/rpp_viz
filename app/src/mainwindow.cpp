@@ -32,6 +32,10 @@ void MainWindow::initialize_window(){
     // Set max_iter to the current value
     max_iters = ui->sp_bx_iterations->value();
 
+    // Set neigbor count and step size
+    ui->sp_bx_neighbors->setValue(neighbor_count);
+    ui->sp_bx_step_size->setValue(step_size);
+
     // Initialize map display
     draw_panel = new DrawingPanel(ui->view_map);
 
@@ -81,6 +85,8 @@ void MainWindow::set_settings_enabled(bool is_enabled){
     ui->cb_bx_algos->setEnabled(is_enabled);
     ui->sp_bx_iterations->setEnabled(is_enabled);
     ui->btn_run_algo->setEnabled(is_enabled);
+    ui->sp_bx_step_size->setEnabled(is_enabled);
+    ui->sp_bx_neighbors->setEnabled(is_enabled);
 }
 
 bool MainWindow::eventFilter(QObject *object, QEvent *event){
@@ -320,14 +326,23 @@ void MainWindow::on_cb_bx_algos_currentTextChanged(const QString &name){
         ui->ch_bx_debug->show();
     }
 
-    // Update max iterations spinbox
-    if(name == AppConstants::RRT_STAR_ID || name == AppConstants::ALL_ID){
+    // Toggle Neighbor Count and Step Size UI Elements
+    if(name == AppConstants::PRM_ID || name == AppConstants::ALL_ID){
+        ui->lbl_neighbors->show();
+        ui->sp_bx_step_size->show();
+        ui->lbl_step_size->show();
+        ui->sp_bx_neighbors->show();
+    }else{
+        ui->lbl_neighbors->hide();
+        ui->sp_bx_step_size->hide();
+        ui->lbl_step_size->hide();
+        ui->sp_bx_neighbors->hide();
+    }
+
+    // Toggle Sample Count UI Element
+    if(name == AppConstants::RRT_STAR_ID || name == AppConstants::ALL_ID || name == AppConstants::PRM_ID){
         ui->lbl_iterations->show();
-        ui->sp_bx_iterations->show();
-    }else if(name == AppConstants::PRM_ID || name == AppConstants::PRM_ID){
-        ui->lbl_iterations->show();
-        ui->sp_bx_iterations->show();
-        // Add UI element for neighbors and step size 
+        ui->sp_bx_iterations->show();   
     }
     else{
         ui->lbl_iterations->hide();
@@ -392,19 +407,20 @@ void MainWindow::on_btn_run_algo_clicked(){
         graph.end = goal_pos;
 
         max_iters = ui->sp_bx_iterations->value();
+        neighbor_count = ui->sp_bx_step_size->value();
+        step_size = ui->sp_bx_neighbors->value();
         if(path_computed){
             draw_panel->update_map(AppConstants::DISPLAY_MAP_ID);
             path_computed = false;
         }
         this->set_settings_enabled(false);
 
-
         // Create thread for running path computation
         worker_thread = new QThread;
         p_worker = new PathWorker();
         p_worker->moveToThread(worker_thread);
         connect(worker_thread, &QThread::started, p_worker, [this]{
-            p_worker->compute_path(algo_name, graph, max_iters, neighbor_count);
+            p_worker->compute_path(algo_name, graph, max_iters, neighbor_count, step_size);
         });
 
         // Set signal for MainWindow functions

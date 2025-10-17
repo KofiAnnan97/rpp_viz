@@ -15,6 +15,13 @@ class ScriptConstants {
         inline static const string RRT_STAR_ID = "rrt-star";
         inline static const string PRM_ID = "prm";
         inline static const string ALL_ID = "all";
+
+        // Defaults
+        static const int DEFAULT_INFLATE_SIZE = 3;
+        static const int DEFAULT_SAMPLE_COUNT = 10000;
+        static const int DEFAULT_STEP_SIZE = 20;
+        static const int DEFAULT_NEIGHBOR_COUNT = 8;
+        static const int DEFAULT_COMPUTE_TIMEOUT = 600000; //in milliseconds
 };
 
 #endif // SCRIPT_CONSTANTS_HPP

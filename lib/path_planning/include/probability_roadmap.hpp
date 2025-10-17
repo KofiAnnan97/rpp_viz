@@ -15,6 +15,7 @@ class PROBABILITY_ROADMAP{
         void dijkstra(cell sp, cell ep, c_time_point start, int timeout);
         void solve(cell sp, cell ep, int timeout);
         pair<vector<cell>, float> reconstruct_path(pair<int, int> sp, pair<int, int> ep);
+        void set_step_size(int size);
         vector<cell> get_connected_path(vector<cell> path);
         vector<cell> get_travelled_nodes();
         vector<cell> get_travelled_roadmap();
@@ -28,7 +29,6 @@ class PROBABILITY_ROADMAP{
         cell get_min_f(vector<cell> &s);
         float get_f_score(cell p);
         void print_roadmap();
-        int step_dist = 20;
 
         Graph tree;
         map<cell, float> dist;
@@ -40,6 +40,7 @@ class PROBABILITY_ROADMAP{
         vector<cell> all_obstacle_nodes;
         int max_sample_count;
         int max_neighbor_count;
+        int step_size;
 };
 
 #endif // PROBABILITY_ROADMAP_HPP

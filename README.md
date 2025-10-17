@@ -3,8 +3,12 @@ A testing ground for path planning strategies for ROS.
 
 ## Future Work
 - Release 0.1.1
+    - General
+        - [ ] Allow for algorithm based sample count (CLI & GUI)
     - Algorithms
         - [X] Probability Roadmap (CLI & GUI)
+    - GUI
+        - [X] Add UI elements for neighbor count and max distance for PRM
     - Bug Fixes/Optimizations
         - [X] Get eraser to scale with map scaling in graphics view
         - [X] Disable fullscreen
@@ -12,8 +16,14 @@ A testing ground for path planning strategies for ROS.
         - [X] Rewrite tests with GTest
         - [X] Test Probalility Roadmap (PRM)
 - Release 0.2.0
+    - General
+        - [ ] Fix map to pose conversions
     - Algorithms
         - [ ] D* Lite (CLI & GUI)
+        - [ ] Optimize algorithms   
+            - [ ] convert map to unordered_map
+            - [ ] PRM find_nearest_neighbors()
+            - [ ] Implement Priority queue for A*
     - GUI
         - [ ] Change behavior of the pen and eraser to support dragging movements
         - [ ] [Optional] Animate traversal of map and final path
@@ -21,6 +31,7 @@ A testing ground for path planning strategies for ROS.
         - [ ] Add more extensive error handling for GUI
     - Testing
         - [ ] Test D* Replan with changing map
+        - [ ] Confirm map conversion tests work properly
 
 
 ## Dependencies
@@ -83,7 +94,7 @@ options:
    -i INFLATE_SIZE. --inflate-size INFLATE_SIZE
                                               Set size of boundaries (Default: 3).
    -a ALGORITHM, --algorithm ALGORITHM        Set executed algoritm to one of the following:
-                                              [bfs, a-star, rrt-star, all].
+                                              [bfs, a-star, rrt-star, prm, all].
    -l SAMPLES_LIMIT, --samples-limit SAMPLES_LIMIT
                                               Set a limit on the number of samples generated.
                                               Only supported for sample-based methods (Default: 10000).
@@ -99,6 +110,10 @@ options:
 Example execution:
 ```bash
 ./build/rpp_cli -f "/path/to/example1.yaml" -i 5 -a "rrt-star" -l 10000 -s "300,50" -e "381,360" -d
+```
+To specify different sample limits for sampling algorithms run the following:
+```bash
+./build/rpp_cli -f "/path/to/example1.yaml" -i 5 -a "all" -l "{'rrt-star': 8000, 'prm': 4000}" -s "300,50" -e "381,360" -d
 ```
 
 ## Maps
@@ -137,7 +152,7 @@ Script execution:
 - [A*](https://en.wikipedia.org/wiki/A*_search_algorithm)
 
     ![](/resources/graphics/A_star.png)
-
+    
 ### Sampling-Based Algorithms
 - [RRT* (graph-based implementation)](https://arxiv.org/pdf/1105.1186)
 

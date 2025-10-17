@@ -32,6 +32,12 @@ class AppConstants {
         inline static const string OBSTACLE_MAP_ID = "obstacle_map";
         inline static const string DISPLAY_MAP_ID = "display_map";
         inline static const string PATH_MAP_ID = "path_map";
+
+        // Defaults
+        static const int DEFAULT_SAMPLE_COUNT = 10000;
+        static const int DEFAULT_NEIGHBOR_COUNT = 8;
+        static const int DEFAULT_STEP_SIZE = 20;
+        static const int DEFAULT_COMPUTE_TIMEOUT = 600000;  // in milliseconds (10 minutes)
 };
 
 #endif // APP_CONSTANTS_H
