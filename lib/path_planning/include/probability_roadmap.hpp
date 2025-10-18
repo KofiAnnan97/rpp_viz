@@ -15,15 +15,14 @@ class PROBABILITY_ROADMAP{
         void dijkstra(cell sp, cell ep, c_time_point start, int timeout);
         void solve(cell sp, cell ep, int timeout);
         pair<vector<cell>, float> reconstruct_path(pair<int, int> sp, pair<int, int> ep);
-        void set_step_size(int size);
+        //void set_step_size(int size);
         vector<cell> get_connected_path(vector<cell> path);
         vector<cell> get_travelled_nodes();
         vector<cell> get_travelled_roadmap();
 
     private:
         void learn(cell sp, cell ep, c_time_point start, int timeout);
-        cell get_random_node();
-        bool is_collision_free(cell c, cell d);
+        pair<cell,float> get_furthest_neighbor(cell node, set<cell> neighbors);
         void find_nearest_neighbors(int k, c_time_point start, int timeout);
         bool not_in_set(vector<cell> open_set, cell p);
         cell get_min_f(vector<cell> &s);

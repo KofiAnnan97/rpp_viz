@@ -16,7 +16,6 @@ class RRTStar{
         vector<cell> get_travelled_nodes();
 
     private:
-        cell get_random_node();
         cell get_nearest_node(vector<cell> node_list, cell random_node);
         cell steer(cell from_node, cell to_node);
         vector<cell> find_neighbors(vector<cell> node_list, cell node);

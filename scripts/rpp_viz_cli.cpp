@@ -15,25 +15,21 @@
 
 #include "time_helper.hpp"
 #include "map_helper.hpp"
+#include "structs.hpp"
 #include "script_constants.hpp"
 
 #include "helper_func.cpp"
 
-struct SampleCountByAlgo{
-    int rrt_star_count = ScriptConstants::DEFAULT_SAMPLE_COUNT;
-    int prm_count = ScriptConstants::DEFAULT_SAMPLE_COUNT;
-};
-
 struct Parameters{
     string algo, map_yaml;
     bool show_debug = false, get_help = false, kill_script = false;
-    int inflate_size = ScriptConstants::DEFAULT_INFLATE_SIZE, 
-        neighbor_count = ScriptConstants::DEFAULT_NEIGHBOR_COUNT;
+    int inflate_size = MapConstants::DEFAULT_INFLATE_SIZE, 
+        neighbor_count = AlgoConstants::DEFAULT_NEIGHBOR_COUNT;
     SampleCountByAlgo sample_counts;
     cell start, goal;
 };
 
-int compute_timeout = ScriptConstants::DEFAULT_COMPUTE_TIMEOUT;
+int compute_timeout = AlgoConstants::DEFAULT_COMPUTE_TIMEOUT;
 vector<AlgoResult> algo_results;
 
 void print_help_menu(){
@@ -42,19 +38,19 @@ void print_help_menu(){
     cout << "   -h, --help                                 Show this help message and exit.\n";
     cout << "   -f FILE, --file FILE                       Provide map yaml filepath.\n";
     cout << "   -i INFLATE_SIZE. --inflate-size INFLATE_SIZE\n";
-    cout << "                                              Set size of boundaries (Default: 3).\n";
+    cout << "                                              Set size of boundaries (Default: " << MapConstants::DEFAULT_INFLATE_SIZE << ").\n";
     cout << "   -a ALGORITHM, --algorithm ALGORITHM        Set executed algoritm to one of the following:\n";
     cout << "                                              [bfs, a-star, rrt-star, prm, all].\n";
     cout << "   -l SAMPLE_LIMIT, --sample-limit SAMPLE_LIMIT\n";
     cout << "                                              Set a limit on the number of samples generated.\n";
-    cout << "                                              Only supported for sample-based methods (Default: 10000).\n";
+    cout << "                                              Only supported for sample-based methods (Default: " << AlgoConstants::DEFAULT_SAMPLE_COUNT << ").\n";
     cout << "   -k NEIGHBORS, --neighbors NEIGHBORS        Set the number of neighbors a node can have.\n";
-    cout << "                                              Exlusive to PRM algorithm (Default: 4)\n";
+    cout << "                                              Exlusive to PRM algorithm (Default: " << AlgoConstants::DEFAULT_NEIGHBOR_COUNT << ")\n";
     cout << "   -s START_POS, --start-pos START_POS        Set start position [Format: \"int,int\"].\n";
     cout << "   -e END_POS, --end-pos END_POS              Set end position [Format: \"int,int\"].\n";
     cout << "   -d, --debug                                Provide more information for debugging.\n";
     cout << "   -t TIMEOUT, timeout TIMEOUT                Set timeout limit for algorithm computation\n";
-    cout << "                                              (Default: 600000 ms).\n";
+    cout << "                                              (Default: " << AlgoConstants::DEFAULT_COMPUTE_TIMEOUT << " ms).\n";
 }
 
 string trim_whitespace(string word){
@@ -328,6 +324,7 @@ void run_rrt_star(Map &m, Graph g, int sample_count, bool debug){
 
 void run_prm(Map &m, Graph g, int sample_count, int neighbor_count, bool debug){
     cout << "\nPRM" << endl;
+    /*// Not sure step size/max distance is needed
     int step_size;
     string step_size_str;
     try{  
@@ -338,15 +335,14 @@ void run_prm(Map &m, Graph g, int sample_count, int neighbor_count, bool debug){
     catch(std::invalid_argument e){
         step_size = ScriptConstants::DEFAULT_STEP_SIZE;
         cout << "Invalid value: " << step_size_str << ", Defaulting to " << step_size << endl;
-    }
+    }*/
     if(debug){
         cout << "Configuration\n\tSample Count: " << sample_count
-             << "\n\tNeighbor count: " << neighbor_count 
-             << "\n\tStep size: " << step_size << endl;
+             << "\n\tNeighbor count: " << neighbor_count << endl; 
+             //<< "\n\tStep size: " << step_size << endl;
     }
 
     auto prm = PROBABILITY_ROADMAP(g, sample_count, neighbor_count);
-    prm.set_step_size(step_size);
     
     auto start_time = TimeHelper::get_time("Start Time", true);
     prm.solve(g.root, g.end, compute_timeout);

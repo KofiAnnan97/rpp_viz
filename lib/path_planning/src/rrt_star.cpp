@@ -21,7 +21,7 @@ void RRTStar::solve(cell sp, cell ep, int timeout){
         //if(i%1000 == 0) cout << "Iteration: " << i << endl;
         auto now = high_resolution_clock::now();
         if(duration_cast<milliseconds>(now-start).count() >= timeout) break;
-        auto random_node = RRTStar::get_random_node();
+        auto random_node = Samples::get_random_node(tree.end, all_valid_nodes);
         auto nearest_node = get_nearest_node(node_list, random_node);
         auto new_node = steer(nearest_node, random_node);
         //cout << "Random node: (" << random_node.first <<"," <<random_node.second <<")\n";
@@ -62,19 +62,6 @@ pair<vector<cell>, float> RRTStar::reconstruct_path(cell sp, cell ep){
     }
     data.second = cost_map[ep];
     return data;
-}
-
-cell RRTStar::get_random_node(){
-    double r = (double)rand()/(double)RAND_MAX;
-    cell random_node;
-    if(r > 0.2) {
-        int r_idx = rand()%all_valid_nodes.size();
-        random_node = {all_valid_nodes[r_idx].first, all_valid_nodes[r_idx].second};
-        all_valid_nodes.erase(all_valid_nodes.begin()+r_idx);
-        all_valid_nodes.push_back(random_node);
-    }
-    else random_node = {tree.end.first, tree.end.second};
-    return random_node;
 }
 
 cell RRTStar::get_nearest_node(vector<cell> node_list, cell random_node){

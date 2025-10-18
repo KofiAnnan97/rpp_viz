@@ -78,3 +78,27 @@ class Distance{
             return sqrt(pow(a.first - b.first, 2) + pow(a.second - b.second, 2));
         }
 };
+
+class Samples{
+    public:
+        static bool is_collision_free(cell c, cell d, Graph &tree){
+            auto line = Bresenham::connect_points(c, d);
+            for(auto pt: line){
+                if(!tree.is_node_valid(pt)) return false;
+            }
+            return true;
+        }
+
+        static cell get_random_node(cell ep, vector<cell> &all_valid_nodes){
+            double r = (double)rand()/(double)RAND_MAX;
+            cell random_node;
+            if(r > 0.2) {
+                int r_idx = rand()%all_valid_nodes.size();
+                random_node = {all_valid_nodes[r_idx].first, all_valid_nodes[r_idx].second};
+                all_valid_nodes.erase(all_valid_nodes.begin()+r_idx);
+                all_valid_nodes.push_back(random_node);
+            }
+            else random_node = ep;
+            return random_node;
+        }
+};

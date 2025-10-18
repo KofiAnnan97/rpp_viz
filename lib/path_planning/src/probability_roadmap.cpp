@@ -7,7 +7,20 @@ PROBABILITY_ROADMAP::PROBABILITY_ROADMAP(Graph g, int sample_count, int neighbor
     max_sample_count = sample_count;
     max_neighbor_count = neighbor_count;
     all_valid_nodes = tree.get_valid_nodes();
-    all_obstacle_nodes = tree.get_obstacle_nodes();
+}
+
+pair<cell,float> PROBABILITY_ROADMAP::get_furthest_neighbor(cell node, set<cell> neighbors){
+    float max_dist = -1;
+    auto furthest_neighbor = cell{-1,-1};
+    for(auto n = neighbors.begin(); n != neighbors.end(); ++n){
+        auto neighbor = cell{n->first, n->second};
+        float new_dist = Distance::euclidean(node, neighbor);
+        if(new_dist > max_dist){
+            max_dist = new_dist;
+            furthest_neighbor = neighbor;
+        }
+    }
+    return {furthest_neighbor, max_dist};
 }
 
 void PROBABILITY_ROADMAP::find_nearest_neighbors(int k, c_time_point start, int timeout){
@@ -17,38 +30,19 @@ void PROBABILITY_ROADMAP::find_nearest_neighbors(int k, c_time_point start, int 
             auto now = high_resolution_clock::now();
             if(duration_cast<milliseconds>(now-start).count() >= timeout) return;
             if(it->first == it2->first) continue;
-            else if(it->second.size() < k && Distance::euclidean(curr, it2->first) < step_size &&
-                    is_collision_free(curr, it2->first)){
+            else if(it->second.size() < k && Samples::is_collision_free(curr, it2->first, tree)){ 
                 it->second.insert(it2->first);
             }
             else if(it->second.size() > k){
                 while(it->second.size() > k){
-                    float max_dist = -1;
-                    auto furthest_neighbor = cell{-1,-1};
-                    for(auto n = it->second.begin(); n != it->second.end(); ++n){
-                        auto neighbor = cell{n->first, n->second};
-                        float new_dist = Distance::euclidean(curr, neighbor);
-                        if(new_dist > max_dist){
-                            max_dist = new_dist;
-                            furthest_neighbor = neighbor;
-                        }
-                    }
-                    if(furthest_neighbor != cell{-1,-1}) it->second.erase(it->second.find(furthest_neighbor));
+                    auto furthest = PROBABILITY_ROADMAP::get_furthest_neighbor(curr, it->second);
+                    if(furthest.first != cell{-1,-1}) it->second.erase(it->second.find(furthest.first));
                 } 
             }
             else {
-                float max_dist = -1;
-                auto furthest_neighbor = cell{-1,-1};
-                for(auto n = it->second.begin(); n != it->second.end(); ++n){
-                    auto neighbor = cell{n->first, n->second};
-                    float new_dist = Distance::euclidean(curr, neighbor);
-                    if(new_dist > max_dist){
-                        max_dist = new_dist;
-                        furthest_neighbor = neighbor;
-                    }
-                }
-                if(max_dist > Distance::euclidean(curr, it2->first) && furthest_neighbor != cell{-1,-1}){
-                    it->second.erase(it->second.find(furthest_neighbor));
+                auto furthest = PROBABILITY_ROADMAP::get_furthest_neighbor(curr, it->second);
+                if(furthest.second > Distance::euclidean(curr, it2->first) && furthest.first != cell{-1,-1}){
+                    it->second.erase(it->second.find(furthest.first));
                     it->second.insert(it2->first);
                 }
             }
@@ -61,7 +55,7 @@ void PROBABILITY_ROADMAP::learn(cell sp, cell ep, c_time_point start, int timeou
     set<cell> temp;
     kd_tree.insert({sp, temp});
     for(int s_idx = 0; s_idx < max_sample_count; s_idx++){
-        auto node = PROBABILITY_ROADMAP::get_random_node();
+        auto node = Samples::get_random_node(tree.end, all_valid_nodes);
         kd_tree.insert({node, set(temp)});
     }
     kd_tree.insert({ep, set(temp)});
@@ -125,27 +119,6 @@ pair<vector<cell>, float> PROBABILITY_ROADMAP::reconstruct_path(pair<int, int> s
     return data;
 }
 
-cell PROBABILITY_ROADMAP::get_random_node(){
-    double r = (double)rand()/(double)RAND_MAX;
-    cell random_node;
-    if(r > 0.2) {
-        int r_idx = rand()%all_valid_nodes.size();
-        random_node = {all_valid_nodes[r_idx].first, all_valid_nodes[r_idx].second};
-        all_valid_nodes.erase(all_valid_nodes.begin()+r_idx);
-        all_valid_nodes.push_back(random_node);
-    }
-    else random_node = {tree.end.first, tree.end.second};
-    return random_node;
-}
-
-bool PROBABILITY_ROADMAP::is_collision_free(cell c, cell d){
-    auto line = Bresenham::connect_points(c, d);
-    for(auto pt: line){
-        if(!tree.is_node_valid(pt)) return false;
-    }
-    return true;
-}
-
 bool PROBABILITY_ROADMAP::not_in_set(vector<cell> open_set, cell p){
     for(auto n : open_set){
         if(n == p) return false;
@@ -175,9 +148,9 @@ float PROBABILITY_ROADMAP::get_f_score(cell p){
     return dist[p];
 }
 
-void PROBABILITY_ROADMAP::set_step_size(int size){
+/*void PROBABILITY_ROADMAP::set_step_size(int size){
     step_size = size;
-}
+}*/
 
 vector<cell> PROBABILITY_ROADMAP::get_connected_path(vector<cell> path){
     vector<cell> connected_path;
@@ -201,7 +174,7 @@ vector<cell> PROBABILITY_ROADMAP::get_travelled_roadmap(){
     for(int i = 0; i < travelled_nodes.size(); i++){
         auto neighbors = kd_tree[travelled_nodes[i]];
         for(auto neighbor: neighbors){
-            if(unique_nodes.find(neighbor) != unique_nodes.end() && is_collision_free(travelled_nodes[i], neighbor)){
+            if(unique_nodes.find(neighbor) != unique_nodes.end() && Samples::is_collision_free(travelled_nodes[i], neighbor, tree)){
                 auto line = Bresenham::connect_points(travelled_nodes[i], neighbor);
                 unique_nodes.insert(line.begin(), line.end());
             }

@@ -23,6 +23,7 @@
 
 #include "map_data.hpp"
 #include "map_helper.hpp"
+#include "structs.hpp"
 
 #include "app_constants.h"
 #include "pathworker.h"
@@ -75,9 +76,8 @@ private:
     Graph graph;
     bool path_computed = false;
     QString algo_name;
-    int max_iters = AppConstants::DEFAULT_SAMPLE_COUNT;
-    int neighbor_count = AppConstants::DEFAULT_NEIGHBOR_COUNT;
-    int step_size = AppConstants::DEFAULT_STEP_SIZE;
+    SampleCountByAlgo samples;
+    int neighbor_count = AlgoConstants::DEFAULT_NEIGHBOR_COUNT;
     cell start_pos = {-1,-1};
     cell goal_pos = {-1,-1};
     vector<AlgoResult> results;
@@ -101,5 +101,6 @@ private slots:
     void handle_algo_progress(int val);
     void handle_compute_path_finished(vector<AlgoResult> results);
     void handle_compute_path_error(vector<AlgoResult> results, const QString& message);
+    void on_btn_set_samples_clicked();
 };
 #endif // MAINWINDOW_H

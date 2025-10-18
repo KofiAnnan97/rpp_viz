@@ -29,12 +29,11 @@ void MainWindow::initialize_window(){
     ui->cb_bx_algos->addItems(algos_lst);
     num_of_algos = algos_lst.size()-1;
 
-    // Set max_iter to the current value
-    max_iters = ui->sp_bx_iterations->value();
-
-    // Set neigbor count and step size
+    // Set neigbor count and sample combobox
     ui->sp_bx_neighbors->setValue(neighbor_count);
-    ui->sp_bx_step_size->setValue(step_size);
+    QStringList sample_algo_lst = {AppConstants::RRT_STAR_ID, AppConstants::PRM_ID,
+                                   AppConstants::ALL_ID};
+    ui->cb_bx_sample_algos->addItems(sample_algo_lst);
 
     // Initialize map display
     draw_panel = new DrawingPanel(ui->view_map);
@@ -85,8 +84,9 @@ void MainWindow::set_settings_enabled(bool is_enabled){
     ui->cb_bx_algos->setEnabled(is_enabled);
     ui->sp_bx_iterations->setEnabled(is_enabled);
     ui->btn_run_algo->setEnabled(is_enabled);
-    ui->sp_bx_step_size->setEnabled(is_enabled);
     ui->sp_bx_neighbors->setEnabled(is_enabled);
+    ui->cb_bx_sample_algos->setEnabled(is_enabled);
+    ui->btn_set_samples->setEnabled(is_enabled);
 }
 
 bool MainWindow::eventFilter(QObject *object, QEvent *event){
@@ -326,16 +326,23 @@ void MainWindow::on_cb_bx_algos_currentTextChanged(const QString &name){
         ui->ch_bx_debug->show();
     }
 
-    // Toggle Neighbor Count and Step Size UI Elements
+    // Toggle Per algorithm Sample Count UI Element
+    if(name == AppConstants::ALL_ID){
+        ui->cb_bx_sample_algos->show();
+        ui->btn_set_samples->show();
+    }
+    else{
+        ui->cb_bx_sample_algos->hide();
+        ui->btn_set_samples->hide();
+    }
+
+    // Toggle Neighbor Count UI Element
     if(name == AppConstants::PRM_ID || name == AppConstants::ALL_ID){
         ui->lbl_neighbors->show();
-        ui->sp_bx_step_size->show();
-        ui->lbl_step_size->show();
         ui->sp_bx_neighbors->show();
-    }else{
+    }
+    else{
         ui->lbl_neighbors->hide();
-        ui->sp_bx_step_size->hide();
-        ui->lbl_step_size->hide();
         ui->sp_bx_neighbors->hide();
     }
 
@@ -406,9 +413,7 @@ void MainWindow::on_btn_run_algo_clicked(){
         graph.root = start_pos;
         graph.end = goal_pos;
 
-        max_iters = ui->sp_bx_iterations->value();
-        neighbor_count = ui->sp_bx_step_size->value();
-        step_size = ui->sp_bx_neighbors->value();
+        neighbor_count = ui->sp_bx_neighbors->value();
         if(path_computed){
             draw_panel->update_map(AppConstants::DISPLAY_MAP_ID);
             path_computed = false;
@@ -420,7 +425,11 @@ void MainWindow::on_btn_run_algo_clicked(){
         p_worker = new PathWorker();
         p_worker->moveToThread(worker_thread);
         connect(worker_thread, &QThread::started, p_worker, [this]{
-            p_worker->compute_path(algo_name, graph, max_iters, neighbor_count, step_size);
+            if(!ui->cb_bx_sample_algos->isVisible()){
+                samples.rrt_star_count = ui->sp_bx_iterations->value();
+                samples.prm_count = ui->sp_bx_iterations->value();
+            }
+            p_worker->compute_path(algo_name, graph, samples, neighbor_count);
         });
 
         // Set signal for MainWindow functions
@@ -494,3 +503,23 @@ void MainWindow::handle_thread_finished(){
     p_worker = nullptr;
     worker_thread = nullptr;
 }
+
+void MainWindow::on_btn_set_samples_clicked()
+{
+    QString option = ui->cb_bx_sample_algos->currentText();
+    this->clear_results();
+    if(option == AppConstants::RRT_STAR_ID){
+        samples.rrt_star_count = ui->sp_bx_iterations->value();
+        ui->txt_results->setText(QString("RRT* sample count set to %1").arg(samples.rrt_star_count));
+    }
+    else if(option == AppConstants::PRM_ID){
+        samples.prm_count = ui->sp_bx_iterations->value();
+        ui->txt_results->setText(QString("PRM sample count set to %1").arg(samples.prm_count));
+    }
+    else if(option == AppConstants::ALL_ID){
+        samples.rrt_star_count = ui->sp_bx_iterations->value();
+        samples.prm_count = ui->sp_bx_iterations->value();
+        ui->txt_results->setText(QString("All sample algorithms sample count set to %1").arg(samples.prm_count));
+    }
+}
+

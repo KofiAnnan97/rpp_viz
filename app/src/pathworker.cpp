@@ -57,9 +57,8 @@ void PathWorker::run_rrt_star(Graph g, int sample_count){
 }
 
 // PRM algorithm module
-void PathWorker::run_prm(Graph g, int sample_count, int neigbor_count, int step_size){
+void PathWorker::run_prm(Graph g, int sample_count, int neigbor_count){
     auto prm = PROBABILITY_ROADMAP(g, sample_count, neigbor_count);
-    prm.set_step_size(step_size);
     auto start_time = high_resolution_clock::now();
     prm.solve(g.root, g.end, compute_timeout);
     auto end_time = high_resolution_clock::now();
@@ -71,7 +70,7 @@ void PathWorker::run_prm(Graph g, int sample_count, int neigbor_count, int step_
 }
 
 // Compute path(s)
-void PathWorker::compute_path(QString algo_name, Graph g, int sample_count, int neighbor_count, int step_size){
+void PathWorker::compute_path(QString algo_name, Graph g, SampleCountByAlgo samples, int neighbor_count){
     results.clear();
     QString err_msg;
     auto time_converted = TimeHelper::convert_from_ms(compute_timeout);
@@ -96,7 +95,7 @@ void PathWorker::compute_path(QString algo_name, Graph g, int sample_count, int 
         emit algo_progress(algos_finished);
     }
     if(algo_name == AppConstants::RRT_STAR_ID || algo_name == AppConstants::ALL_ID){
-        this->run_rrt_star(g, sample_count);
+        this->run_rrt_star(g, samples.rrt_star_count);
         if(timeout_occurred){
             err_msg += QString("   - RRT* Computation exceeded %1 %2\n").arg(time_converted.first).arg(time_converted.second.c_str());
             timeout_occurred = false;
@@ -106,9 +105,9 @@ void PathWorker::compute_path(QString algo_name, Graph g, int sample_count, int 
     }
 
     if(algo_name == AppConstants::PRM_ID || algo_name == AppConstants::ALL_ID){
-        this->run_prm(g, sample_count, neighbor_count, step_size);
+        this->run_prm(g, samples.prm_count, neighbor_count);
         if(timeout_occurred){
-            err_msg += QString("   - RRT* Computation exceeded %1 %2\n").arg(time_converted.first).arg(time_converted.second.c_str());
+            err_msg += QString("   - PRM Computation exceeded %1 %2\n").arg(time_converted.first).arg(time_converted.second.c_str());
             timeout_occurred = false;
         }
         algos_finished++;
