@@ -39,7 +39,7 @@ class PROBABILITY_ROADMAP{
         vector<cell> all_obstacle_nodes;
         int max_sample_count;
         int max_neighbor_count;
-        int step_size;
+        //int step_size;
 };
 
 #endif // PROBABILITY_ROADMAP_HPP

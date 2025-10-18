@@ -9,6 +9,7 @@ class BFS{
         void solve(cell sp, cell ep, int timeout);
         pair<vector<cell>, float> reconstruct_path(pair<int, int> sp, pair<int, int> ep);
         vector<cell> get_travelled_nodes();
+        
     private:
         Graph tree;
         map<cell, float> dist;

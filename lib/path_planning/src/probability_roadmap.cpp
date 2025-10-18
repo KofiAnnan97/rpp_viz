@@ -172,10 +172,11 @@ vector<cell> PROBABILITY_ROADMAP::get_travelled_roadmap(){
     auto travelled_nodes = PROBABILITY_ROADMAP::get_travelled_nodes();
     set<cell> unique_nodes(travelled_nodes.begin(), travelled_nodes.end());
     for(int i = 0; i < travelled_nodes.size(); i++){
-        auto neighbors = kd_tree[travelled_nodes[i]];
+        auto curr = travelled_nodes[i];
+        auto neighbors = kd_tree[curr];
         for(auto neighbor: neighbors){
-            if(unique_nodes.find(neighbor) != unique_nodes.end() && Samples::is_collision_free(travelled_nodes[i], neighbor, tree)){
-                auto line = Bresenham::connect_points(travelled_nodes[i], neighbor);
+            if(unique_nodes.find(neighbor) != unique_nodes.end() && Samples::is_collision_free(curr, neighbor, tree)){
+                auto line = Bresenham::connect_points(curr, neighbor);
                 unique_nodes.insert(line.begin(), line.end());
             }
         }

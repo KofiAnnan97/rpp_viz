@@ -2,19 +2,6 @@
 A testing ground for path planning strategies based on ROS maps.
 
 ## Future Work
-- Release 0.1.1
-    - General
-        - [X] Allow per algorithm based sample counts (CLI & GUI)
-    - Algorithms
-        - [X] Probability Roadmap (CLI & GUI)
-    - GUI
-        - [X] Add UI elements for neighbor count -> PRM
-    - Bug Fixes/Optimizations
-        - [X] Get eraser to scale with map scaling in graphics view
-        - [X] Disable fullscreen
-    - Testing
-        - [X] Rewrite tests with GTest
-        - [X] Test Probalility Roadmap (PRM)
 - Release 0.1.2
     - General
         - [ ] Fix map to pose conversions
@@ -24,12 +11,13 @@ A testing ground for path planning strategies based on ROS maps.
             - [ ] convert map to unordered_map
             - [ ] PRM find_nearest_neighbors()
             - [ ] Implement Priority queue for A*
-        - [ ] Investigate PRM path generation when sample count is low
+        - [ ] Investigate PRM path generation sometimes resulting in collisions (usually occurs with small sample count)
     - GUI
         - [ ] Change behavior of the pen and eraser to support dragging movements
         - [ ] [Optional] Animate traversal of map and final path
     - Bug Fixes/Optimizations
         - [ ] Add more extensive error handling for GUI
+        - [ ] Add more extensive error handling for CLI parameters
     - Testing
         - [ ] Test D* Replan with changing map
         - [ ] Confirm map conversion tests work properly

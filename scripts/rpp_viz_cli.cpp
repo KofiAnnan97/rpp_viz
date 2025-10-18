@@ -69,8 +69,17 @@ string remove_quotes(string word){
     if(word[start] == '\'' && word[end] == '\'' ||
        word[start] == '\"' || word[end] == '\"') 
        return word.substr(start+1, end-start-1);
-    else return word;
-    
+    else return word;   
+}
+
+bool is_valid_algo(string name){
+    vector<string> valid_algos = {CLIConstants::BFS_ID, CLIConstants::A_STAR_ID, 
+                                  CLIConstants::RRT_STAR_ID, CLIConstants::PRM_ID,
+                                  CLIConstants::ALL_ID};
+    for(auto algo: valid_algos){
+        if(name == algo) return true;
+    }
+    return false;
 }
 
 Parameters get_params(int argc, char* argv[]){
@@ -94,12 +103,13 @@ Parameters get_params(int argc, char* argv[]){
             else {
                 try{
                     params.inflate_size = std::stoi(argv[i+1]);
-                    i++;
+                    
                 }catch(std::invalid_argument e){
-                    cout << "Could not convert \"" << argv[i+1] << "\" value to integer. Defaulting to 3." << endl;
-                    params.kill_script = true;
-                    break;
-                }  
+                    cout << "Could not convert \"" << argv[i+1] << "\" to an integer. Defaulting to " 
+                         << MapConstants::DEFAULT_INFLATE_SIZE << ".\n";
+                    params.kill_script = false;
+                }
+                i++;  
             }       
         }
         else if(strcmp(argv[i], "-a") == 0 || strcmp(argv[i], "--algorithm") == 0){
@@ -108,8 +118,14 @@ Parameters get_params(int argc, char* argv[]){
                 params.kill_script = true;
                 break;
             } 
-            else params.algo = argv[i+1];
-            i++;
+            else if(is_valid_algo(argv[i+1])){
+                params.algo = argv[i+1];
+                i++;
+            }
+            else{
+                cout << "Unrecognized algorithm: \'" << params.algo << "\'\n"; 
+                params.kill_script = true;   
+            }
         }
         else if(strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--sample-limit") == 0){
             if(i+1 >= argc){
@@ -131,9 +147,9 @@ Parameters get_params(int argc, char* argv[]){
                             key = trim_whitespace(key);
                             key = remove_quotes(key);
                             value = trim_whitespace(value);
-                            if(key == ScriptConstants::RRT_STAR_ID)
+                            if(key == CLIConstants::RRT_STAR_ID)
                                 params.sample_counts.rrt_star_count = std::stoi(value);
-                            else if(key == ScriptConstants::PRM_ID)
+                            else if(key == CLIConstants::PRM_ID)
                                 params.sample_counts.prm_count = std::stoi(value);
                             else {
                                 string err_msg = "Make sure the " + key + " is a supported algoirthm and quotation marks are balanced.";
@@ -146,7 +162,7 @@ Parameters get_params(int argc, char* argv[]){
                         params.sample_counts.prm_count = std::stoi(original_str);
                     }    
                 }catch(std::invalid_argument e){
-                    cout << "Invalid Argument: " << argv[i+1] << ".\nValue should be a single integer or json string.\n" << e.what() << endl;
+                    cout << "Invalid Argument: " << argv[i+1] << ".\nValue should be a single integer or json-like string.\nStack trace: " << e.what() << endl;
                     params.kill_script = true;   
                 }
                 i++;
@@ -161,12 +177,13 @@ Parameters get_params(int argc, char* argv[]){
             else {
                 try{
                     params.neighbor_count = std::stoi(argv[i+1]);
-                    i++;
                 }catch(std::invalid_argument e){
-                    cout << "Could not convert \"" << argv[i+1] << "\" value to integer. Defaulting to 4" << endl;
-                    params.kill_script = true;
+                    cout << "Could not convert \"" << argv[i+1] << "\" to an integer. Defaulting to " 
+                         << AlgoConstants::DEFAULT_NEIGHBOR_COUNT << ".\n";
+                    params.kill_script = false;
                 }
             }
+            i++;
         }
         else if(strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--start-pos") == 0){
             if(i+1 >= argc){
@@ -240,16 +257,6 @@ void print_results(AlgoResult ar, bool debug, int timeout){
     std::cout << "Distance: " << ar.dist << std::endl;
 }
 
-bool is_valid_algo(string name){
-    vector<string> valid_algos = {ScriptConstants::BFS_ID, ScriptConstants::A_STAR_ID, 
-                                  ScriptConstants::RRT_STAR_ID, ScriptConstants::PRM_ID,
-                                  ScriptConstants::ALL_ID};
-    for(auto algo: valid_algos){
-        if(name == algo) return true;
-    }
-    return false;
-}
-
 void show_map(string title, Map &m, cell sp, cell ep, vector<cell> path, vector<cell> travelled, bool debug){
     Map sm;
     if(debug) {
@@ -273,7 +280,7 @@ void run_bfs(Map &m, Graph g, bool debug){
     vector<cell> path = results.first;
     float dist = results.second;
     vector<cell> travelled = bfs.get_travelled_nodes();
-    AlgoResult ar = {ScriptConstants::BFS_ID, duration, path, travelled, dist};
+    AlgoResult ar = {CLIConstants::BFS_ID, duration, path, travelled, dist};
     print_results(ar, debug, compute_timeout);
     show_map("BFS", m, g.root, g.end, path, travelled, debug);
 }
@@ -291,7 +298,7 @@ void run_astar(Map &m, Graph g, bool debug){
     vector<cell> path = results.first;
     float dist = results.second;
     vector<cell> travelled = as.get_travelled_nodes();
-    AlgoResult ar = {ScriptConstants::A_STAR_ID, duration, path, travelled, dist};
+    AlgoResult ar = {CLIConstants::A_STAR_ID, duration, path, travelled, dist};
     print_results(ar, debug, compute_timeout);
     show_map("A*", m, g.root, g.end, path, travelled, debug);
 }
@@ -312,7 +319,7 @@ void run_rrt_star(Map &m, Graph g, int sample_count, bool debug){
         path = results.first;
         float dist = results.second;
         travelled = rrt.get_travelled_nodes();
-        AlgoResult ar = {ScriptConstants::RRT_STAR_ID, duration, path, travelled, dist};
+        AlgoResult ar = {CLIConstants::RRT_STAR_ID, duration, path, travelled, dist};
         print_results(ar, debug, compute_timeout);
     }
     else {
@@ -333,7 +340,7 @@ void run_prm(Map &m, Graph g, int sample_count, int neighbor_count, bool debug){
         step_size = std::stoi(step_size_str);
     } 
     catch(std::invalid_argument e){
-        step_size = ScriptConstants::DEFAULT_STEP_SIZE;
+        step_size = CLIConstants::DEFAULT_STEP_SIZE;
         cout << "Invalid value: " << step_size_str << ", Defaulting to " << step_size << endl;
     }*/
     if(debug){
@@ -354,18 +361,13 @@ void run_prm(Map &m, Graph g, int sample_count, int neighbor_count, bool debug){
     path = prm.get_connected_path(results.first);
     float dist = results.second;
     travelled = prm.get_travelled_roadmap();
-    AlgoResult ar = {ScriptConstants::PRM_ID, duration, path, travelled, dist};
+    AlgoResult ar = {CLIConstants::PRM_ID, duration, path, travelled, dist};
     print_results(ar, debug, compute_timeout);
     show_map("PRM", m, g.root, g.end, path, travelled, debug);
 }
 
 int main(int argc, char* argv[]){
     auto params = get_params(argc, argv);
-    /*cout << params.map_yaml << endl;
-    cout << params.inflate_size << endl;
-    cout << params.algo << endl;
-    cout << params.sample_count << endl;
-    cout << params.show_debug << endl;*/
     if(params.get_help){
         print_help_menu();
     }else if(!params.kill_script){
@@ -379,13 +381,13 @@ int main(int argc, char* argv[]){
         else cout << "End node: {" << params.goal.first << "," << params.goal.second << "} is invalid\n"; 
 
         if(g.is_node_valid(params.start) && g.is_node_valid(params.goal)){
-            if(params.algo == ScriptConstants::BFS_ID || params.algo == ScriptConstants::ALL_ID) 
+            if(params.algo == CLIConstants::BFS_ID || params.algo == CLIConstants::ALL_ID) 
                 run_bfs(map, g, params.show_debug);
-            if(params.algo == ScriptConstants::A_STAR_ID || params.algo == ScriptConstants::ALL_ID) 
+            if(params.algo == CLIConstants::A_STAR_ID || params.algo == CLIConstants::ALL_ID) 
                 run_astar(map, g, params.show_debug);
-            if(params.algo == ScriptConstants::RRT_STAR_ID || params.algo == ScriptConstants::ALL_ID) 
+            if(params.algo == CLIConstants::RRT_STAR_ID || params.algo == CLIConstants::ALL_ID) 
                 run_rrt_star(map, g, params.sample_counts.rrt_star_count, params.show_debug);
-            if(params.algo == ScriptConstants::PRM_ID || params.algo == ScriptConstants::ALL_ID)
+            if(params.algo == CLIConstants::PRM_ID || params.algo == CLIConstants::ALL_ID)
                 run_prm(map, g, params.sample_counts.prm_count, params.neighbor_count, params.show_debug);
             //if(params.algo == "d-lite" || params.algo == ALL_ID) run_d_star_lite(map, g, params.show_debug);
             if(!is_valid_algo(params.algo)) cout << "Unrecognized algorithm: " << params.algo << endl;

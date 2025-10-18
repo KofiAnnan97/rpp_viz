@@ -54,16 +54,11 @@ class GenerateMap{
             fs::path filepath = path / filename.c_str();
             std::ofstream pgm_output(filepath, std::ios_base::binary | std::ios_base::out);
             if(pgm_output.is_open()){
-                // Default values
-                int highest_value = 255;
-                int unknown_value = 205;
-                int obstacle_value = 0;
-
                 // Populating file
                 pgm_output << "P5" << endl;
                 pgm_output << "# CREATOR: gen_ros_map.cpp " << map.resolution << " m/pix" << endl;
                 pgm_output << map.px_width << " " << map.px_height << endl;
-                pgm_output << highest_value << endl;
+                pgm_output << MapGenConstants::HIGHEST_PX_VALUE << endl;
                 int size = map.px_width*map.px_height; 
                 char *buffer = new char[size];
                 for(int j = 0; j < size; j++) buffer[j] = 0x00;
@@ -71,9 +66,12 @@ class GenerateMap{
                     for(int col=0; col<map.px_width; col++){
                         int idx = row*map.px_width + col;
                         uint8_t px;
-                        if (map.boundaries[row][col] == MapConstants::OBSTACLE_INT)         px = obstacle_value;
-                        else if(map.boundaries[row][col] == MapConstants::OPEN_SPACE_INT)   px = highest_value;
-                        else                                                                px = unknown_value;
+                        if (map.boundaries[row][col] == MapConstants::OBSTACLE_INT)         
+                            px = MapGenConstants::OBSTACLE_PX_VALUE;
+                        else if(map.boundaries[row][col] == MapConstants::OPEN_SPACE_INT)
+                            px = MapGenConstants::HIGHEST_PX_VALUE;
+                        else
+                            px = MapGenConstants::UNKNOWN_PX_VALUE;
                         buffer[idx] = char(px);
                     }
                 }
@@ -91,9 +89,9 @@ class GenerateMap{
                 float origin_x = 0;
                 float origin_y = 0;
                 float origin_z = 0;
-                int negate = 0;
-                float occupied_thresh = 0.65;
-                float free_thresh = 0.25;
+                int negate = MapGenConstants::DEFAULT_NEGATE;
+                float occupied_thresh = MapGenConstants::DEFAULT_OCCUPIED_THRESH;
+                float free_thresh = MapGenConstants::DEFAULT_FREE_THRESH;
 
                 // updating values
                 origin_x = -1.0*(map.m_width/2);

@@ -17,13 +17,13 @@ class AStar{
         float get_f_score(cell p);
         bool not_in_set(vector<cell> open_set, cell p);
         cell get_min_f(vector<cell> &s);
+
         Graph tree;
         map<cell, float> dist;
         map<cell, float> h;
         map<cell, float> f;
         map<cell, cell> parent;
         vector<cell> travelled;
-        
 };
 
 #endif // A_STAR_HPP
