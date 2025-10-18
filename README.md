@@ -1,26 +1,5 @@
 # Robot Path Planning Visualization
-A testing ground for path planning strategies based on ROS maps.
-
-## Future Work
-- Release 0.1.2
-    - General
-        - [ ] Fix map to pose conversions
-    - Algorithms
-        - [ ] D* Lite (CLI & GUI)
-        - [ ] Optimize algorithms   
-            - [ ] convert map to unordered_map
-            - [ ] PRM find_nearest_neighbors()
-            - [ ] Implement Priority queue for A*
-        - [ ] Investigate PRM path generation sometimes resulting in collisions (usually occurs with small sample count)
-    - GUI
-        - [ ] Change behavior of the pen and eraser to support dragging movements
-        - [ ] [Optional] Animate traversal of map and final path
-    - Bug Fixes/Optimizations
-        - [ ] Add more extensive error handling for GUI
-        - [ ] Add more extensive error handling for CLI parameters
-    - Testing
-        - [ ] Test D* Replan with changing map
-        - [ ] Confirm map conversion tests work properly
+A testing ground for path planning strategies based on ROS maps. Planned updates and fixes can be found here: [FutureWork.md](./FutureWork.md)  
 
 ## Dependencies
 - CMake
