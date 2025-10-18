@@ -14,23 +14,29 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets LinguistTools)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets LinguistTools Svg)
 
 set(PATH_PLANNING_LIB_PATH "./lib/path_planning")
-set(TOOLS_LIB_PATH "./lib/tools")
+set(COMMON_LIB_PATH "./lib/common")
 set(APP_PATH "./app")
 set(SCRIPTS_PATH "./scripts")
+set(TEST_PATH "./tests")
 
 FILE(GLOB PATH_PLANNING_LIB
     ${PATH_PLANNING_LIB_PATH}/include/*.hpp
     ${PATH_PLANNING_LIB_PATH}/src/*.cpp
 )
 
-FILE(GLOB TOOLS_LIB
-    ${TOOLS_LIB_PATH}/include/*.hpp
-    ${TOOLS_LIB_PATH}/src/*.cpp
+FILE(GLOB COMMON_LIB
+    ${COMMON_LIB_PATH}/include/*.hpp
+    ${COMMON_LIB_PATH}/src/*.cpp
 )
 
 FILE(GLOB APP_CODE
     ${APP_PATH}/include/*.h
     ${APP_PATH}/src/*.cpp
+)
+
+FILE(GLOB TEST_SUITE
+    ${TEST_PATH}/include/*.hpp
+    ${TEST_PATH}/src/*.cpp
 )
 
 include_directories(
@@ -39,8 +45,10 @@ include_directories(
     ${SCRIPTS_PATH}/include
     ${PATH_PLANNING_LIB_PATH}/include
     ${PATH_PLANNING_LIB_PATH}/src
-    ${TOOLS_LIB_PATH}/include
-    ${TOOLS_LIB_PATH}/src
+    ${COMMON_LIB_PATH}/include
+    ${COMMON_LIB_PATH}/src
+    ${TEST_PATH}/include
+    ${TEST_PATH}/src
     ${OpenCV_INCLUDE_DIRS}
 )
 
@@ -50,7 +58,7 @@ set(PROJECT_SOURCES
     ${APP_CODE}
     ${APP_PATH}/mainwindow.ui
     ${PATH_PLANNING_LIB}
-    ${TOOLS_LIB}
+    ${COMMON_LIB}
     ${APP_PATH}/icons.qrc
     ${TS_FILES}
 )
@@ -74,15 +82,17 @@ target_link_libraries(generate_map ${OpenCV_LIBS})
 add_executable(run_tests
     ${SCRIPTS_PATH}/run_tests.cpp
     ${SCRIPTS_PATH}/include/gen_ros_map.hpp
-    ${PATH_PLANNING_LIB} 
+    ${PATH_PLANNING_LIB}
+    ${COMMON_LIB}
+    ${TEST_SUITE}
 )
-target_link_libraries(run_tests ${OpenCV_LIBS}) #gtest gtest_main)
+target_link_libraries(run_tests ${OpenCV_LIBS} gtest gtest_main)
 
 # Command line implementation
 add_executable(rpp_cli
     ${SCRIPTS_PATH}/rpp_viz_cli.cpp
     ${PATH_PLANNING_LIB}
-    ${TOOLS_LIB}
+    ${COMMON_LIB}
 )
 target_link_libraries(rpp_cli ${OpenCV_LIBS})
 
@@ -113,10 +123,8 @@ else()
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 endif()
 
-target_link_libraries(rpp_viz PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(rpp_viz PRIVATE Qt${QT_VERSION_MAJOR}::Widgets ${OpenCV_LIBS} Qt6::Svg)
 target_include_directories(rpp_viz PRIVATE ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(rpp_viz PRIVATE ${OpenCV_LIBS})
-target_link_libraries(rpp_viz PRIVATE Qt6::Svg)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

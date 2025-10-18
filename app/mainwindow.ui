@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="windowModality">
+   <enum>Qt::WindowModality::NonModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -139,7 +142,7 @@
              </property>
              <property name="maximumSize">
               <size>
-               <width>90</width>
+               <width>120</width>
                <height>16777215</height>
               </size>
              </property>
@@ -150,7 +153,7 @@
               </size>
              </property>
              <property name="text">
-              <string>Obstacles:</string>
+              <string>Edit Obstacles:</string>
              </property>
              <property name="indent">
               <number>-1</number>
@@ -470,15 +473,33 @@
          </item>
          <item>
           <layout class="QHBoxLayout" name="layout_iterations">
-           <item>
+           <item alignment="Qt::AlignmentFlag::AlignLeft">
             <widget class="QLabel" name="lbl_iterations">
+             <property name="maximumSize">
+              <size>
+               <width>90</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="text">
-              <string>Maximum Iterations: </string>
+              <string>Samples: </string>
              </property>
             </widget>
            </item>
            <item>
             <widget class="QSpinBox" name="sp_bx_iterations">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>16777215</height>
+              </size>
+             </property>
              <property name="minimum">
               <number>0</number>
              </property>
@@ -493,14 +514,76 @@
              </property>
             </widget>
            </item>
+           <item>
+            <widget class="QComboBox" name="cb_bx_sample_algos">
+             <property name="maximumSize">
+              <size>
+               <width>60</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="btn_set_samples">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>1</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>30</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Set</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </item>
          <item>
-          <widget class="QCheckBox" name="ch_bx_debug">
-           <property name="text">
-            <string>Debug</string>
-           </property>
-          </widget>
+          <layout class="QHBoxLayout" name="layout_prm">
+           <item>
+            <widget class="QLabel" name="lbl_neighbors">
+             <property name="maximumSize">
+              <size>
+               <width>90</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Neighbors: </string>
+             </property>
+            </widget>
+           </item>
+           <item alignment="Qt::AlignmentFlag::AlignLeft">
+            <widget class="QSpinBox" name="sp_bx_neighbors">
+             <property name="maximumSize">
+              <size>
+               <width>60</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>500</number>
+             </property>
+            </widget>
+           </item>
+           <item alignment="Qt::AlignmentFlag::AlignRight">
+            <widget class="QCheckBox" name="ch_bx_debug">
+             <property name="text">
+              <string>Debug</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
          <item>
           <widget class="QPushButton" name="btn_run_algo">
@@ -555,7 +638,7 @@
               <x>0</x>
               <y>0</y>
               <width>394</width>
-              <height>139</height>
+              <height>133</height>
              </rect>
             </property>
             <property name="minimumSize">

@@ -15,7 +15,6 @@ class AStar{
 
     private:
         float get_f_score(cell p);
-        float euclidean_heuristic(cell a, cell b);
         bool not_in_set(vector<cell> open_set, cell p);
         cell get_min_f(vector<cell> &s);
         Graph tree;

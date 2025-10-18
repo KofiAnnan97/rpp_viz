@@ -9,9 +9,11 @@
 #include <QString>
 
 #include "map_data.hpp"
-
+#include "structs.hpp"
 #include "map_helper.hpp"
 #include "time_helper.hpp"
+
+#include "app_constants.h"
 
 class PathWorker : public QObject
 {
@@ -22,7 +24,7 @@ public:
     void send_timeout_error(QString& message);
 
 public slots:
-    void compute_path(QString algo_name, Graph g, int max_iters);
+    void compute_path(QString algo_name, Graph g, SampleCountByAlgo samples, int neighbor_count);
 
 signals:
     void algo_progress(int completed);
@@ -32,13 +34,10 @@ signals:
 private:
     void run_bfs(Graph g);
     void run_a_star(Graph g);
-    void run_rrt_star(Graph g, int max_iters);
+    void run_rrt_star(Graph g, int sample_count);
+    void run_prm(Graph g, int sample_count, int neighbor_cout);
 
-    QString bfs_id = "BFS";
-    QString a_star_id = "A*";
-    QString rrt_star_id = "RRT*";
-    QString all_id = "All";
-    int compute_timeout = 600000;  // in milliseconds (10 minutes)
+    int compute_timeout = AlgoConstants::DEFAULT_COMPUTE_TIMEOUT;
     bool timeout_occurred = false;
 
 protected:

@@ -12,6 +12,8 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui.hpp>
 
+#include "pp_constants.hpp"
+
 using namespace std;
 using namespace cv;
 
@@ -27,7 +29,8 @@ struct Map{
 // Change this class to use unordered_map (requires default constructor)
 class Graph {
     public:    
-        map<cell, vector<iw_cell>> g;
+        map<cell, vector<iw_cell>> g;           // Valid nodes
+        vector<cell> obs;                       // Obstacle nodes 
         cell root = {0, 0};
         cell end = {0, 0};
 
@@ -59,10 +62,14 @@ class Graph {
             else return false;
         }
 
-        vector<cell> get_nodes(){
+        vector<cell> get_valid_nodes(){
             vector<cell> nodes;
             for(auto node: g) nodes.push_back(node.first);
             return nodes;
+        }
+
+        vector<cell> get_obstacle_nodes(){
+            return obs;
         }
 
         void add_node(cell node){
@@ -71,6 +78,10 @@ class Graph {
 
         void add_edge(cell parent, cell child, int weight){
             g[parent].push_back({child, weight});
+        }
+        
+        void add_obstacle_node(cell node){
+            if (g.find(node)!=g.end()) obs.push_back(node);
         }
 
         int get_size(){
@@ -81,6 +92,7 @@ class Graph {
 class MapData {
     public:
         static Map get_map(string yp);
+        static int** set_boundaries(int width, int height, vector<signed char> data);
         static int** copy_boundaries(Map m);
         static Map copy_map(Map map);
         static int** inflate_boundaries(Map map, int buffer_size);
@@ -96,18 +108,6 @@ class MapData {
         // Map-Robot Conversions
         static cell POSE2PIXEL(Map map, float x, float y);
         static pair<float, float> PIXEL2POSE(Map map, cell px);
-
-        // Map Variables
-        static const int INFLATE_INT = -2;
-        static const int OBSTACLE_INT = -1;
-        static const int OPEN_SPACE_INT = 0;
-        static const int NAV_POINT_INT = 1;
-        static const int TRAVELLED_INT = 2;
-        static const int PATH_INT = 3;
-
-        // Map Size Variables
-        static const int PATH_SIZE = 3;
-        static const int POINT_SIZE = 5;
 
     private:
         static Map parse_pgm(string fp);

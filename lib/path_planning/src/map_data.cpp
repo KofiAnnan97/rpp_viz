@@ -26,7 +26,7 @@ Map MapData::parse_pgm(string mp){
         for(char px : line) {
             int val = (int)px >= 0 ? (int)px : 256+(int)px;
             //cout << "{" << i << ", " << j << "}: "<< (int)px << " => " << val << endl;
-            temp[i][j] = val > 0 ? OPEN_SPACE_INT : OBSTACLE_INT;
+            temp[i][j] = val > 0 ? MapConstants::OPEN_SPACE_INT : MapConstants::OBSTACLE_INT;
             j++;
             if(j >= width){
                 i++;
@@ -111,6 +111,17 @@ Map MapData::get_map(string yp){
     }
 }
 
+int** MapData::set_boundaries(int width, int height, vector<signed char> data){
+    int** b = new int*[height];
+    for(int h = 0; h < height; h++) b[h] = new int[width];
+    for(long unsigned int i = 0; i < data.size(); i++){                    
+        int row = i/width;
+        int col = i%width;
+        b[row][col] = (data[i] == 0) ? data[i] : -1;
+    }
+    return b;
+}
+
 int** MapData::copy_boundaries(Map map){
     int** new_boundaries = new int*[map.px_height];
     for(int k = 0; k < map.px_height; k++) new_boundaries[k] = new int[map.px_width];
@@ -135,12 +146,12 @@ Map MapData::copy_map(Map map){
 void MapData::inflate_pixel(int** nb, int width, int height, int col, int row, int buffer_size){
     int dx = buffer_size/2;
     int dy = buffer_size/2;
-    if(dx == 0 && dy == 0) nb[row][col] = OBSTACLE_INT;
+    if(dx == 0 && dy == 0) nb[row][col] = MapConstants::OBSTACLE_INT;
     else{
         for(int y = row-dy; y <= row+dy; y++){
             for(int x = col-dx; x <= col+dx; x++){
-                if(y >= 0 && y < height && x >= 0 && x < width && nb[y][x] != OBSTACLE_INT){
-                    nb[y][x] = INFLATE_INT;
+                if(y >= 0 && y < height && x >= 0 && x < width && nb[y][x] != MapConstants::OBSTACLE_INT){
+                    nb[y][x] = MapConstants::INFLATE_INT;
                 }
             }
         }  
@@ -154,7 +165,7 @@ int** MapData::inflate_boundaries(Map map, int buffer_size){
     // Expand boundary based on buffer size
     for(int row = 0; row <= map.px_height-1; row++){
         for(int col = 0; col < map.px_width; col++){
-            if(map.boundaries[row][col] != OPEN_SPACE_INT){ //-1){
+            if(map.boundaries[row][col] != MapConstants::OPEN_SPACE_INT){ //-1){
                 MapData::inflate_pixel(new_boundaries, map.px_width, map.px_height, col, row, buffer_size);
             }
         }
@@ -174,8 +185,8 @@ int** MapData::remove_boundary_inflation(Map map){
     // Remove inflation from boundaries
     for(int row = 0; row <= map.px_height-1; row++){
         for(int col = 0; col < map.px_width; col++){
-            if(map.boundaries[row][col] == INFLATE_INT){
-                original_boundaries[row][col] = OPEN_SPACE_INT;
+            if(map.boundaries[row][col] == MapConstants::INFLATE_INT){
+                original_boundaries[row][col] = MapConstants::OPEN_SPACE_INT;
             }
         }
     }
@@ -195,7 +206,7 @@ void MapData::inflate_point(Map map, cell pt, int buffer_size){
     for(int y = pt.second-dy; y <= pt.second+dy; y++){
         for(int x = pt.first-dx; x <= pt.first+dx; x++){
             if(y >= 0 && y < map.px_height && x >= 0 && x < map.px_width){
-                if(cell_val == -1 && b[y][x] != OBSTACLE_INT) b[y][x] = INFLATE_INT; //&& pt != cell{x,y}
+                if(cell_val == -1 && b[y][x] != MapConstants::OBSTACLE_INT) b[y][x] = MapConstants::INFLATE_INT; //&& pt != cell{x,y}
                 else b[y][x] = cell_val;
             }
         }
@@ -218,12 +229,12 @@ Map MapData::add_path_to_map_with_value(Map map, int pixel_val, vector<cell> pat
     new_map.boundaries = MapData::copy_boundaries(map);
     for(auto p: path){
         new_map.boundaries[p.second][p.first] = pixel_val;
-        MapData::inflate_point(new_map, p, PATH_SIZE);
+        MapData::inflate_point(new_map, p, MapConstants::PATH_SIZE);
     }
-    new_map.boundaries[sp.second][sp.first] = NAV_POINT_INT;
-    new_map.boundaries[ep.second][ep.first] = NAV_POINT_INT;
-    MapData::inflate_point(new_map, sp, POINT_SIZE);
-    MapData::inflate_point(new_map, ep, POINT_SIZE);
+    new_map.boundaries[sp.second][sp.first] = MapConstants::NAV_POINT_INT;
+    new_map.boundaries[ep.second][ep.first] = MapConstants::NAV_POINT_INT;
+    MapData::inflate_point(new_map, sp, MapConstants::POINT_SIZE);
+    MapData::inflate_point(new_map, ep, MapConstants::POINT_SIZE);
     return new_map;
 }
 
@@ -235,15 +246,15 @@ Map MapData::debug_map(Map map, vector<cell> path, vector<cell> travelled, cell 
     new_map.m_width = map.m_width;
     new_map.resolution = map.resolution;
     new_map.boundaries = MapData::copy_boundaries(map);
-    for(auto t: travelled) new_map.boundaries[t.second][t.first] = TRAVELLED_INT;
+    for(auto t: travelled) new_map.boundaries[t.second][t.first] = MapConstants::TRAVELLED_INT;
     for(auto p: path) {
-        new_map.boundaries[p.second][p.first] = PATH_INT;
-        MapData::inflate_point(new_map, p, PATH_SIZE);
+        new_map.boundaries[p.second][p.first] = MapConstants::PATH_INT;
+        MapData::inflate_point(new_map, p, MapConstants::PATH_SIZE);
     }
-    new_map.boundaries[sp.second][sp.first] = NAV_POINT_INT;
-    new_map.boundaries[ep.second][ep.first] = NAV_POINT_INT;
-    MapData::inflate_point(new_map, sp, POINT_SIZE);
-    MapData::inflate_point(new_map, ep, POINT_SIZE);
+    new_map.boundaries[sp.second][sp.first] = MapConstants::NAV_POINT_INT;
+    new_map.boundaries[ep.second][ep.first] = MapConstants::NAV_POINT_INT;
+    MapData::inflate_point(new_map, sp, MapConstants::POINT_SIZE);
+    MapData::inflate_point(new_map, ep, MapConstants::POINT_SIZE);
     return new_map;
 }
 
@@ -285,9 +296,10 @@ Graph MapData::get_graph_from_map(Map map){
                 if(row < map.px_height - 1 && col < map.px_width -1 && map.boundaries[row+1][col+1] == 0){
                     graph.add_edge(curr, cell{col+1, row+1}, 2);
                 }
-                // If cell has no neihbors add it to the graph
+                // If cell has no neighbors add it to the graph
                 if(!graph.is_node_valid(curr)) graph.add_node(curr);
             }
+            else graph.add_obstacle_node(cell{col, row});
         }
     }
     return graph;
@@ -309,11 +321,11 @@ void MapData::show_map(string title, Map map){
     Mat img(map.px_height, map.px_width, CV_8UC3);
     for(int row = 0; row < map.px_height; row++){
         for(int col = 0; col < map.px_width; col++){
-            if(map.boundaries[row][col] == PATH_INT) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,255);            // Path color
-            else if(map.boundaries[row][col] == TRAVELLED_INT) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(230,216,173);   // Visted node color
-            else if(map.boundaries[row][col] == NAV_POINT_INT) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(128,0,128);     // Start and goal node
-            else if(map.boundaries[row][col] == OPEN_SPACE_INT) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(255,255,255);   // Empty space color
-            else if(map.boundaries[row][col] <= OBSTACLE_INT) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,0);          // Obstacle color
+            if(map.boundaries[row][col] == MapConstants::PATH_INT) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,255);            // Path color
+            else if(map.boundaries[row][col] == MapConstants::TRAVELLED_INT) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(230,216,173);   // Visted node color
+            else if(map.boundaries[row][col] == MapConstants::NAV_POINT_INT) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(128,0,128);     // Start and goal node
+            else if(map.boundaries[row][col] == MapConstants::OPEN_SPACE_INT) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(255,255,255);   // Empty space color
+            else if(map.boundaries[row][col] <= MapConstants::OBSTACLE_INT) img.at<Vec3b>(Point(col,row)) = cv::Vec3b(0,0,0);          // Obstacle color
         }
     }
     cout << "Showing image: " << title;

@@ -1,36 +1,59 @@
 # Robot Path Planning Visualization
-A testing ground for path planning strategies for ROS.
+A testing ground for path planning strategies based on ROS maps.
 
 ## Future Work
-- Release 0.2.0
-    - Command Line Scripts
-        - [ ] Implement D* Lite algorithm
+- Release 0.1.1
+    - General
+        - [X] Allow per algorithm based sample counts (CLI & GUI)
+    - Algorithms
+        - [X] Probability Roadmap (CLI & GUI)
+    - GUI
+        - [X] Add UI elements for neighbor count -> PRM
+    - Bug Fixes/Optimizations
+        - [X] Get eraser to scale with map scaling in graphics view
+        - [X] Disable fullscreen
+    - Testing
+        - [X] Rewrite tests with GTest
+        - [X] Test Probalility Roadmap (PRM)
+- Release 0.1.2
+    - General
+        - [ ] Fix map to pose conversions
+    - Algorithms
+        - [ ] D* Lite (CLI & GUI)
+        - [ ] Optimize algorithms   
+            - [ ] convert map to unordered_map
+            - [ ] PRM find_nearest_neighbors()
+            - [ ] Implement Priority queue for A*
+        - [ ] Investigate PRM path generation when sample count is low
     - GUI
         - [ ] Change behavior of the pen and eraser to support dragging movements
         - [ ] [Optional] Animate traversal of map and final path
     - Bug Fixes/Optimizations
         - [ ] Add more extensive error handling for GUI
-        - [ ] Get eraser to scale with map scaling in graphics view
     - Testing
         - [ ] Test D* Replan with changing map
-        - [ ] Rewrite tests with GTest
+        - [ ] Confirm map conversion tests work properly
 
 ## Dependencies
 - CMake
 - OpenCV
 - Qt6
+- GTest
 
 ## Quick Start
 1. Install dependencies:
-
     ```bash
-    # Ubuntu
-    sudo apt -y install libopencv-dev build-essential libgl1-mesa-dev qt6-base-dev qt6-tools-dev libqt6svg6-dev
+    sudo apt -y install libopencv-dev build-essential libgl1-mesa-dev libgtest-dev qt6-base-dev qt6-tools-dev libqt6svg6-dev
     ```
-2. Build Executables
+2. Set Environment Variables
+    ```bash
+    export QT_VERSION_MAJOR=6
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/to/Qt/<version>/gcc_64/lib
+    export QTDIR=/path/to/Qt/<version>/gcc_64 
+    ```
+3. Build Executables
 
     ```bash
-    # Unix-based OS
     mkdir build
     cmake -S . -B ./build
     cmake --build ./build
@@ -49,50 +72,57 @@ To open the GUI run this command:
 ![](/resources/graphics/gui.png)
 
 Features
- - Upload ROS maps (.yaml file paired with a .pgm file)
+ - Upload ROS maps (yaml file paired with a pgm file)
  - Dynamically inflation the size of obstacles
  - Add or remove obstacles from map
  - Set algorithm (if the "All" option is chosen the results will be color coded)
-    - Set the maximum number of iterations for sample-based algoirthms
+    - Set the maximum number of samples and other values for sample-based algoirthms
  - Set the start and goal positions
  - View results for comparison
- - Show some debug data for algorithms
+ - Show some debug data for algorithms (not enabled when "All" option chosen)
 
 ### Script
-This script requires the user to specify a yaml file for map information, the name of algorithm being used, and the start & end position. Certain algorithms require the user to specify the number of iterations to reduce the likelihood of an infinite loop (by default it is set to 10,000). If the map has thin or unexpected broken boudnaries it may also be benefitial to inflate their size to remedy this issue(by default boundaries are inflated by a 3x3 matrix). Look below for a more thorough breakdown of the possible commands for this script.
+The script version requires the user to specify a yaml file for map information, the name of algorithm being used, and the start & end position. Certain algorithms require the user to specify the number of samples used, max number of neighbors, and computational timeout Sto reduce the likelihood of an infinite loop. If the map has thin or unexpected broken boudnaries it may also be benefitial to inflate their size to remedy this issue(by default boundaries are inflated by a 3x3 matrix). Look below for a more thorough breakdown of the possible commands for this script.
 ```bash
 ./build/rpp_cli -h
 
 # Ouptut
 Description: A simple script to test different path planning algorithms.
 options: 
-   -h, --help                            Show this help message and exit.
-   -f FILE, --file FILE                  Provide map yaml filepath.
+   -h, --help                                 Show this help message and exit.
+   -f FILE, --file FILE                       Provide map yaml filepath.
    -i INFLATE_SIZE. --inflate-size INFLATE_SIZE
-                                         Set size of boundaries (Default: 3).
-   -a ALGORITHM, --algorithm ALGORITHM   Set executed algoritm to one of the following:
-                                         [bfs, a-star, rrt-star, all].
-   -l MAX_ITER, --max-iter MAX_ITER      Set limit the number of iterations executed.
-                                         Only supported for sample-based methods (Default: 10000).
-   -s START_POS, --start-pos START_POS   Set start position [Format: "int,int"].
-   -e END_POS, --end-pos END_POS         Set end position [Format: "int,int"].
-   -d, --debug                           Provide more information for debugging.
-   -t TIMEOUT, timeout TIMEOUT           Set timeout limit for algorithm computation
-                                         (Default: 600000 ms).
+                                              Set size of boundaries (Default: 3).
+   -a ALGORITHM, --algorithm ALGORITHM        Set executed algoritm to one of the following:
+                                              [bfs, a-star, rrt-star, prm, all].
+   -l SAMPLE_LIMIT, --sample-limit SAMPLE_LIMIT
+                                              Set a limit on the number of samples generated.
+                                              Only supported for sample-based methods (Default: 10000).
+   -k NEIGHBORS, --neighbors NEIGHBORS        Set the number of neighbors a node can have.
+                                              Exlusive to PRM algorithm (Default: 6)
+   -s START_POS, --start-pos START_POS        Set start position [Format: "int,int"].
+   -e END_POS, --end-pos END_POS              Set end position [Format: "int,int"].
+   -d, --debug                                Provide more information for debugging.
+   -t TIMEOUT, timeout TIMEOUT                Set timeout limit for algorithm computation
+                                              (Default: 600000 ms).
 ```
 
 Example execution:
 ```bash
 ./build/rpp_cli -f "/path/to/example1.yaml" -i 5 -a "rrt-star" -l 10000 -s "300,50" -e "381,360" -d
 ```
+Here's an example of using a json-like string to specify the number of samples per sampling algorithms:
+```bash
+./build/rpp_cli -f "/path/to/example1.yaml" -i 5 -a "all" -l "{'rrt-star': 8000, 'prm': 1000}" -s "300,50" -e "381,360" -d
+```
 
 ## Maps
 Maps are based on a occupancy grid generated by the slam_toolbox ROS package. Therefore a yaml and pgm file are necessary to retreive the map data.
 
 ### Generating ROS Maps
-ROS maps can also be generated with a text file. Within the text file a `0` indicates a vacant space while a `1` is used to illustrate an obstacle. The generated pgm and yaml map files will appear in the current working directory.
+A script, known as, `generate_map` can be used to generate ROS maps using a text file. Within the text file a `0` indicates a vacant space while a `1` is used to illustrate an obstacle. The generated pgm and yaml map files will appear in the current working directory.
 
-File format:
+Example:
 ```
 0.05                                        ; resolution
 10 20                                       ; height, width
@@ -127,3 +157,10 @@ Script execution:
 - [RRT* (graph-based implementation)](https://arxiv.org/pdf/1105.1186)
 
     ![](/resources/graphics/RRT_star.png)
+
+- [Probabiltiy Roadmap (PRM)](https://en.wikipedia.org/wiki/Probabilistic_roadmap)
+    
+    ![](/resources/graphics/PRM.png)
+
+### Other Algorithms
+- [Bresenham's Line Algorithm](https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)

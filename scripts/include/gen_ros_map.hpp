@@ -4,11 +4,9 @@
 #include <filesystem>
 
 #include "map_data.hpp"
+#include "script_constants.hpp"
 
 namespace fs = std::filesystem;
-
-const int OPEN_SPACE_INT = 0;
-const int OBSTACLE_INT = -1;
 
 struct Parameters{
     string txt_path, title;
@@ -39,8 +37,8 @@ class GenerateMap{
                     for(int col=0; col<map.px_width; col++){
                         getline(ss, value, ',');
                         int pixel = stoi(value);
-                        if(pixel == 0) map.boundaries[row][col] = OPEN_SPACE_INT;
-                        else if(pixel == 1) map.boundaries[row][col] = OBSTACLE_INT;
+                        if(pixel == 0) map.boundaries[row][col] = MapConstants::OPEN_SPACE_INT;
+                        else if(pixel == 1) map.boundaries[row][col] = MapConstants::OBSTACLE_INT;
                     }
                 }
                 map.m_width = (map.resolution+0.005)*map.px_width;
@@ -73,9 +71,9 @@ class GenerateMap{
                     for(int col=0; col<map.px_width; col++){
                         int idx = row*map.px_width + col;
                         uint8_t px;
-                        if (map.boundaries[row][col] == OBSTACLE_INT)         px = obstacle_value;
-                        else if(map.boundaries[row][col] == OPEN_SPACE_INT)   px = highest_value;
-                        else                                                  px = unknown_value;
+                        if (map.boundaries[row][col] == MapConstants::OBSTACLE_INT)         px = obstacle_value;
+                        else if(map.boundaries[row][col] == MapConstants::OPEN_SPACE_INT)   px = highest_value;
+                        else                                                                px = unknown_value;
                         buffer[idx] = char(px);
                     }
                 }
