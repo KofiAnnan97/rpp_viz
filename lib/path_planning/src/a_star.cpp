@@ -84,7 +84,7 @@ float AStar::get_f_score(cell p){
     return dist[p] + h[p];
 }
 
-void AStar::print_map(string name, map<cell, float> map){
+void AStar::print_map(string name, unordered_map<cell, float> map){
     cout << name << endl;
     for(auto m : map){
         cout << "[" << m.first.first << "," << m.first.second  << "] = " << m.second << endl;

@@ -30,9 +30,8 @@ void PROBABILITY_ROADMAP::find_nearest_neighbors(int k, c_time_point start, int 
             auto now = high_resolution_clock::now();
             if(duration_cast<milliseconds>(now-start).count() >= timeout) return;
             if(it->first == it2->first) continue;
-            else if(it->second.size() < k && Samples::is_collision_free(curr, it2->first, tree)){ 
+            else if(it->second.size() < k && Samples::is_collision_free(curr, it2->first, tree))
                 it->second.insert(it2->first);
-            }
             else if(it->second.size() > k){
                 while(it->second.size() > k){
                     auto furthest = PROBABILITY_ROADMAP::get_furthest_neighbor(curr, it->second);
@@ -41,7 +40,8 @@ void PROBABILITY_ROADMAP::find_nearest_neighbors(int k, c_time_point start, int 
             }
             else {
                 auto furthest = PROBABILITY_ROADMAP::get_furthest_neighbor(curr, it->second);
-                if(furthest.second > Distance::euclidean(curr, it2->first) && furthest.first != cell{-1,-1}){
+                if(furthest.second > Distance::euclidean(curr, it2->first) && furthest.first != cell{-1,-1}
+                   && Samples::is_collision_free(curr, it2->first, tree)){
                     it->second.erase(it->second.find(furthest.first));
                     it->second.insert(it2->first);
                 }
@@ -50,7 +50,7 @@ void PROBABILITY_ROADMAP::find_nearest_neighbors(int k, c_time_point start, int 
     }
 }
 
-void PROBABILITY_ROADMAP::learn(cell sp, cell ep, c_time_point start, int timeout){
+void PROBABILITY_ROADMAP::construct_roadmap(cell sp, cell ep, c_time_point start, int timeout){
     // Initialize KD tree with sample nodes
     set<cell> temp;
     kd_tree.insert({sp, temp});
@@ -95,7 +95,7 @@ void PROBABILITY_ROADMAP::solve(cell sp, cell ep, int timeout){
     auto start = high_resolution_clock::now();
 
     // Populate KD tree with sampled nodes 
-    PROBABILITY_ROADMAP::learn(sp, ep, start, timeout);
+    PROBABILITY_ROADMAP::construct_roadmap(sp, ep, start, timeout);
     //PROBABILITY_ROADMAP::print_roadmap();
     
     // Set all valid nodes to have infinite distance

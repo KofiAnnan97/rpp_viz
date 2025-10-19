@@ -10,7 +10,7 @@ class AStar{
         AStar(Graph g);
         void solve(cell sp, cell ep, int timeout);
         pair<vector<cell>, float> reconstruct_path(cell sp, cell ep);
-        void print_map(string name, map<cell, float> map);
+        void print_map(string name, unordered_map<cell, float> map);
         vector<cell> get_travelled_nodes();
 
     private:
@@ -19,10 +19,10 @@ class AStar{
         cell get_min_f(vector<cell> &s);
 
         Graph tree;
-        map<cell, float> dist;
-        map<cell, float> h;
-        map<cell, float> f;
-        map<cell, cell> parent;
+        unordered_map<cell, float> dist;
+        unordered_map<cell, float> h;
+        unordered_map<cell, float> f;
+        unordered_map<cell, cell> parent;
         vector<cell> travelled;
 };
 

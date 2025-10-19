@@ -21,7 +21,7 @@ class PROBABILITY_ROADMAP{
         vector<cell> get_travelled_roadmap();
 
     private:
-        void learn(cell sp, cell ep, c_time_point start, int timeout);
+        void construct_roadmap(cell sp, cell ep, c_time_point start, int timeout);
         pair<cell,float> get_furthest_neighbor(cell node, set<cell> neighbors);
         void find_nearest_neighbors(int k, c_time_point start, int timeout);
         bool not_in_set(vector<cell> open_set, cell p);
@@ -30,10 +30,10 @@ class PROBABILITY_ROADMAP{
         void print_roadmap();
 
         Graph tree;
-        map<cell, float> dist;
-        map<cell, float> f;
-        map<cell, set<cell>> kd_tree;
-        map<cell, cell> parent;
+        unordered_map<cell, float> dist;
+        unordered_map<cell, float> f;
+        unordered_map<cell, set<cell>> kd_tree;
+        unordered_map<cell, cell> parent;
         vector<cell> travelled;
         vector<cell> all_valid_nodes;
         vector<cell> all_obstacle_nodes;

@@ -24,11 +24,11 @@ class RRTStar{
         
         Graph tree;
         int max_iter;
-        map<cell, float> cost_map;
+        unordered_map<cell, float> cost_map;
         vector<cell> node_list;
         vector<cell> all_valid_nodes;
         vector<cell> travelled;
-        map<cell, cell> parent;
+        unordered_map<cell, cell> parent;
 };
 
 #endif // RRT_STAR_HPP

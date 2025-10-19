@@ -1,5 +1,5 @@
 # Robot Path Planning Visualization
-A testing ground for path planning strategies based on ROS maps. Planned updates and fixes can be found here: [FutureWork.md](./FutureWork.md)  
+A testing ground for path planning strategies based on ROS maps. Planned updates and fixes can be found here: [FutureWork.md](./FutureWork.md).
 
 ## Dependencies
 - CMake

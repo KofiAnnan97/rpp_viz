@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <filesystem>
 
@@ -20,6 +20,14 @@ using namespace cv;
 typedef pair<int,int> cell;     // coordingate from map (x,y) := (col,row)
 typedef pair<cell,int> iw_cell; // cell with integer weight
 
+template <>
+struct std::hash<cell> {
+  size_t operator()(const cell& c) const {
+    string cell_str = "(" + to_string(c.first) + "," + to_string(c.second) + ")";
+    return std::hash<std::string>{}(cell_str);
+  }
+};
+
 struct Map{
     int px_width, px_height;
     float resolution, m_width, m_height; // in meters
@@ -29,7 +37,7 @@ struct Map{
 // Change this class to use unordered_map (requires default constructor)
 class Graph {
     public:    
-        map<cell, vector<iw_cell>> g;           // Valid nodes
+        unordered_map<cell, vector<iw_cell>> g;           // Valid nodes
         vector<cell> obs;                       // Obstacle nodes 
         cell root = {0, 0};
         cell end = {0, 0};

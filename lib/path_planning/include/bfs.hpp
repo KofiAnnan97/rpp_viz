@@ -12,9 +12,9 @@ class BFS{
         
     private:
         Graph tree;
-        map<cell, float> dist;
-        map<cell,bool> visited;
-        map<cell, cell> parent;
+        unordered_map<cell, float> dist;
+        unordered_map<cell,bool> visited;
+        unordered_map<cell, cell> parent;
         vector<cell> q;
 };
 
