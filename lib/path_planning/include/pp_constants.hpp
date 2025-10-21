@@ -24,7 +24,14 @@ class AlgoConstants{
         // Defaults
         static const int DEFAULT_SAMPLE_COUNT = 10000;
         static const int DEFAULT_NEIGHBOR_COUNT = 6;
+        inline static const float DEFAULT_STEP_SIZE = 1.0;
+        inline static const float DEFAULT_SEARCH_RADIUS = 2*DEFAULT_STEP_SIZE;
         static const int DEFAULT_COMPUTE_TIMEOUT = 600000;  // in milliseconds (10 minutes)
+};
+
+class MathConstants{
+    public:
+        inline static const float PI = 3.14159;
 };
 
 #endif // PATH_PLANNING_CONSTANTS_HPP

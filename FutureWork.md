@@ -1,15 +1,16 @@
-## Next Release
+# Next Release
 - Release 0.1.2
     - General
         - [ ] Fix map to pose conversions
-    - GUI
-        - [ ] Change behavior of the pen and eraser to support dragging movements
+        - [ ] Implement step size input for CLI/GUI
+    - Algorithm
+        - [X] Change RRT to allow larger step sizes
     - Bug Fixes/Optimizations
-        - [ ] Add more extensive error handling for CLI parameters
+        - [X] Add more extensive error handling for CLI parameters
         - [X] Investigate PRM path generation sometimes resulting in collisions (usually occurs with small sample count)
         - [ ] Optimize algorithms   
             - [X] convert map to unordered_map
-            - [ ] PRM find_nearest_neighbors()
+            - [X] PRM find_nearest_neighbors() -> removed unecessary code (code it already at its expected performance level)
             - [ ] Implement Priority queue for A*
     - Testing
         - [ ] Confirm map conversion tests work properly
@@ -21,6 +22,7 @@
     - Look into genetic algorithms
  - CLI
  - GUI
+    - Change behavior of the pen and eraser to support dragging movements
     - [Optional] Animate traversal of map and final path
  - Testing
     - Test D* Replan with changing map

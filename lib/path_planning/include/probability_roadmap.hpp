@@ -11,7 +11,7 @@ using namespace std::chrono;
 
 class PROBABILITY_ROADMAP{
     public:
-        PROBABILITY_ROADMAP(Graph g, int iter, int neighbor_count);
+        PROBABILITY_ROADMAP(Graph g, int sample_count, int neighbor_count);
         void dijkstra(cell sp, cell ep, c_time_point start, int timeout);
         void solve(cell sp, cell ep, int timeout);
         pair<vector<cell>, float> reconstruct_path(pair<int, int> sp, pair<int, int> ep);

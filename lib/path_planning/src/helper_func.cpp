@@ -79,7 +79,7 @@ class Distance{
         }
 };
 
-class Samples{
+class Sampling{
     public:
         static bool is_collision_free(cell c, cell d, Graph &tree){
             auto line = Bresenham::connect_points(c, d);
@@ -100,5 +100,17 @@ class Samples{
             }
             else random_node = ep;
             return random_node;
+        }
+
+        static vector<cell> get_connected_path(vector<cell> &path){
+            vector<cell> connected_path;
+            for(int i = 0; i < path.size()-1; i++){
+                connected_path.push_back(path[i]);
+                auto line = Bresenham::connect_points(path[i], path[i+1]);
+                for(int j = 1; j < line.size()-1; j++)
+                    connected_path.push_back(line[j]);
+            }
+            connected_path.push_back(path[path.size()-1]);
+            return connected_path;
         }
 };

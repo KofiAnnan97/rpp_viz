@@ -12,6 +12,8 @@ cell MapHelper::get_positon(string pos_str){
         pos.second = std::stoi(val);
     } catch(std::invalid_argument e){
         pos = {-1,-1};
+        cout << "[ERROR] {" << pos_str << "} is invalid. Setting node to {" 
+             << pos.first << "," << pos.second << "}.\n";
     }
     return pos;
 }

@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 #include <filesystem>
+#include <exception>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui.hpp>

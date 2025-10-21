@@ -2,6 +2,7 @@
 
 #include "pathworker.h"
 #include "time_helper.hpp"
+#include "helper_func.cpp"
 #include "bfs.hpp"
 #include "a_star.hpp"
 #include "rrt_star.hpp"
@@ -53,7 +54,7 @@ void PathWorker::run_rrt_star(Graph g, int sample_count){
     if(duration.count() >= compute_timeout) timeout_occurred = true;
     auto data = rrt.reconstruct_path(g.root, g.end);
     MapHelper::add_result(results, AppConstants::RRT_STAR_ID.toStdString(), duration.count(),
-                          data.first, rrt.get_travelled_nodes(), data.second);
+                          Sampling::get_connected_path(data.first), rrt.get_travelled_tree(), data.second);
 }
 
 // PRM algorithm module
@@ -66,7 +67,7 @@ void PathWorker::run_prm(Graph g, int sample_count, int neigbor_count){
     if(duration.count() >= compute_timeout) timeout_occurred = true;
     auto data = prm.reconstruct_path(g.root, g.end);
     MapHelper::add_result(results, AppConstants::PRM_ID.toStdString(), duration.count(),
-                          prm.get_connected_path(data.first), prm.get_travelled_roadmap(), data.second);
+                          Sampling::get_connected_path(data.first), prm.get_travelled_roadmap(), data.second);
 }
 
 // Compute path(s)

@@ -30,18 +30,12 @@ void PROBABILITY_ROADMAP::find_nearest_neighbors(int k, c_time_point start, int 
             auto now = high_resolution_clock::now();
             if(duration_cast<milliseconds>(now-start).count() >= timeout) return;
             if(it->first == it2->first) continue;
-            else if(it->second.size() < k && Samples::is_collision_free(curr, it2->first, tree))
+            else if(it->second.size() < k && Sampling::is_collision_free(curr, it2->first, tree))
                 it->second.insert(it2->first);
-            else if(it->second.size() > k){
-                while(it->second.size() > k){
-                    auto furthest = PROBABILITY_ROADMAP::get_furthest_neighbor(curr, it->second);
-                    if(furthest.first != cell{-1,-1}) it->second.erase(it->second.find(furthest.first));
-                } 
-            }
             else {
                 auto furthest = PROBABILITY_ROADMAP::get_furthest_neighbor(curr, it->second);
                 if(furthest.second > Distance::euclidean(curr, it2->first) && furthest.first != cell{-1,-1}
-                   && Samples::is_collision_free(curr, it2->first, tree)){
+                   && Sampling::is_collision_free(curr, it2->first, tree)){
                     it->second.erase(it->second.find(furthest.first));
                     it->second.insert(it2->first);
                 }
@@ -55,7 +49,7 @@ void PROBABILITY_ROADMAP::construct_roadmap(cell sp, cell ep, c_time_point start
     set<cell> temp;
     kd_tree.insert({sp, temp});
     for(int s_idx = 0; s_idx < max_sample_count; s_idx++){
-        auto node = Samples::get_random_node(tree.end, all_valid_nodes);
+        auto node = Sampling::get_random_node(tree.end, all_valid_nodes);
         kd_tree.insert({node, set(temp)});
     }
     kd_tree.insert({ep, set(temp)});
@@ -94,7 +88,7 @@ void PROBABILITY_ROADMAP::dijkstra(cell sp, cell ep, c_time_point start, int tim
 void PROBABILITY_ROADMAP::solve(cell sp, cell ep, int timeout){
     auto start = high_resolution_clock::now();
 
-    // Populate KD tree with sampled nodes 
+    // Construction phase with sampled nodes 
     PROBABILITY_ROADMAP::construct_roadmap(sp, ep, start, timeout);
     //PROBABILITY_ROADMAP::print_roadmap();
     
@@ -102,7 +96,7 @@ void PROBABILITY_ROADMAP::solve(cell sp, cell ep, int timeout){
     for(auto it = kd_tree.begin(); it != kd_tree.end(); ++it)
         dist[it->first] = std::numeric_limits<float>::infinity();
 
-    // Determine path using dykstra's algorithm
+    // Query phase using Dijkstra's algorithm
     PROBABILITY_ROADMAP::dijkstra(sp, ep, start, timeout);
 }
 
@@ -152,18 +146,6 @@ float PROBABILITY_ROADMAP::get_f_score(cell p){
     step_size = size;
 }*/
 
-vector<cell> PROBABILITY_ROADMAP::get_connected_path(vector<cell> path){
-    vector<cell> connected_path;
-    for(int i = 0; i < path.size()-1; i++){
-        connected_path.push_back(path[i]);
-        auto line = Bresenham::connect_points(path[i], path[i+1]);
-        for(int j = 1; j < line.size()-1; j++)
-            connected_path.push_back(line[j]);
-    }
-    connected_path.push_back(path[path.size()-1]);
-    return connected_path;
-}
-
 vector<cell> PROBABILITY_ROADMAP::get_travelled_nodes(){
     return travelled;
 }
@@ -175,7 +157,7 @@ vector<cell> PROBABILITY_ROADMAP::get_travelled_roadmap(){
         auto curr = travelled_nodes[i];
         auto neighbors = kd_tree[curr];
         for(auto neighbor: neighbors){
-            if(unique_nodes.find(neighbor) != unique_nodes.end() && Samples::is_collision_free(curr, neighbor, tree)){
+            if(unique_nodes.find(neighbor) != unique_nodes.end() && Sampling::is_collision_free(curr, neighbor, tree)){
                 auto line = Bresenham::connect_points(curr, neighbor);
                 unique_nodes.insert(line.begin(), line.end());
             }

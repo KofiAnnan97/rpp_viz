@@ -86,26 +86,39 @@ Parameters get_params(int argc, char* argv[]){
     Parameters params;
     for(int i = 1; i < argc; i++){
         if(strcmp(argv[i], "-f") == 0 || strcmp(argv[i], "--file") == 0){
+            string missing_err = "[ERROR] Mising file name";
             if(i+1 >= argc){
-                cout << "Mising file name" << endl;
+                cout << missing_err << endl;
                 params.kill_script = true;
                 break;
             } 
-            else params.map_yaml = argv[i+1];
+            else {
+                if(argv[i+1][0] == '-'){
+                    cout << missing_err << endl; 
+                    params.kill_script = true;
+                    break;
+                }
+                params.map_yaml = argv[i+1];
+            }
             i++;
         }
         else if(strcmp(argv[i], "-i") == 0 || strcmp(argv[i], "--inflate-map") == 0){
+            string missing_err = "[ERROR] Mising inflate value (integer)";
             if(i+1 >= argc){
-                cout << "Mising inflate value (integer)" << endl;
+                cout << missing_err << endl;
                 params.kill_script = true;
                 break;
             } 
             else {
                 try{
                     params.inflate_size = std::stoi(argv[i+1]);
-                    
                 }catch(std::invalid_argument e){
-                    cout << "Could not convert \"" << argv[i+1] << "\" to an integer. Defaulting to " 
+                    if(argv[i+1][0] == '-'){
+                        cout << missing_err << endl; 
+                        params.kill_script = true;
+                        break;
+                    }
+                    cout << "[WARN] Could not convert \"" << argv[i+1] << "\" to an integer. Defaulting obstacle inflation to " 
                          << MapConstants::DEFAULT_INFLATE_SIZE << ".\n";
                     params.kill_script = false;
                 }
@@ -114,7 +127,7 @@ Parameters get_params(int argc, char* argv[]){
         }
         else if(strcmp(argv[i], "-a") == 0 || strcmp(argv[i], "--algorithm") == 0){
             if(i+1 >= argc){
-                cout << "Mising algorithm name" << endl;
+                cout << "[ERROR] Mising algorithm name" << endl;
                 params.kill_script = true;
                 break;
             } 
@@ -123,13 +136,13 @@ Parameters get_params(int argc, char* argv[]){
                 i++;
             }
             else{
-                cout << "Unrecognized algorithm: \'" << params.algo << "\'\n"; 
+                cout << "[ERROR] Unrecognized algorithm: \'" << params.algo << "\'\n"; 
                 params.kill_script = true;   
             }
         }
         else if(strcmp(argv[i], "-l") == 0 || strcmp(argv[i], "--sample-limit") == 0){
             if(i+1 >= argc){
-                cout << "Mising sample number limit" << endl;
+                cout << "[ERROR] Mising sample number limit" << endl;
                 params.kill_script = true;
                 break;
             }
@@ -162,15 +175,16 @@ Parameters get_params(int argc, char* argv[]){
                         params.sample_counts.prm_count = std::stoi(original_str);
                     }    
                 }catch(std::invalid_argument e){
-                    cout << "Invalid Argument: " << argv[i+1] << ".\nValue should be a single integer or json-like string.\nStack trace: " << e.what() << endl;
+                    cout << "[ERROR] Invalid Argument: " << argv[i+1] << ".\nValue should be a single integer or json-like string.\nStack trace: " << e.what() << endl;
                     params.kill_script = true;   
                 }
                 i++;
             }
         }
         else if(strcmp(argv[i], "-k") == 0 || strcmp(argv[i], "--neighbors") == 0){
+            string missing_err = "[ERROR] Mising neighbor count";
             if(i+1 >= argc){
-                cout << "Mising neighbor count" << endl;
+                cout << missing_err << endl;
                 params.kill_script = true;
                 break;
             }
@@ -178,7 +192,12 @@ Parameters get_params(int argc, char* argv[]){
                 try{
                     params.neighbor_count = std::stoi(argv[i+1]);
                 }catch(std::invalid_argument e){
-                    cout << "Could not convert \"" << argv[i+1] << "\" to an integer. Defaulting to " 
+                    if(argv[i+1][0] == '-'){
+                        cout << missing_err << endl;
+                        params.kill_script = true;
+                        break;
+                    }
+                    cout << "[WARN] Could not convert \"" << argv[i+1] << "\" to an integer. Defaulting max neighbor count to " 
                          << AlgoConstants::DEFAULT_NEIGHBOR_COUNT << ".\n";
                     params.kill_script = false;
                 }
@@ -186,23 +205,35 @@ Parameters get_params(int argc, char* argv[]){
             i++;
         }
         else if(strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--start-pos") == 0){
+            string missing_err = "[ERROR] Mising start position";
             if(i+1 >= argc){
-                 cout << "Mising start position" << endl;
-                 params.kill_script = true;
-                 break;
+                cout << missing_err << endl;
+                params.kill_script = true;
+                break;                
             }
             else{
+                if(argv[i+1][0] == '-'){
+                    cout << missing_err << endl;
+                    params.kill_script = true;
+                    break;
+                }
                 params.start = MapHelper::get_positon(argv[i+1]);
                 i++;
             } 
         }
         else if(strcmp(argv[i], "-e") == 0 || strcmp(argv[i], "--end-pos") == 0){
+            string missing_err = "[ERROR] Mising end position";
             if(i+1 >= argc){
-                cout << "Mising end position" << endl;
+                cout << missing_err << endl;
                 params.kill_script = true;
                 break;                
             } 
             else{
+                if(argv[i+1][0] == '-'){
+                    cout << missing_err << endl;
+                    params.kill_script = true;
+                    break;
+                }
                 params.goal = MapHelper::get_positon(argv[i+1]);
                 i++;
             }
@@ -211,21 +242,27 @@ Parameters get_params(int argc, char* argv[]){
             params.show_debug = true;
         }
         else if(strcmp(argv[i], "-t") == 0 || strcmp(argv[i], "--timeout") == 0){
+            string missing_err = "[ERROR] Mising timeout value";
             if (i+1 >= argc){
-                cout << "Mising timeout value" << endl;
+                cout << missing_err << endl;
                 params.kill_script = true;
                 break;                
             }
             else{
                 try{
                     compute_timeout = std::stoi(argv[i+1]);
-                    i++;
                 }
                 catch(std::invalid_argument e){
-                    cout << "Could not convert \"" << argv[i+1] << "\" value to integer. Defaulting to 600000 ms." << endl;
-                    params.kill_script = true;
-                    break;
+                    if(argv[i+1][0] == '-'){
+                        cout << missing_err << endl; 
+                        params.kill_script = true;
+                        break;
+                    }
+                    cout << "[WARN] Could not convert \"" << argv[i+1] << "\" to an integer. Defaulting timeout to " 
+                         << AlgoConstants::DEFAULT_COMPUTE_TIMEOUT << " ms." << endl;
+                    params.kill_script = false;
                 }
+                i++;
             }
         }
         else if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0){
@@ -313,18 +350,18 @@ void run_rrt_star(Map &m, Graph g, int sample_count, bool debug){
     auto end_time = TimeHelper::get_time("End Time", true);
     int duration = duration_cast<milliseconds>(end_time - start_time).count();
 
-    vector<cell> path, travelled;
+    vector<cell> path;
+    auto travelled = rrt.get_travelled_tree(); //rrt.get_travelled_nodes();
     if(rrt.goal_reached){
         auto results = rrt.reconstruct_path(g.root, g.end);
-        path = results.first;
+        path = Sampling::get_connected_path(results.first);
         float dist = results.second;
-        travelled = rrt.get_travelled_nodes();
         AlgoResult ar = {CLIConstants::RRT_STAR_ID, duration, path, travelled, dist};
         print_results(ar, debug, compute_timeout);
     }
     else {
         cout << "Goal could not be reached. Please check the following:";
-        cout << "\n\tstart point\n\tend point\n\t# of max iterations\n\talgorithm timeout limit\n";
+        cout << "\n\tstart point\n\tend point\n\t# of max num of samples\n\talgorithm timeout limit\n";
     }
     show_map("RRT*", m, g.root, g.end, path, travelled, debug);
 }
@@ -358,7 +395,7 @@ void run_prm(Map &m, Graph g, int sample_count, int neighbor_count, bool debug){
 
     vector<cell> path, travelled;
     auto results = prm.reconstruct_path(g.root, g.end);
-    path = prm.get_connected_path(results.first);
+    path = Sampling::get_connected_path(results.first);
     float dist = results.second;
     travelled = prm.get_travelled_roadmap();
     AlgoResult ar = {CLIConstants::PRM_ID, duration, path, travelled, dist};
@@ -371,26 +408,31 @@ int main(int argc, char* argv[]){
     if(params.get_help){
         print_help_menu();
     }else if(!params.kill_script){
-        auto map = MapData::get_map(params.map_yaml);
-        map.boundaries = MapData::inflate_boundaries(map, params.inflate_size);
-        auto g = MapData::get_graph_from_map(map);
-        if(g.is_node_valid(params.start)) g.root = params.start;
-        else cout << "Start node: {" << params.start.first << "," << params.start.second << "} is invalid\n"; 
-        
-        if(g.is_node_valid(params.goal)) g.end = params.goal;
-        else cout << "End node: {" << params.goal.first << "," << params.goal.second << "} is invalid\n"; 
+        try{
+            Map map = MapData::get_map(params.map_yaml);
+            map.boundaries = MapData::inflate_boundaries(map, params.inflate_size);
+            auto g = MapData::get_graph_from_map(map);
+            if(g.is_node_valid(params.start)) g.root = params.start;
+            else cout << "Start node: {" << params.start.first << "," << params.start.second << "} is invalid\n"; 
+            
+            if(g.is_node_valid(params.goal)) g.end = params.goal;
+            else cout << "End node: {" << params.goal.first << "," << params.goal.second << "} is invalid\n"; 
 
-        if(g.is_node_valid(params.start) && g.is_node_valid(params.goal)){
-            if(params.algo == CLIConstants::BFS_ID || params.algo == CLIConstants::ALL_ID) 
-                run_bfs(map, g, params.show_debug);
-            if(params.algo == CLIConstants::A_STAR_ID || params.algo == CLIConstants::ALL_ID) 
-                run_astar(map, g, params.show_debug);
-            if(params.algo == CLIConstants::RRT_STAR_ID || params.algo == CLIConstants::ALL_ID) 
-                run_rrt_star(map, g, params.sample_counts.rrt_star_count, params.show_debug);
-            if(params.algo == CLIConstants::PRM_ID || params.algo == CLIConstants::ALL_ID)
-                run_prm(map, g, params.sample_counts.prm_count, params.neighbor_count, params.show_debug);
-            //if(params.algo == "d-lite" || params.algo == ALL_ID) run_d_star_lite(map, g, params.show_debug);
-            if(!is_valid_algo(params.algo)) cout << "Unrecognized algorithm: " << params.algo << endl;
+            if(g.is_node_valid(params.start) && g.is_node_valid(params.goal)){
+                if(params.algo == CLIConstants::BFS_ID || params.algo == CLIConstants::ALL_ID) 
+                    run_bfs(map, g, params.show_debug);
+                if(params.algo == CLIConstants::A_STAR_ID || params.algo == CLIConstants::ALL_ID) 
+                    run_astar(map, g, params.show_debug);
+                if(params.algo == CLIConstants::RRT_STAR_ID || params.algo == CLIConstants::ALL_ID) 
+                    run_rrt_star(map, g, params.sample_counts.rrt_star_count, params.show_debug);
+                if(params.algo == CLIConstants::PRM_ID || params.algo == CLIConstants::ALL_ID)
+                    run_prm(map, g, params.sample_counts.prm_count, params.neighbor_count, params.show_debug);
+                //if(params.algo == "d-lite" || params.algo == ALL_ID) run_d_star_lite(map, g, params.show_debug);
+                if(!is_valid_algo(params.algo)) cout << "Unrecognized algorithm: " << params.algo << endl;
+            }
+        }
+        catch(std::runtime_error re){
+            cout << re.what() << endl;
         }
     }
 }

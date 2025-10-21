@@ -105,9 +105,8 @@ Map MapData::get_map(string yp){
         return map;
     }
     else{
-        cout << "Could not find file: " << yp << endl;
-        Map temp;
-        return temp;
+        string err_msg = "[ERROR] Could not find file: " + yp;
+        throw std::runtime_error(err_msg);
     }
 }
 

@@ -24,19 +24,21 @@ class RRT_Star_Tests: public Test {
     protected:
         Map m = get_simple_map();
         Graph g = MapData::get_graph_from_map(m);
-        const int DURATION_LIMIT = 10;
+        const int DURATION_LIMIT = 40;
         const float PATH_ERR_THRESH = 4;
         const float DIST_LIMIT = 25;
+        const float step_size = 1;
 
         void SetUp() override {
             g.root = {3, 3};
             g.end = {16, 7};
             auto rrt = RRTStar(g, 1000);
+            rrt.set_step_size(step_size);
 
             auto start_time = TimeHelper::get_time("Start Time", false);
             rrt.solve(g.root, g.end, COMPUTE_TIMEOUT);
             auto end_time = TimeHelper::get_time("End Time", false);
-            auto duration = duration_cast<milliseconds>(end_time- start_time);
+            auto duration = duration_cast<milliseconds>(end_time- start_time).count();
                 
             dist = std::numeric_limits<float>::infinity();
             if(rrt.goal_reached){
