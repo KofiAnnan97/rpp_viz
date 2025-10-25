@@ -29,11 +29,13 @@ void MainWindow::initialize_window(){
     ui->cb_bx_algos->addItems(algos_lst);
     num_of_algos = algos_lst.size()-1;
 
-    // Set neigbor count and sample combobox
-    ui->sp_bx_neighbors->setValue(neighbor_count);
+    // Set variables for Algorithm UI elements
     QStringList sample_algo_lst = {AppConstants::RRT_STAR_ID, AppConstants::PRM_ID,
                                    AppConstants::ALL_ID};
     ui->cb_bx_sample_algos->addItems(sample_algo_lst);
+    ui->sp_bx_iterations->setValue(samples.rrt_star_count);
+    ui->sp_bx_neighbors->setValue(neighbor_count);
+    ui->dsp_bx_step_size->setValue(step_size);
 
     // Initialize map display
     draw_panel = new DrawingPanel(ui->view_map);
@@ -47,6 +49,9 @@ void MainWindow::initialize_window(){
     ui->btn_erase->setIcon(QIcon(AppConstants::ERASE_ICON));
     ui->ch_bx_match_inflate->setChecked(true);
     ui->btn_obstacles->hide();
+
+    // Disable UI Elements (until fix for RRT*)
+    ui->dsp_bx_step_size->setEnabled(false);
 }
 
 // HELPER FUNCTIONS
@@ -87,6 +92,7 @@ void MainWindow::set_settings_enabled(bool is_enabled){
     ui->sp_bx_neighbors->setEnabled(is_enabled);
     ui->cb_bx_sample_algos->setEnabled(is_enabled);
     ui->btn_set_samples->setEnabled(is_enabled);
+    //ui->dsp_bx_step_size->setEnabled(is_enabled);
 }
 
 bool MainWindow::eventFilter(QObject *object, QEvent *event){
@@ -346,6 +352,17 @@ void MainWindow::on_cb_bx_algos_currentTextChanged(const QString &name){
         ui->sp_bx_neighbors->hide();
     }
 
+    // Toggle Step Size UI Element
+    if(name == AppConstants::RRT_STAR_ID || name == AppConstants::ALL_ID){
+        ui->lbl_step_size->show();
+        ui->dsp_bx_step_size->show();
+    }
+    else{
+        ui->lbl_step_size->hide();
+        ui->dsp_bx_step_size->hide();
+    }
+
+
     // Toggle Sample Count UI Element
     if(name == AppConstants::RRT_STAR_ID || name == AppConstants::ALL_ID || name == AppConstants::PRM_ID){
         ui->lbl_iterations->show();
@@ -414,6 +431,7 @@ void MainWindow::on_btn_run_algo_clicked(){
         graph.end = goal_pos;
 
         neighbor_count = ui->sp_bx_neighbors->value();
+        step_size = ui->dsp_bx_step_size->value();
         if(path_computed){
             draw_panel->update_map(AppConstants::DISPLAY_MAP_ID);
             path_computed = false;
@@ -429,7 +447,7 @@ void MainWindow::on_btn_run_algo_clicked(){
                 samples.rrt_star_count = ui->sp_bx_iterations->value();
                 samples.prm_count = ui->sp_bx_iterations->value();
             }
-            p_worker->compute_path(algo_name, graph, samples, neighbor_count);
+            p_worker->compute_path(algo_name, graph, samples, neighbor_count, step_size);
         });
 
         // Set signal for MainWindow functions

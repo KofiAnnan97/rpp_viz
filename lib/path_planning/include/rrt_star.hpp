@@ -5,6 +5,8 @@
 #include <cmath>
 #include <random>
 #include <complex>
+#include <set>
+
 #include "map_data.hpp"
 
 class RRTStar{
@@ -25,9 +27,9 @@ class RRTStar{
         cell choose_parent(vector<cell> neighbors, cell nearest_node, cell new_node);
         void rewire(cell new_node, vector<cell> neighbors);
         
-
         Graph tree;
         int max_num_of_samples;
+        float goal_radius;
         float step_size = AlgoConstants::DEFAULT_STEP_SIZE;
         float search_radius = AlgoConstants::DEFAULT_SEARCH_RADIUS;
         unordered_map<cell, float> cost_map;

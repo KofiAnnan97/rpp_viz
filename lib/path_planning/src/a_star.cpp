@@ -28,8 +28,7 @@ pair<vector<cell>, float> AStar::reconstruct_path(cell sp, cell ep){
 void AStar::solve(cell sp, cell ep, int timeout){
     dist[sp] = 0;
     f[sp] = AStar::get_f_score(sp);
-    vector<cell> open_set;
-    open_set.push_back(sp);
+    set<cell> open_set = {sp};
     auto start = high_resolution_clock::now();
     while(!open_set.empty()){ 
         auto now = high_resolution_clock::now();
@@ -46,8 +45,8 @@ void AStar::solve(cell sp, cell ep, int timeout){
                 f[cp] = new_cost;
                 dist[cp] = new_dist;
                 parent[cp] = curr; 
-                if(not_in_set(open_set, cp)) {
-                    open_set.push_back(cp);
+                if(open_set.find(cp) == open_set.end()){
+                    open_set.insert(cp);
                     travelled.push_back(cp);
                 }
             } 
@@ -55,28 +54,18 @@ void AStar::solve(cell sp, cell ep, int timeout){
     }
 }
 
-bool AStar::not_in_set(vector<cell> open_set, cell p){
-    for(auto n : open_set){
-        if(n == p) return false;
-    }
-    return true;
-}
-
-cell AStar::get_min_f(vector<cell> &s){
-    cell mp;
-    int min_idx = -1;
+cell AStar::get_min_f(set<cell> &s){
+    cell temp = {-1,-1};
     float min_val = std::numeric_limits<float>::infinity();
-    for(int i = 0; i < s.size(); i++){
-        auto n = s[i];
+    for(auto it = s.begin(); it != s.end(); ++it){
+        auto n = cell{it->first, it->second};
         if(f[n] <= min_val){
-            min_idx = i;
+            temp = n;
             min_val = f[n];
         }
     }
-    if(min_idx != -1){
-        mp = {s[min_idx].first, s[min_idx].second};
-        s.erase(s.begin()+min_idx);
-    }
+    cell mp = {temp.first, temp.second}; 
+    if(temp != cell{-1,-1}) s.erase(temp);
     return mp;
 }
 

@@ -3,6 +3,8 @@
 
 #include <limits>
 #include <cmath>
+#include <set>
+
 #include "map_data.hpp"
 
 class AStar{
@@ -15,8 +17,7 @@ class AStar{
 
     private:
         float get_f_score(cell p);
-        bool not_in_set(vector<cell> open_set, cell p);
-        cell get_min_f(vector<cell> &s);
+        cell get_min_f(set<cell> &s);
 
         Graph tree;
         unordered_map<cell, float> dist;
@@ -24,6 +25,7 @@ class AStar{
         unordered_map<cell, float> f;
         unordered_map<cell, cell> parent;
         vector<cell> travelled;
+        //std::priority_queue<Coord, vector<Coord>, CompareCoord> open_queue;
 };
 
 #endif // A_STAR_HPP

@@ -45,8 +45,9 @@ void PathWorker::run_a_star(Graph g){
 }
 
 // RRT* algorithm module
-void PathWorker::run_rrt_star(Graph g, int sample_count){
+void PathWorker::run_rrt_star(Graph g, int sample_count, int step_size){
     auto rrt = RRTStar(g, sample_count);
+    rrt.set_step_size(step_size);
     auto start_time = high_resolution_clock::now();
     rrt.solve(g.root, g.end, compute_timeout);
     auto end_time = high_resolution_clock::now();
@@ -71,7 +72,7 @@ void PathWorker::run_prm(Graph g, int sample_count, int neigbor_count){
 }
 
 // Compute path(s)
-void PathWorker::compute_path(QString algo_name, Graph g, SampleCountByAlgo samples, int neighbor_count){
+void PathWorker::compute_path(QString algo_name, Graph g, SampleCountByAlgo samples, int neighbor_count, int step_size){
     results.clear();
     QString err_msg;
     auto time_converted = TimeHelper::convert_from_ms(compute_timeout);
@@ -96,7 +97,7 @@ void PathWorker::compute_path(QString algo_name, Graph g, SampleCountByAlgo samp
         emit algo_progress(algos_finished);
     }
     if(algo_name == AppConstants::RRT_STAR_ID || algo_name == AppConstants::ALL_ID){
-        this->run_rrt_star(g, samples.rrt_star_count);
+        this->run_rrt_star(g, samples.rrt_star_count, step_size);
         if(timeout_occurred){
             err_msg += QString("   - RRT* Computation exceeded %1 %2\n").arg(time_converted.first).arg(time_converted.second.c_str());
             timeout_occurred = false;

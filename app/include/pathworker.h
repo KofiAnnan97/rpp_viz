@@ -24,7 +24,7 @@ public:
     void send_timeout_error(QString& message);
 
 public slots:
-    void compute_path(QString algo_name, Graph g, SampleCountByAlgo samples, int neighbor_count);
+    void compute_path(QString algo_name, Graph g, SampleCountByAlgo samples, int neighbor_count, int step_size);
 
 signals:
     void algo_progress(int completed);
@@ -34,7 +34,7 @@ signals:
 private:
     void run_bfs(Graph g);
     void run_a_star(Graph g);
-    void run_rrt_star(Graph g, int sample_count);
+    void run_rrt_star(Graph g, int sample_count, int step_size);
     void run_prm(Graph g, int sample_count, int neighbor_cout);
 
     int compute_timeout = AlgoConstants::DEFAULT_COMPUTE_TIMEOUT;

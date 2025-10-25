@@ -2,7 +2,7 @@
 - Release 0.1.2
     - General
         - [ ] Fix map to pose conversions
-        - [ ] Implement step size input for CLI/GUI
+        - [X] Implement step size input for CLI & GUI(currently disabled)
     - Algorithm
         - [X] Change RRT to allow larger step sizes
     - Bug Fixes/Optimizations
@@ -28,3 +28,7 @@
     - Test D* Replan with changing map
  - Bug fixes/Optimizations
     - Add more extensive error handling for GUI
+    - Investigate what's causing RRT* to produce errors when step size > 1
+        - Broken paths can sometimes occur (due to an infinite loop cause by two nodes being each others parent) or paths with collisions when the step size > 1
+        - Some generated paths have collisions (start with a step size > 10)
+        - Enable step size UI element in GUI when complete

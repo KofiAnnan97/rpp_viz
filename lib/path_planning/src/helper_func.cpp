@@ -83,7 +83,7 @@ class Sampling{
     public:
         static bool is_collision_free(cell c, cell d, Graph &tree){
             auto line = Bresenham::connect_points(c, d);
-            for(auto pt: line){
+            for(auto& pt: line){
                 if(!tree.is_node_valid(pt)) return false;
             }
             return true;
@@ -99,16 +99,23 @@ class Sampling{
                 all_valid_nodes.push_back(random_node);
             }
             else random_node = ep;
-            return random_node;
+             return random_node;
         }
 
         static vector<cell> get_connected_path(vector<cell> &path){
+            cout << "Original Path: [ ";
+            for(auto p: path) cout << "(" << p.first << "," << p.second << ") ";
+            cout << "]\n";
+            
             vector<cell> connected_path;
             for(int i = 0; i < path.size()-1; i++){
-                connected_path.push_back(path[i]);
                 auto line = Bresenham::connect_points(path[i], path[i+1]);
-                for(int j = 1; j < line.size()-1; j++)
-                    connected_path.push_back(line[j]);
+                if(line.size() == 2)
+                    connected_path.push_back(path[i]);
+                else if(line[0] == path[i])
+                    connected_path.insert(connected_path.end(),line.begin(), line.end()-1);
+                else if(line[0] == path[i+1])
+                    connected_path.insert(connected_path.end(),line.rbegin(), line.rend()-2);
             }
             connected_path.push_back(path[path.size()-1]);
             return connected_path;

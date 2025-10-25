@@ -510,7 +510,7 @@
               <number>1000</number>
              </property>
              <property name="value">
-              <number>10000</number>
+              <number>0</number>
              </property>
             </widget>
            </item>
@@ -575,6 +575,22 @@
               <number>500</number>
              </property>
             </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="lbl_step_size">
+             <property name="maximumSize">
+              <size>
+               <width>80</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Step Size: </string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QDoubleSpinBox" name="dsp_bx_step_size"/>
            </item>
            <item alignment="Qt::AlignmentFlag::AlignRight">
             <widget class="QCheckBox" name="ch_bx_debug">

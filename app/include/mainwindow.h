@@ -78,6 +78,7 @@ private:
     QString algo_name;
     SampleCountByAlgo samples;
     int neighbor_count = AlgoConstants::DEFAULT_NEIGHBOR_COUNT;
+    int step_size = AlgoConstants::DEFAULT_STEP_SIZE;
     cell start_pos = {-1,-1};
     cell goal_pos = {-1,-1};
     vector<AlgoResult> results;

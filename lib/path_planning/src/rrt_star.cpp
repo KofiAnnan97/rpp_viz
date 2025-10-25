@@ -1,5 +1,3 @@
-#include <set>
-
 #include "rrt_star.hpp"
 
 #include "helper_func.cpp"
@@ -9,6 +7,7 @@ using namespace std::chrono;
 RRTStar::RRTStar(Graph g, int num_of_samples){
     tree = g;
     max_num_of_samples = num_of_samples;
+    goal_radius = (search_radius >= 2) ? (3/4.0)*search_radius : 0.85*search_radius;
     all_valid_nodes = tree.get_valid_nodes();
     goal_reached = false;
 }
@@ -33,7 +32,7 @@ void RRTStar::solve(cell sp, cell ep, int timeout){
             rewire(new_node, neighbors);
             travelled.push_back(new_node);
         }   
-        if(Distance::euclidean(new_node,ep) <= (3/4.0)*search_radius){
+        if(Distance::euclidean(new_node,ep) <= goal_radius && Sampling::is_collision_free(new_node, ep, tree)){
             goal_reached = true;
             if(parent[new_node] != ep) {
                 parent[ep] = new_node;
@@ -54,10 +53,13 @@ pair<vector<cell>, float> RRTStar::reconstruct_path(cell sp, cell ep){
     auto data = pair<vector<cell>, float>();
     if(sp != ep) data.first.push_back(ep);
     auto curr = ep;
+    set<cell> loop_check;
     while(curr != sp){
         curr = parent[curr];
         if(curr == cell{0, 0}) break; // Stop infinite loop if path not found
+        if(loop_check.find(curr) != loop_check.end()) break; // Stop infinite loop for finding parent node
         data.first.insert(data.first.begin(), curr);
+        loop_check.insert(curr);
     }
     data.second = cost_map[ep];
     return data;
@@ -85,7 +87,7 @@ vector<cell> RRTStar::find_neighbors(vector<cell> node_list, cell node){
 }
 
 cell RRTStar::steer(cell from_node, cell to_node){
-     float theta = atan2f32(float(to_node.second - from_node.second), float(to_node.first - from_node.first));
+    float theta = atan2f32(float(to_node.second - from_node.second), float(to_node.first - from_node.first));
     int closest_x = std::round(from_node.first + step_size*cos(theta*180.0/MathConstants::PI));
     int closest_y = std::round(from_node.second + step_size*sin(theta*180.0/MathConstants::PI));
     cell new_node = {closest_x, closest_y};
@@ -97,12 +99,12 @@ cell RRTStar::steer(cell from_node, cell to_node){
 cell RRTStar::choose_parent(vector<cell> neighbors, cell nearest_node, cell new_node){
     //std::complex<float> nv (new_node.first-nearest_node.first, new_node.second-nearest_node.second); // norm of vector
     float min_cost = cost_map[nearest_node] + Distance::euclidean(new_node, nearest_node);//sqrt(std::norm(nv));
-    cell best_node = {nearest_node.first, nearest_node.second};
+    cell best_node = nearest_node; //.first, nearest_node.second};
     for(auto nb: neighbors){
         //std::complex<float> nv2 (new_node.first-n.first, new_node.second-n.second); // norm of vector
         float cost = cost_map[nb] + Distance::euclidean(new_node, nb);//sqrt(std::norm(nv2));
-        if(cost < min_cost && Sampling::is_collision_free(nearest_node, nb, tree)){
-            best_node = {nb.first, nb.second};
+        if(cost < min_cost && Sampling::is_collision_free(new_node, nb, tree)){
+            best_node = nb; //.first, nb.second};
             min_cost = cost;
         }
     }
@@ -117,13 +119,15 @@ void RRTStar::rewire(cell new_node, vector<cell> neighbors){
         float cost = cost_map[new_node] + Distance::euclidean(new_node,nb);//sqrt(std::norm(nv));  
         if(cost < cost_map[nb] && Sampling::is_collision_free(new_node, nb, tree)){
             cost_map[nb] = cost;
+            parent[nb] = new_node;
         }
     }
 }
 
 void RRTStar::set_step_size(float size){
-    step_size = size;
+    step_size = (size >= AlgoConstants::STEP_SIZE_LOWER_LIMIT) ? size : AlgoConstants::STEP_SIZE_LOWER_LIMIT;
     search_radius = 2*step_size;
+    goal_radius = (search_radius >= 2) ? (3/4.0)*search_radius : 0.85*search_radius;
 }
 
 vector<cell> RRTStar::get_travelled_nodes(){

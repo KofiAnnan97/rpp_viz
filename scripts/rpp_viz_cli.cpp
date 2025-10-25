@@ -25,6 +25,7 @@ struct Parameters{
     bool show_debug = false, get_help = false, kill_script = false;
     int inflate_size = MapConstants::DEFAULT_INFLATE_SIZE, 
         neighbor_count = AlgoConstants::DEFAULT_NEIGHBOR_COUNT;
+    float step_size = AlgoConstants::DEFAULT_STEP_SIZE;
     SampleCountByAlgo sample_counts;
     cell start, goal;
 };
@@ -46,6 +47,7 @@ void print_help_menu(){
     cout << "                                              Only supported for sample-based methods (Default: " << AlgoConstants::DEFAULT_SAMPLE_COUNT << ").\n";
     cout << "   -k NEIGHBORS, --neighbors NEIGHBORS        Set the number of neighbors a node can have.\n";
     cout << "                                              Exlusive to PRM algorithm (Default: " << AlgoConstants::DEFAULT_NEIGHBOR_COUNT << ")\n";
+    cout << "   -z STEP_SIZE, --step-size STEP_SIZE        Set the step size for certain algorithms (Default: " << AlgoConstants::DEFAULT_STEP_SIZE << ")\n";
     cout << "   -s START_POS, --start-pos START_POS        Set start position [Format: \"int,int\"].\n";
     cout << "   -e END_POS, --end-pos END_POS              Set end position [Format: \"int,int\"].\n";
     cout << "   -d, --debug                                Provide more information for debugging.\n";
@@ -204,6 +206,29 @@ Parameters get_params(int argc, char* argv[]){
             }
             i++;
         }
+        else if(strcmp(argv[i], "-z") == 0 || strcmp(argv[i], "--step-size") == 0){
+            string missing_err = "[ERROR] Mising step size (float)";
+            if(i+1 >= argc){
+                cout << missing_err << endl;
+                params.kill_script = true;
+                break;
+            }
+            else {
+                try{
+                    params.step_size = std::stof(argv[i+1]);
+                }catch(std::invalid_argument e){
+                    if(argv[i+1][0] == '-'){
+                        cout << missing_err << endl;
+                        params.kill_script = true;
+                        break;
+                    }
+                    cout << "[WARN] Could not convert \"" << argv[i+1] << "\" to an float value. Defaulting step size to " 
+                         << AlgoConstants::DEFAULT_STEP_SIZE << ".\n";
+                    params.kill_script = false;
+                }
+            }
+            i++;
+        }
         else if(strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--start-pos") == 0){
             string missing_err = "[ERROR] Mising start position";
             if(i+1 >= argc){
@@ -340,18 +365,19 @@ void run_astar(Map &m, Graph g, bool debug){
     show_map("A*", m, g.root, g.end, path, travelled, debug);
 }
 
-void run_rrt_star(Map &m, Graph g, int sample_count, bool debug){
+void run_rrt_star(Map &m, Graph g, int sample_count, float step_size, bool debug){
     cout << "\nRRT-STAR" << endl;
     if(debug) cout << "Configuration:\n\tSample Count: " << sample_count << endl;
     auto rrt = RRTStar(g, sample_count);
-    
+    rrt.set_step_size(step_size);
+
     auto start_time = TimeHelper::get_time("Start Time", true);
     rrt.solve(g.root, g.end, compute_timeout);
     auto end_time = TimeHelper::get_time("End Time", true);
     int duration = duration_cast<milliseconds>(end_time - start_time).count();
 
     vector<cell> path;
-    auto travelled = rrt.get_travelled_tree(); //rrt.get_travelled_nodes();
+    auto travelled = rrt.get_travelled_tree();
     if(rrt.goal_reached){
         auto results = rrt.reconstruct_path(g.root, g.end);
         path = Sampling::get_connected_path(results.first);
@@ -424,7 +450,7 @@ int main(int argc, char* argv[]){
                 if(params.algo == CLIConstants::A_STAR_ID || params.algo == CLIConstants::ALL_ID) 
                     run_astar(map, g, params.show_debug);
                 if(params.algo == CLIConstants::RRT_STAR_ID || params.algo == CLIConstants::ALL_ID) 
-                    run_rrt_star(map, g, params.sample_counts.rrt_star_count, params.show_debug);
+                    run_rrt_star(map, g, params.sample_counts.rrt_star_count, params.step_size, params.show_debug);
                 if(params.algo == CLIConstants::PRM_ID || params.algo == CLIConstants::ALL_ID)
                     run_prm(map, g, params.sample_counts.prm_count, params.neighbor_count, params.show_debug);
                 //if(params.algo == "d-lite" || params.algo == ALL_ID) run_d_star_lite(map, g, params.show_debug);

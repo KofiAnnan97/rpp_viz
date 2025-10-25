@@ -1,5 +1,5 @@
 # Robot Path Planning Visualization
-A testing ground for path planning strategies based on ROS maps. Planned updates and fixes can be found here: [FutureWork.md](./FutureWork.md).
+A testing ground for path planning strategies based on ROS maps. Planned updates and fixes can be found here: [Roadmap.md](./Roadmap.md).
 
 ## Dependencies
 - CMake
@@ -67,6 +67,7 @@ options:
                                               Only supported for sample-based methods (Default: 10000).
    -k NEIGHBORS, --neighbors NEIGHBORS        Set the number of neighbors a node can have.
                                               Exlusive to PRM algorithm (Default: 6)
+   -z STEP_SIZE, --step-size STEP_SIZE        Set the step size for certain algorithms (Default: 1.0)
    -s START_POS, --start-pos START_POS        Set start position [Format: "int,int"].
    -e END_POS, --end-pos END_POS              Set end position [Format: "int,int"].
    -d, --debug                                Provide more information for debugging.
