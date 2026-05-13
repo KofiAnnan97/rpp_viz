@@ -1,6 +1,6 @@
 #include "probability_roadmap.hpp"
 
-#include "helper_func.cpp"
+#include "geometry_utils.hpp"
 
 PROBABILITY_ROADMAP::PROBABILITY_ROADMAP(Graph g, int sample_count, int neighbor_count){
     tree = g;

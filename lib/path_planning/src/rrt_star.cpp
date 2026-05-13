@@ -1,6 +1,6 @@
 #include "rrt_star.hpp"
 
-#include "helper_func.cpp"
+#include "geometry_utils.hpp"
 
 using namespace std::chrono;
 

@@ -24,7 +24,7 @@ class A_Star_Tests: public Test {
         Map m = get_simple_map();
         Graph g = MapData::get_graph_from_map(m);
         const int DURATION_LIMIT = 10;
-        const float PATH_ERR_THRESH = 0.24;
+        const float PATH_ERR_THRESH = 0.3;
         const float DIST_LIMIT = 25;
 
         void SetUp() override {

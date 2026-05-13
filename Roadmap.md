@@ -8,12 +8,13 @@
     - Bug Fixes/Optimizations
         - [X] Add more extensive error handling for CLI parameters
         - [X] Investigate PRM path generation sometimes resulting in collisions (usually occurs with small sample count)
-        - [ ] Optimize algorithms   
+        - [X] Optimize algorithms   
             - [X] convert map to unordered_map
             - [X] PRM find_nearest_neighbors() -> removed unecessary code (code it already at its expected performance level)
-            - [ ] Implement Priority queue for A*
+            - ~~[ ] Implement Priority queue for A* (resulted in slower performance so this change was discarded)~~
+        - [X] Investigate issue where running all the algorithms can cause the app to crash once paths are visualized 
     - Testing
-        - [ ] Confirm map conversion tests work properly
+        - [ ] Tweak map conversion tests
 
 # Backlog
  - General

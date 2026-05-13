@@ -21,6 +21,10 @@ using namespace cv;
 typedef pair<int,int> cell;     // coordingate from map (x,y) := (col,row)
 typedef pair<cell,int> iw_cell; // cell with integer weight
 
+typedef pair<float,float> pose2D;
+
+typedef std::chrono::_V2::system_clock::time_point c_time_point;
+
 template <>
 struct std::hash<cell> {
   size_t operator()(const cell& c) const {
@@ -34,6 +38,18 @@ struct Map{
     float resolution, m_width, m_height; // in meters
     int** boundaries;
 };
+
+// struct Coord{
+//     cell position;
+//     float f_score, heuristic, dist;
+// };
+
+// class CompareCoord{
+//     public:
+//         bool operator()(Coord a, Coord b){
+//             return a.f_score > b.f_score;
+//         }
+// };
 
 // Change this class to use unordered_map (requires default constructor)
 class Graph {
@@ -116,7 +132,8 @@ class MapData {
 
         // Map-Robot Conversions
         static cell POSE2PIXEL(Map map, float x, float y);
-        static pair<float, float> PIXEL2POSE(Map map, cell px);
+        static cell POSE2D2PIXEL(Map map, pose2D pose);
+        static pose2D PIXEL2POSE(Map map, cell px);
 
     private:
         static Map parse_pgm(string fp);

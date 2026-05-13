@@ -5,7 +5,6 @@
 #include <set>
 
 #include "map_data.hpp"
-#include "time_helper.hpp"
 
 using namespace std::chrono;
 

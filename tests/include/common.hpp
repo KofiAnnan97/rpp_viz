@@ -42,7 +42,7 @@ namespace testing{
         return "(" + std::to_string(pt.first) + "," + std::to_string(pt.second) + ")";
     }
 
-    static string POSE2STR(std::pair<float,float> pose){
+    static string POSE2STR(pose2D pose){
         return "(" + std::to_string(pose.first) + "," + std::to_string(pose.second) + ")";
     }
 

@@ -342,10 +342,14 @@ cell MapData::POSE2PIXEL(Map map, float x, float y){
     px.second = (x/y_pt_res) + map.px_height/2;
     return px;
 }
+
+cell MapData::POSE2D2PIXEL(Map map, pose2D pose){
+   return MapData::POSE2PIXEL(map, pose.first, pose.second);
+}
  
 // Rotates map 90 degrees counter-clockwise
-pair<float, float> MapData::PIXEL2POSE(Map map, cell px){
-    pair<float, float> pose;
+pose2D MapData::PIXEL2POSE(Map map, cell px){
+    pose2D pose;
     float x_pt_res = map.m_width*(1.0/map.px_width);
     float y_pt_res = map.m_height*(1.0/map.px_height);
     pose.first = x_pt_res*(px.second - map.px_width/2);

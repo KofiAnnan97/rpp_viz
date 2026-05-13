@@ -25,7 +25,6 @@ class AStar{
         unordered_map<cell, float> f;
         unordered_map<cell, cell> parent;
         vector<cell> travelled;
-        //std::priority_queue<Coord, vector<Coord>, CompareCoord> open_queue;
 };
 
 #endif // A_STAR_HPP

@@ -518,8 +518,8 @@ void MainWindow::handle_thread_finished(){
     //worker_thread->deleteLater();
     worker_thread->terminate();
     worker_thread->wait();
-    p_worker = nullptr;
-    worker_thread = nullptr;
+    //p_worker = nullptr;
+    //worker_thread = nullptr;
 }
 
 void MainWindow::on_btn_set_samples_clicked()

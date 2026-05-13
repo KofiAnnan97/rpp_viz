@@ -18,7 +18,7 @@
 #include "structs.hpp"
 #include "script_constants.hpp"
 
-#include "helper_func.cpp"
+#include "geometry_utils.hpp"
 
 struct Parameters{
     string algo, map_yaml;
